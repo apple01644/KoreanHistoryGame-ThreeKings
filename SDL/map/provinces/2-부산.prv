@@ -3,3 +3,194 @@ eco=4
 ind=2
 clt=4
 man=4
+pop={
+   support=0
+   issue=84
+   income=4
+   facism=12
+   liberty=57
+}
+
+pop={
+   support=0
+   issue=193
+   income=4
+   facism=9
+   liberty=59
+}
+
+pop={
+   support=1
+   issue=50
+   income=4
+   facism=27
+   liberty=42
+}
+
+pop={
+   support=1
+   issue=150
+   income=4
+   facism=28
+   liberty=39
+}
+
+pop={
+   support=1
+   issue=134
+   income=4
+   facism=32
+   liberty=41
+}
+
+pop={
+   support=1
+   issue=39
+   income=4
+   facism=27
+   liberty=41
+}
+
+pop={
+   support=1
+   issue=219
+   income=4
+   facism=28
+   liberty=42
+}
+
+pop={
+   support=1
+   issue=36
+   income=4
+   facism=28
+   liberty=41
+}
+
+pop={
+   support=1
+   issue=139
+   income=4
+   facism=33
+   liberty=43
+}
+
+pop={
+   support=1
+   issue=155
+   income=4
+   facism=33
+   liberty=43
+}
+
+pop={
+   support=1
+   issue=12
+   income=4
+   facism=33
+   liberty=41
+}
+
+pop={
+   support=3
+   issue=88
+   income=4
+   facism=-29
+   liberty=10
+}
+
+pop={
+   support=1
+   issue=113
+   income=4
+   facism=27
+   liberty=39
+}
+
+pop={
+   support=1
+   issue=67
+   income=4
+   facism=27
+   liberty=42
+}
+
+pop={
+   support=1
+   issue=160
+   income=4
+   facism=30
+   liberty=39
+}
+
+pop={
+   support=1
+   issue=5
+   income=4
+   facism=30
+   liberty=42
+}
+
+pop={
+   support=1
+   issue=234
+   income=4
+   facism=30
+   liberty=43
+}
+
+pop={
+   support=1
+   issue=58
+   income=4
+   facism=30
+   liberty=43
+}
+
+pop={
+   support=1
+   issue=130
+   income=4
+   facism=33
+   liberty=40
+}
+
+pop={
+   support=1
+   issue=6
+   income=4
+   facism=29
+   liberty=43
+}
+
+pop={
+   support=2
+   issue=65
+   income=4
+   facism=-10
+   liberty=12
+}
+
+pop={
+   support=2
+   issue=132
+   income=4
+   facism=-12
+   liberty=7
+}
+
+pop={
+   support=3
+   issue=148
+   income=4
+   facism=-29
+   liberty=9
+}
+
+pop={
+   support=4
+   issue=29
+   income=4
+   facism=-58
+   liberty=-28
+}

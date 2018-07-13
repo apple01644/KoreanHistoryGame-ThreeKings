@@ -3,3 +3,122 @@ eco=3
 ind=5
 clt=3
 man=5
+pop={
+   support=1
+   issue=251
+   income=3
+   facism=33
+   liberty=38
+}
+
+pop={
+   support=1
+   issue=142
+   income=3
+   facism=31
+   liberty=39
+}
+
+pop={
+   support=1
+   issue=94
+   income=3
+   facism=27
+   liberty=41
+}
+
+pop={
+   support=1
+   issue=147
+   income=3
+   facism=32
+   liberty=40
+}
+
+pop={
+   support=1
+   issue=150
+   income=3
+   facism=30
+   liberty=38
+}
+
+pop={
+   support=1
+   issue=169
+   income=3
+   facism=28
+   liberty=39
+}
+
+pop={
+   support=1
+   issue=231
+   income=3
+   facism=32
+   liberty=37
+}
+
+pop={
+   support=2
+   issue=160
+   income=3
+   facism=-11
+   liberty=10
+}
+
+pop={
+   support=2
+   issue=40
+   income=3
+   facism=-9
+   liberty=9
+}
+
+pop={
+   support=2
+   issue=67
+   income=3
+   facism=-12
+   liberty=13
+}
+
+pop={
+   support=2
+   issue=33
+   income=3
+   facism=-7
+   liberty=7
+}
+
+pop={
+   support=2
+   issue=240
+   income=3
+   facism=-8
+   liberty=9
+}
+
+pop={
+   support=2
+   issue=155
+   income=3
+   facism=-8
+   liberty=12
+}
+
+pop={
+   support=2
+   issue=206
+   income=3
+   facism=-12
+   liberty=7
+}
+
+pop={
+   support=5
+   issue=67
+   income=3
+   facism=122
+   liberty=120
+}

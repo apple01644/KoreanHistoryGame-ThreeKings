@@ -3,3 +3,26 @@ eco=2
 ind=2
 clt=4
 man=1
+pop={
+   support=1
+   issue=51
+   income=2
+   facism=28
+   liberty=37
+}
+
+pop={
+   support=2
+   issue=99
+   income=2
+   facism=-7
+   liberty=8
+}
+
+pop={
+   support=3
+   issue=121
+   income=2
+   facism=-30
+   liberty=7
+}

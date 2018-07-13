@@ -296,8 +296,7 @@ void gfx_read(std::string path, int i, std::string tag)
 		SDL_SetColorKey(gfx[tag + "\\" + key].s, SDL_TRUE, SDL_MapRGB(gfx[tag + "\\" + key].s->format, 255, 0, 255));
 		LOG_O("SUCCESS READ FILE AS SPRITE", path);
 		gfx[tag + "\\" + key].t = SDL_CreateTextureFromSurface(REND, gfx[tag + "\\" + key].s);
-		keys[tag + "[" + std::to_string(i) +"]"]= tag + "\\" + key;
-		LOG_H("123456",tag + "[" + std::to_string(i) + "]");
+		keys[tag + "[" + std::to_string(i) + "]"] = tag + "\\" + key;
 		if (gfx[tag + "\\" + key].t == NULL)
 		{
 			LOG_W("CANT CONVERT TO TEXTURE", path);
@@ -305,6 +304,40 @@ void gfx_read(std::string path, int i, std::string tag)
 			quit = true;
 			return;
 		}
+	}
+
+}
+void music_read(std::string path, int i, std::string tag)
+{
+	std::string key = "";
+	for (int j = path.length() - 1; j > 0; j--)
+	{
+		if (path.at(j) == '\\')
+		{
+			for (int k = j + 1; k < path.length(); k++)
+			{
+				if (path.at(k) == '.')
+				{
+					key = path.substr(j + 1, k - j - 1);
+				}
+			}
+			break;
+		}
+	}
+
+	LOG_H("Key is ", tag + "\\" + key);
+	sfx[tag + "\\" + key] = Mix_LoadMUS(path.c_str());
+	if (sfx[tag + "\\" + key] == NULL)
+	{
+		LOG_W("CANT READ FILE AS MUSIC", path);
+		LOG_W(Mix_GetError());
+		quit = true;
+		return;
+	}
+	else
+	{
+		LOG_O("SUCCESS READ FILE AS Music", path);
+		keys[tag + "[" + std::to_string(i) + "]"] = tag + "\\" + key;
 	}
 
 }
@@ -334,11 +367,6 @@ void data_read(std::string path)
 		bool used = false;
 		for (std::string line; std::getline(in, line); i++, used = false)
 		{
-			if (i == 0)
-			{
-				line = line.substr(3);
-			}
-
 			for (int j = 0; j < line.length(); j++)
 			{
 				if (line.at(j) == ' ' || line.at(j) == '\t' || line.at(j) == '\r')
@@ -480,11 +508,17 @@ void prov_set()
 	tmp[0] = 0;
 }
 
+void data_set()
+{
+
+}
+
 void start()
 {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 	srand(time(NULL));
 
+	Mix_PlayMusic(sfx["music\\You_re_Not_Wrong"], -1);
 	std::string path = currentDir + "\\" + "map\\provinces";
 	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
@@ -504,6 +538,7 @@ void start()
 		}
 	}
 
+	SDL_Delay(1000);
 	SDL_SetRenderDrawColor(REND, 0x23, 0x23, 0x23, 0xFF);
 	SDL_RenderClear(REND);
 
@@ -552,6 +587,9 @@ void start()
 	int num = 0;
 	while (tmp[0] == 1)
 	{
+		set_rect(&r,0,0,800,128);
+		SDL_RenderCopy(REND, gfx["ui\\game_logo"].t, NULL, &r);
+
 		r.x = scr_w / 2 - 320;
 		r.y = scr_h / 2 - 240;
 		r.w = 640;
@@ -562,18 +600,57 @@ void start()
 		set_rect(&r, scr_w / 2 - 320, scr_h / 2 + 360 , 640,  scr_h / 2 - 480);
 		SDL_RenderCopy(REND, gfx["ui\\paper"].t, NULL, &r);
 		set_rect(&r, scr_w / 2 - 320, scr_h / 2 + 360 + 12, 640, scr_h / 2 - 480 - 24);
-		draw_string(0,"주변 동향을 잘 살피십시요. 상황이 어떻게 될지 모릅니다.", c_black, &r);
+		draw_string(0,keys["tip"], c_black, &r);
 
 
 		SDL_RenderPresent(REND);
-		SDL_Delay(5000);
+		SDL_Delay(3000);
 		num = (num + 1) % std::stoi(keys["loading"]);
 	}
-
+	data_set();
 	trd_step.join();
+	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);
+	
+}
 
+void draw_find(int x, int y)
+{
+	SDL_Rect r;
+
+	//Body
+	set_rect(&r, x + 0, y + 0, 300, 400);
+	SDL_RenderDrawRect(REND, &r);
+	SDL_RenderCopy(REND, gfx["ui\\body"].t ,NULL, &r);
+
+	//Upper Div
+	set_rect(&r, x + 20, y + 20, 300 - 40, 360 - 40);
+	SDL_RenderDrawRect(REND, &r);
+	SDL_RenderCopy(REND, gfx["ui\\body"].t, NULL, &r);
+
+	for (int i = 0; i < 320; i += 40)
+	{
+		set_rect(&r, x + 20, y + 20 + i, 300 - 40, 40);
+		SDL_RenderDrawRect(REND, &r);
+		SDL_RenderCopy(REND, gfx["ui\\body"].t, NULL, &r);
+	}
+
+
+	//Under Div
+	//set_rect(&r, x + 20, y + 360, 300 - 40, 20);
+	//SDL_RenderDrawRect(REND, &r);
+
+	//Accept
+	set_rect(&r, x + 20 + 5, y + 360, 110, 20);
+	SDL_RenderDrawRect(REND, &r);
+	SDL_RenderCopy(REND, gfx["ui\\button"].t, NULL, &r);
+	
+	//Deny
+	set_rect(&r, x + 20 + 150 - 5, y + 360, 110, 20);
+	SDL_RenderDrawRect(REND, &r);
+	SDL_RenderCopy(REND, gfx["ui\\button"].t, NULL, &r);
 
 }
+
 void step()
 {
 	while(!quit)
@@ -765,11 +842,13 @@ void draw()
 
 	draw_string(0, buf, c_white, &r);
 
-	SDL_SetRenderDrawColor(REND, 0xFF, 0x00, 0xFF, 0xFF);
-
 	//Potrait
+	set_rect(&r, 2, 2, 140, 140);
+	SDL_RenderCopy(REND, gfx["ui\\potrait_back"].t, NULL, &r);
 	set_rect(&r, 8, 8, 128, 128);
-	SDL_RenderDrawRect(REND, &r);
+	SDL_RenderCopy(REND, gfx["ui\\potrait_case"].t, NULL, &r);
+
+	draw_find(500,50);
 
 	return;
 }
@@ -836,7 +915,7 @@ bool init()
 	_getcwd(curDir, 1000);
 	currentDir = curDir;
 	LOG_H("This Programm run in ", currentDir);
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		LOG_W("SDL_INIT Failed : ", SDL_GetError());
 		return false;
@@ -847,7 +926,15 @@ bool init()
 		LOG_W("WIN_INIT Failed : ", SDL_GetError());
 		return false;
 	}
-	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+
+	/*int flags = MIX_INIT_OGG | MIX_INIT_MP3;
+	int result = 0;
+	if (flags != (result = Mix_Init(flags))) {
+		LOG_W("MIX INIT WITH MP3 Failed", std::to_string(result));
+		LOG_W(Mix_GetError());
+		return false;
+	}*/
+	if (Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640) < 0)
 	{
 		LOG_W("MIX_INIT Failed : ", Mix_GetError());
 		return false;
@@ -909,17 +996,28 @@ bool loadMedia()
 			LOG_A(("FONT_FILE is EMPTY in " + std::to_string(a)));
 		}
 	}
-
-	gMusic = Mix_LoadMUS((currentDir + "\\" + "music\\test.wav").c_str());
-	if (gMusic == NULL)
-	{
-		LOG_W("MUSIC_FILE is CORRUPT in " + currentDir + "music\\test.wav");
-	}
-
+	
 	int num = 0;
 	std::string path , tag;
+
+	tag = "music";
+	path = currentDir + "\\" + tag + "\\";
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		music_read(pStr,num,tag);
+		num++;
+	}
+	keys[tag] = num;
+
+
+
+
 	tag = "common";
-	path = currentDir + "\\" + "gfx\\common";
+	path = currentDir + "\\" + "common\\";
 	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
 		char* pStr;
@@ -964,8 +1062,6 @@ bool loadMedia()
 }
 void close()
 {
-	Mix_FreeMusic(gMusic);
-
 	for (auto i = gfx.begin(); i != gfx.end(); i++)
 	{
 		if ((*i).second.t != NULL)
@@ -975,6 +1071,13 @@ void close()
 		if ((*i).second.s != NULL)
 		{
 			SDL_FreeSurface((*i).second.s);
+		}
+	}
+	for (auto i = sfx.begin(); i != sfx.end(); i++)
+	{
+		if ((*i).second != NULL)
+		{
+			Mix_FreeMusic((*i).second);
 		}
 	}
 
@@ -987,6 +1090,9 @@ void close()
 		}
 	}
 
+	
+
+	Mix_CloseAudio();
 	SDL_DestroyRenderer(REND);
 	SDL_DestroyWindow(WNDW);
 	REND = NULL;

@@ -73,7 +73,6 @@ SDL_Window* WNDW = NULL;
 SDL_Surface* SURF;
 SDL_Renderer* REND;
 
-extern Mix_Music *gMusic = NULL;
 
 ///////////////////////////
 //         COLOR         //
@@ -82,11 +81,6 @@ extern Mix_Music *gMusic = NULL;
 extern Uint32 color(int, int, int);
 extern SDL_Color c_black = { 0, 0, 0 };
 extern SDL_Color c_white = { 255, 255, 255 };
-
-
-
-
-
 
 ///////////////////////////
 //       IMPORTANT       //
@@ -98,7 +92,9 @@ struct Gfx
 	SDL_Surface* s;
 };
 
+
 std::unordered_map<std::string, Gfx> gfx;
+std::unordered_map<std::string, Mix_Music*> sfx;
 
 int max_sprite = 1;
 
@@ -139,6 +135,59 @@ struct Party
 };
 Party party[MAX_PARTY];
 
+struct Man {
+	std::string name = "이름없음";
+	unsigned int born_year = 1983;
+	unsigned long id;
+	long money = 0;
+	long prestige = 0;
+	char fascist = rand();
+	char liberty = rand();
+	unsigned char honor = rand();
+	unsigned char ambition = rand();
+	unsigned char religion = rand();
+	std::unordered_map<std::string, bool> traits;
+};
+
+
+struct Media{
+	unsigned long owner = 0;
+	std::string name;
+	long money = 0;
+	unsigned long power = 0;
+};
+
+struct Force{
+	unsigned long owner = 0;
+	std::string name;
+	long money = 0;
+	unsigned long power = 0;
+	char good = 0;
+
+};
+
+struct Company{
+	unsigned long owner = 0;
+	std::string name;
+	long money = 0;
+	unsigned long power = 0;
+};
+
+struct Education{
+	unsigned long owner = 0;
+	std::string name;
+	long money = 0;
+	unsigned long power = 0;
+	unsigned int type = 0;
+
+};
+
+enum { msgtype_None };
+
+struct Message
+{
+	unsigned int type = msgtype_None;
+};
 
 ///////////////////////////
 //         USER          //
@@ -153,3 +202,8 @@ unsigned long long delay = 0;
 int tmp[16];
 std::vector<std::string> scope;
 std::unordered_map<std::string, std::string> keys;
+std::list<Message> msg;
+std::list<Media> media;
+std::list<Force> force;
+std::list<Company> company;
+std::list<Education> education;
