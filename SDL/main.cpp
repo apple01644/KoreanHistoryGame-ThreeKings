@@ -12,7 +12,6 @@ int main(int argc, char* args[])
 	else
 	{
 		if (!loadMedia())
-
 		{
 			LOG_W("System Load Failed");
 		}
@@ -142,9 +141,9 @@ void file_proc(int id, std::string s1, std::string s2)
 		prv[id].eco = std::stoi(s2);
 		return;
 	}
-	if (s1 == "scope")
+	if (s2 == "{")
 	{
-		scope = s2;
+		scope.push_back(s1);
 		return;
 	}
 	if (s1 == "index")
@@ -176,7 +175,7 @@ void file_prov_read(std::string path)
 	{
 		tmp[i] = 0;
 	}
-	scope = "";
+	scope.clear();
 	for (int j = path.length() - 1; j > 0 ; j--)
 	{
 		if (path.at(j) == '\\')
@@ -187,6 +186,14 @@ void file_prov_read(std::string path)
 				{
 					id = std::stoi(path.substr(j + 1, k - j - 1)) - 1;
 					prv[id].name = path.substr(k + 1);
+					for (int l = k + 2; l < path.length(); l++)
+					{
+						if (path.at(l) == '.')
+						{
+							prv[id].name = path.substr(k + 1, l - k - 1);
+							break;
+						}
+					}
 				}
 			}
 			break;
@@ -200,70 +207,192 @@ void file_prov_read(std::string path)
 	if (in.is_open())
 	{
 		int i = 0;
-		for (std::string line; std::getline(in, line); i++)
+		bool used = false;
+		for (std::string line; std::getline(in, line); i++, used = false)
 		{
 			if (i == 0)
 			{
 				line = line.substr(3);
+			}
+
+			for (int j = 0; j < line.length(); j++)
+			{
+				if (line.at(j) == ' ' || line.at(j) == '\t' || line.at(j) == '\r')
+				{
+					line.erase(line.begin() + j);
+				}
 			}
 			for (int j = 0; j < line.length(); j++)
 			{
 				if (line.at(j) == '=')
 				{
 					file_proc(id, line.substr(0, j), line.substr(j + 1, line.length() - j - 1));
+					used = true;
 					break;
 				}
 			}
-			LOG_H(line);
+			if (!used)
+			{
+				if (line == "}")
+				{
+					scope.pop_back();
+				}
+			}
+
+			int j = 0;
+			for (std::string s : scope)
+			{
+				LOG_H(std::to_string(j),s);
+				j++;
+			}
+
+
 		}
 		in.close();
-		LOG_O("Succeed Reading of ", path);
+		if (scope.end() - scope.begin() != 0)
+		{
+			LOG_O("Syntax Error of ", path);
+			quit = true;
+		}
+		else
+		{
+			LOG_O("Succeed Reading of ", path);
+		}
 	}
 	else
 	{
 		LOG_W("Failed Reading of ", path);
 	}
 }
-
-void start()
+void gfx_read(std::string path, int i, std::string tag)
 {
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-	srand(time(NULL));
-	
-
-	for (int i = 0; i < MAX_PROV; i++)
+	std::string key = "";
+	for (int j = path.length() - 1; j > 0; j--)
 	{
-		for (int j = 0; j < prv[i].man * 3; j++)
+		if (path.at(j) == '\\')
 		{
-			Pop p;
-			prv[i].pop.push_back(p);
-		}
-	}
-
-	std::string path = currentDir+"\\"+"map\\provinces";
-	for (auto p : std::experimental::filesystem::directory_iterator(path))
-	{
-		char* pStr;
-		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
-		pStr = new char[strSize];
-		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
-		file_prov_read(pStr);
-	}
-	for (int i = 0; i < MAX_SPRITE; i++)
-	{
-		if (sprite_surf[i] == NULL)
-		{
-			NUM_SPR = i;
+			for (int k = j + 1; k < path.length(); k++)
+			{
+				if (path.at(k) == '.')
+				{
+					key = path.substr(j + 1, k - j - 1);
+				}
+			}
 			break;
 		}
 	}
-	LOG_H("NUM_SPR : ", std::to_string(NUM_SPR));
+
+	LOG_H("Key is ", tag + "\\" + key);
+	gfx[tag + "\\" + key].s = IMG_Load(path.c_str());
+	if (gfx[tag + "\\" + key].s == NULL)
+	{
+		LOG_W("CANT READ FILE AS SPRITE", path);
+		LOG_W(IMG_GetError());
+		quit = true;
+		return;
+	}
+	else
+	{
+		SDL_SetColorKey(gfx[tag + "\\" + key].s, SDL_TRUE, SDL_MapRGB(gfx[tag + "\\" + key].s->format, 255, 0, 255));
+		LOG_O("SUCCESS READ FILE AS SPRITE", path);
+		gfx[tag + "\\" + key].t = SDL_CreateTextureFromSurface(REND, gfx[tag + "\\" + key].s);
+		keys[tag + "[" + std::to_string(i) +"]"]= tag + "\\" + key;
+		LOG_H("123456",tag + "[" + std::to_string(i) + "]");
+		if (gfx[tag + "\\" + key].t == NULL)
+		{
+			LOG_W("CANT CONVERT TO TEXTURE", path);
+			LOG_W(SDL_GetError());
+			quit = true;
+			return;
+		}
+	}
+
+}
+void data_proc( std::string s1, std::string s2)
+{
+	if (s2 == "{")
+	{
+		scope.push_back(s1);
+		return;
+	}
+
+	keys[s1] = s2;
+	LOG_H(s1,s2);
+}
+void data_read(std::string path)
+{
+	std::ifstream in(path.c_str());
+
+	for (int i = 0; i < 16; i++)
+	{
+		tmp[i] = 0;
+	}
+	scope.clear();
+	if (in.is_open())
+	{
+		int i = 0;
+		bool used = false;
+		for (std::string line; std::getline(in, line); i++, used = false)
+		{
+			if (i == 0)
+			{
+				line = line.substr(3);
+			}
+
+			for (int j = 0; j < line.length(); j++)
+			{
+				if (line.at(j) == ' ' || line.at(j) == '\t' || line.at(j) == '\r')
+				{
+					line.erase(line.begin() + j);
+				}
+			}
+			for (int j = 0; j < line.length(); j++)
+			{
+				if (line.at(j) == '=')
+				{
+					data_proc(line.substr(0, j), line.substr(j + 1, line.length() - j - 1));
+					used = true;
+					break;
+				}
+			}
+			if (!used)
+			{
+				if (line == "}")
+				{
+					scope.pop_back();
+				}
+			}
+		}
+		in.close();
+
+		if (scope.end() - scope.begin() != 0)
+		{
+			LOG_O("Syntax Error of ", path);
+			quit = true;
+		}
+		else
+		{
+			LOG_O("Succeed Reading of ", path);
+		}
+	}
+	else
+	{
+		LOG_O("Failed Reading of ", path);
+	}
+
+
+}
+
+void prov_set()
+{
+
+	SDL_Surface* map = IMG_Load((currentDir + "\\" + "map\\prov.bmp").c_str());
 
 	int w, h;
 
-	w = sprite_surf[0]->w;
-	h = sprite_surf[0]->h;
-	unsigned char* pixels = (unsigned char*)sprite_surf[0]->pixels;
+	w = map->w;
+	h = map->h;
+	unsigned char* pixels = (unsigned char*)map->pixels;
 
 	for (int a = 0; a < w; a++)
 	{
@@ -344,12 +473,56 @@ void start()
 					}
 				}
 			}
-			SDL_SetColorKey(prov,SDL_TRUE, 0);
+			SDL_SetColorKey(prov, SDL_TRUE, 0);
 			prv[i].t = SDL_CreateTextureFromSurface(REND, prov);
 		}
 	}
+	tmp[0] = 0;
+}
+
+void start()
+{
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+	srand(time(NULL));
+
+	std::string path = currentDir + "\\" + "map\\provinces";
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		file_prov_read(pStr);
+	}
+
+	for (int i = 0; i < MAX_PROV; i++)
+	{
+		for (int j = 0; j < prv[i].man * 3; j++)
+		{
+			Pop p;
+			prv[i].pop.push_back(p);
+		}
+	}
+
+	SDL_SetRenderDrawColor(REND, 0x23, 0x23, 0x23, 0xFF);
+	SDL_RenderClear(REND);
+
+	SDL_Rect r;
+	r.x = scr_w / 2 - 320;
+	r.y = scr_h / 2 - 240;
+	r.w = 640;
+	r.h = 480;
 
 
+	r.x -= 16;
+	r.y -= 16;
+	r.w += 32;
+	r.h += 32;
+	SDL_RenderCopy(REND, gfx["ui\\back_board"].t, NULL, &r);
+	
+
+	std::thread trd_step(prov_set);
+	tmp[0] = 1;
 
 	party[0].name = "자유 민주 연합";
 	party[0].facism = 10;
@@ -376,7 +549,28 @@ void start()
 	party[4].liberty = -30;
 	party[4].c = color(0,0,0);
 
+	int num = 0;
+	while (tmp[0] == 1)
+	{
+		r.x = scr_w / 2 - 320;
+		r.y = scr_h / 2 - 240;
+		r.w = 640;
+		r.h = 480;
+		set_rect(&r, scr_w / 2 - 320, scr_h / 2 - 240, 640, 480);
+		SDL_RenderCopy(REND, gfx[keys["loading[" + std::to_string(num) +"]"]].t, NULL, &r);
 
+		set_rect(&r, scr_w / 2 - 320, scr_h / 2 + 360 , 640,  scr_h / 2 - 480);
+		SDL_RenderCopy(REND, gfx["ui\\paper"].t, NULL, &r);
+		set_rect(&r, scr_w / 2 - 320, scr_h / 2 + 360 + 12, 640, scr_h / 2 - 480 - 24);
+		draw_string(0,"주변 동향을 잘 살피십시요. 상황이 어떻게 될지 모릅니다.", c_black, &r);
+
+
+		SDL_RenderPresent(REND);
+		SDL_Delay(5000);
+		num = (num + 1) % std::stoi(keys["loading"]);
+	}
+
+	trd_step.join();
 
 
 }
@@ -400,7 +594,7 @@ void draw()
 	SDL_RenderClear(REND);
 
 	SDL_Rect r;
-	SDL_Texture* text;
+	
 	double per = 0.66;
 	double wper = per * (scr_w / 1920.0);
 	double hper = per * (scr_h / 1080.0);
@@ -423,7 +617,7 @@ void draw()
 		}
 	}
 	double D = 0;
-
+	
 	for (int i = 0; i < MAX_PROV; i++)
 	{
 		set_rect(&r, prv[i].x1 * wper + 840 * wper, prv[i].y1 * hper, (prv[i].x2 - prv[i].x1 + 1) * wper, (prv[i].y2 - prv[i].y1 + 1) * hper);
@@ -444,7 +638,7 @@ void draw()
 
 		SDL_RenderCopy(REND, prv[i].t, NULL, &r);
 	}
-
+	
 	SDL_SetRenderDrawColor(REND, 0x40, 0x40, 0x40, 0xFF);
 	//Potrait
 	set_rect(&r, 0, 0, 144, 144);
@@ -452,43 +646,42 @@ void draw()
 
 	//Left Menu
 	set_rect(&r, 0, 144, 48, 48 * 6);
-	SDL_RenderCopy(REND, sprite[17], NULL, &r);
-
+	SDL_RenderCopy(REND, gfx["ui\\left_menu_body"].t, NULL, &r);
+	
 	//Left menu Items
 	for (int i = 0; i < 6; i++)
 	{
 		set_rect(&r, 4, 144 + 48 * i + 4, 40, 40);
-		SDL_RenderCopy(REND, sprite[1], NULL, &r);
+		SDL_RenderCopy(REND, gfx["ui\\left_menu_button"].t, NULL, &r);
 	}
-
+	
 	set_rect(&r, 12, 144 + 12, 24, 24);
-	SDL_RenderCopy(REND, sprite[8], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\goverment"].t, NULL, &r);
 
 	set_rect(&r, 12, 144 + 48 * 1 + 12, 24, 24);
-	SDL_RenderCopy(REND, sprite[6], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\company"].t, NULL, &r);
 
 	set_rect(&r, 12, 144 + 48 * 2 + 12, 24, 24);
-	SDL_RenderCopy(REND, sprite[7], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\court"].t, NULL, &r);
 
 	set_rect(&r, 12, 144 + 48 * 3 + 12, 24, 24);
-	SDL_RenderCopy(REND, sprite[9], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\gun"].t, NULL, &r);
 
 	set_rect(&r, 12, 144 + 48 * 4 + 12, 24, 24);
-	SDL_RenderCopy(REND, sprite[5], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\book"].t, NULL, &r);
 
 	set_rect(&r, 12, 144 + 48 * 5 + 12, 24, 24);
-	SDL_RenderCopy(REND, sprite[10], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\note"].t, NULL, &r);
 
 
 	set_rect(&r, scr_w - 244 + 8, 32 + 8, 24, 24);
-	SDL_RenderCopy(REND, sprite[12], NULL, &r);
-
+	SDL_RenderCopy(REND, gfx["ui\\eard_menu_close"].t, NULL, &r);
 
 	//Left menu Trailer
 	set_rect(&r, 0, 144 + 48 * 6, 24, 32);
-	SDL_RenderCopy(REND, sprite[15], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\left_arrow"].t, NULL, &r);
 	set_rect(&r, 24, 144 + 48 * 6 , 24, 32);
-	SDL_RenderCopy(REND, sprite[16], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\right_arrow"].t, NULL, &r);
 
 	//Rigth-hand Info
 	set_rect(&r, 144, 0, 100, 144);
@@ -497,30 +690,32 @@ void draw()
 	for (int i = 0; i < right_hand_items; i++)
 	{
 		set_rect(&r, 144, (i * 144 / right_hand_items), 100, 144 / right_hand_items);
-		SDL_RenderCopy(REND, sprite[13], NULL, &r);
+		SDL_RenderCopy(REND, gfx["ui\\right_heard_body"].t, NULL, &r);
 	}
+
+	//gfx[""].t
 
 	//Right Heard
 	set_rect(&r, scr_w - 244, 32, 244, 176);
-	SDL_RenderCopy(REND, sprite[13], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\right_heard_body"].t, NULL, &r);
 
 	//Right heard Open
 	set_rect(&r, scr_w - 244, 168, 40, 40);
-	SDL_RenderCopy(REND, sprite[1], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\left_menu_button"].t, NULL, &r);
 
 	set_rect(&r, scr_w - 244 + 8, 168 + 8, 24, 24);
-	SDL_RenderCopy(REND, sprite[11], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\heard_menu_open"].t, NULL, &r);
 
 	//Right heard Close
 	set_rect(&r, scr_w - 244, 32, 40, 40);
-	SDL_RenderCopy(REND, sprite[1], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\left_menu_button"].t, NULL, &r);
 
 	set_rect(&r, scr_w - 244 + 8, 40, 24, 24);
-	SDL_RenderCopy(REND, sprite[12], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\heard_menu_close"].t, NULL, &r);
 
 	//Issue & News
-	set_rect(&r, scr_w / 2 - 400, scr_h - 20, 800, 20);
-	SDL_RenderDrawRect(REND, &r);
+	set_rect(&r, scr_w / 2 - 400, scr_h - 20, 800, 800);
+	SDL_RenderCopy(REND, gfx["ui\\paper"].t, NULL, &r);
 
 
 	//Minimap Header
@@ -529,16 +724,16 @@ void draw()
 	for (int i = 0; i < minimap_header_items; i++)
 	{
 		set_rect(&r, scr_w - 300 + (300.0 * i / minimap_header_items), scr_h - 240, 300 / minimap_header_items, 30);
-		SDL_RenderCopy(REND, sprite[13], NULL, &r);
+		SDL_RenderCopy(REND, gfx["ui\\right_heard_body"].t, NULL, &r);
 	}
 	set_rect(&r, scr_w - 300 + (300 / minimap_header_items - 25) / 2, scr_h - 240 + 3, 25 , 25);
-	SDL_RenderCopy(REND, sprite[18], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\developed"].t, NULL, &r);
 	set_rect(&r, scr_w + (300.0 * 1 / minimap_header_items) - 300 + (300 / minimap_header_items - 25) / 2, scr_h - 240 + 3, 25, 25);
-	SDL_RenderCopy(REND, sprite[19], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\party"].t, NULL, &r);
 
 	//Minimap
 	set_rect(&r, scr_w - 300, scr_h - 210, 300, 170);
-	SDL_RenderCopy(REND, sprite[13], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\right_heard_body"].t, NULL, &r);
 
 	//Minimap Trailer
 	set_rect(&r, scr_w - 300, scr_h - 40, 300, 40);
@@ -549,30 +744,26 @@ void draw()
 		set_rect(&r, scr_w - 300 + (i * 300.0 / minimap_trailer_items), scr_h - 40, 300 / minimap_trailer_items, 40);
 		if (i == 0)
 		{
-			SDL_RenderCopy(REND, sprite[2], NULL, &r);
+			SDL_RenderCopy(REND, gfx["ui\\minimap_trailer_find_button"].t, NULL, &r);
 		}
 		else if (i == 1)
 		{
-			SDL_RenderCopy(REND, sprite[3], NULL, &r);
+			SDL_RenderCopy(REND, gfx["ui\\minimap_trailer_help_button"].t, NULL, &r);
 		}
 		else if (i == 2)
 		{
-			SDL_RenderCopy(REND, sprite[4], NULL, &r);
+			SDL_RenderCopy(REND, gfx["ui\\minimap_trailer_menu_button"].t, NULL, &r);
 		}
 		SDL_RenderDrawRect(REND, &r);
 	}
-
 	//Timer
 	set_rect(&r, scr_w - 244, 0, 244, 32);
-	SDL_RenderCopy(REND, sprite[14], NULL, &r);
+	SDL_RenderCopy(REND, gfx["ui\\timer_body"].t, NULL, &r);
 	set_rect(&r, scr_w - 244 + 26, 4, 182, 20);
-	char buf[320] = {0,};
-	sprintf_s(buf, "%d년 %02d월 %02d일\n",year,mon,day);
-	text = draw_string(fonts[0], buf, &c_white);
-	SDL_RenderCopy(REND, text, NULL, &r);
+	char buf[320] = { 0, };
+	sprintf_s(buf, "%d년 %02d월 %02d일\n", year, mon, day);
 
-
-
+	draw_string(0, buf, c_white, &r);
 
 	SDL_SetRenderDrawColor(REND, 0xFF, 0x00, 0xFF, 0xFF);
 
@@ -580,14 +771,11 @@ void draw()
 	set_rect(&r, 8, 8, 128, 128);
 	SDL_RenderDrawRect(REND, &r);
 
-	
-
-	SDL_DestroyTexture(text);
 	return;
 }
 void ui(SDL_Event *e)
 {
-	SDL_Rect r;
+	//SDL_Rect r;
 	int x, y;
 	draw();
 
@@ -620,11 +808,12 @@ void ui(SDL_Event *e)
 }
 
 
-SDL_Texture* draw_string(TTF_Font* font, std::string s, SDL_Color* color) {
-
-	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, TTF_RenderUTF8_Solid(font, s.c_str(), *color));
-	
-	return t;
+void draw_string(int i, std::string s, SDL_Color color, SDL_Rect* r) {
+	SDL_Surface* surf = TTF_RenderUTF8_Solid(fonts[i], s.c_str(), color);
+	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, surf);
+	SDL_FreeSurface(surf);
+	SDL_RenderCopy(REND, t, NULL, r);
+	SDL_DestroyTexture(t);
 }
 
 void set_rect(SDL_Rect *r, int x, int y, int w, int h)
@@ -679,6 +868,26 @@ bool init()
 }
 bool loadMedia()
 {
+	SDL_Surface* Logo = IMG_Load((currentDir + "\\gfx\\ui\\logo.bmp").c_str());
+	SDL_Surface* Back = IMG_Load((currentDir + "\\gfx\\ui\\right_heard_body.bmp").c_str());
+	LOG_H(IMG_GetError());
+	SDL_SetColorKey(Logo, SDL_TRUE, color(255, 0, 255));
+	SDL_Texture* Logo_t = SDL_CreateTextureFromSurface(REND,Logo);
+	SDL_Texture* Back_t = SDL_CreateTextureFromSurface(REND, Back);
+
+	SDL_Rect r;
+	set_rect(&r, scr_w / 2 - 512, scr_h / 2 - 512, 1024, 1024);
+
+	SDL_RenderCopy(REND, Back_t, NULL, NULL);
+	SDL_RenderCopy(REND, Logo_t, NULL, &r);
+
+	SDL_RenderPresent(REND);
+	SDL_FreeSurface(Logo);
+	SDL_FreeSurface(Back);
+	SDL_DestroyTexture(Logo_t);
+	SDL_DestroyTexture(Back_t);
+
+
 	bool success = true;
 	for (int a = 0; a < MAX_FONT; a++)
 	{
@@ -707,43 +916,67 @@ bool loadMedia()
 		LOG_W("MUSIC_FILE is CORRUPT in " + currentDir + "music\\test.wav");
 	}
 
-	for (int a = 0; a < MAX_SPRITE; a++)
+	int num = 0;
+	std::string path , tag;
+	tag = "common";
+	path = currentDir + "\\" + "gfx\\common";
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
-		if (sprite_file[a] != "")
-		{
-			sprite_surf[a] = IMG_Load((currentDir + "\\" + sprite_file[a]).c_str());
-			if (sprite_surf[a] == NULL)
-			{
-				LOG_W("SPRITE_FILE is CORRUPT in " + std::to_string(a) + "\n" + currentDir + "\\" + sprite_file[a] + "\n");
-				success = false;
-			}
-			else
-			{
-				//SDL_SetColorKey(sprite_surf[2], SDL_TRUE, SDL_MapRGB(sprite_surf[2]->format, 0, 0, 0));
-				SDL_SetColorKey(sprite_surf[a], SDL_TRUE, SDL_MapRGB(sprite_surf[a]->format, 255, 0, 255));
-				LOG_O(("SPRITE_FILE is LOADED in " + std::to_string(a)));
-
-				sprite[a] = SDL_CreateTextureFromSurface(REND, sprite_surf[a]);
-				if (sprite[a] == NULL)
-				{
-					LOG_W("FAILED MAKE TEXTURE in " + std::to_string(a), SDL_GetError());
-					success = false;
-				}
-
-			}
-		}
-		else
-		{
-			LOG_A(("SPRITE_FILE is EMPTY in " + std::to_string(a)));
-		}
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		data_read(pStr);
+		num++;
 	}
+	keys[tag] = num;
+
+	tag = "ui";
+	path = currentDir + "\\" + "gfx\\" + tag;
+	num = 0;
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		gfx_read(pStr, num, tag);
+		num++;
+	}
+	keys[tag] = num;
+
+
+	tag = "loading";
+	path = currentDir + "\\" + "gfx\\" + tag;
+	num = 0;
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		gfx_read(pStr, num, tag);
+		num++;
+	}
+	keys[tag] = std::to_string(num);
+
 	return success;
 }
 void close()
 {
 	Mix_FreeMusic(gMusic);
 
-
+	for (auto i = gfx.begin(); i != gfx.end(); i++)
+	{
+		if ((*i).second.t != NULL)
+		{
+			SDL_DestroyTexture((*i).second.t);
+		}
+		if ((*i).second.s != NULL)
+		{
+			SDL_FreeSurface((*i).second.s);
+		}
+	}
 
 	for (int a = 0; a < MAX_FONT; a++)
 	{
@@ -751,23 +984,6 @@ void close()
 		{
 			TTF_CloseFont(fonts[a]);
 			fonts[a] = NULL;
-		}
-	}
-	for (int a = 0; a < MAX_SPRITE; a++)
-	{
-		if (sprite[a] != NULL)
-		{
-			SDL_DestroyTexture(sprite[a]);
-			sprite[a] = NULL;
-		}
-		if (texture[a] != NULL)
-		{
-			SDL_DestroyTexture(texture[a]);
-			texture[a] = NULL;
-		}
-		if (sprite_surf[a] != NULL)
-		{
-			SDL_FreeSurface(sprite_surf[a]);
 		}
 	}
 
@@ -816,44 +1032,8 @@ void LOG_H(std::string s, std::string s2)
 }
 void LOG_O(std::string s, std::string s2)
 {
-	std::cout << ESCAPE << "[1;33m[OK]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
+	std::cout << ESCAPE << "[1;32m[OK]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
 }
-
-
-void LOG_A(std::wstring s)
-{
-	std::wcout << ESCAPE << L"[1;33m[Attention]" << ESCAPE << L"[1;37m " << s << L"\n";
-}
-void LOG_W(std::wstring s)
-{
-	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << s << L"\n";
-}
-void LOG_H(std::wstring s)
-{
-	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << s << L"\n";
-}
-void LOG_O(std::wstring s)
-{
-	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << s << L"\n";
-}
-void LOG_A(std::wstring s, std::wstring s2)
-{
-	std::wcout << ESCAPE << L"[1;33m[Info]" << ESCAPE << L"[1;37m " << s << " : " << s2 << L"\n";
-}
-void LOG_W(std::wstring s, std::wstring s2)
-{
-	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << s << " : " << s2 << L"\n";
-}
-void LOG_H(std::wstring s, std::wstring s2)
-{
-	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << s << " : " << s2 << L"\n";
-}
-void LOG_O(std::wstring s, std::wstring s2)
-{
-	std::wcout << ESCAPE << L"[1;33m[OK]" << ESCAPE << L"[1;37m " << s << " : " << s2 << L"\n";
-}
-
-
 void LOG_Stop()
 {
 	std::string a;

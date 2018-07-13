@@ -19,6 +19,7 @@
 #include <locale>
 #include <io.h>
 #include <fcntl.h>
+#include <unordered_map>
 
 #pragma execution_character_set("utf-8")
 
@@ -54,7 +55,7 @@ void LOG_Stop();
 void set_rect(SDL_Rect*, int, int, int, int);
 void set_rect(SDL_Rect*, int, int);
 
-SDL_Texture* draw_string(TTF_Font*, std::string, SDL_Color*);
+void draw_string(int, std::string, SDL_Color, SDL_Rect*);
 
 std::string currentDir;
 
@@ -66,9 +67,6 @@ extern const unsigned int font_size[MAX_FONT] = {
 	30,
 	20
 };
-extern SDL_Surface* sprite_surf[MAX_SPRITE] = {};
-extern SDL_Texture* sprite[MAX_SPRITE] = {};
-extern SDL_Texture* texture[MAX_SPRITE] = {};
 extern TTF_Font* fonts[MAX_FONT] = {};
 
 SDL_Window* WNDW = NULL;
@@ -94,30 +92,14 @@ extern SDL_Color c_white = { 255, 255, 255 };
 //       IMPORTANT       //
 ///////////////////////////
 
-
-
-extern std::string sprite_file[MAX_SPRITE] = {
-	"map\\prov.bmp",
-	"gfx\\ui\\left_menu_button.bmp",
-	"gfx\\ui\\minimap_trailer_find_button.bmp",
-	"gfx\\ui\\minimap_trailer_help_button.bmp",
-	"gfx\\ui\\minimap_trailer_menu_button.bmp",
-	"gfx\\ui\\book.bmp",
-	"gfx\\ui\\company.bmp",
-	"gfx\\ui\\court.bmp",
-	"gfx\\ui\\goverment.bmp",
-	"gfx\\ui\\gun.bmp",
-	"gfx\\ui\\note.bmp",
-	"gfx\\ui\\heard_menu_open.bmp",
-	"gfx\\ui\\heard_menu_close.bmp",
-	"gfx\\ui\\right_heard_body.bmp",
-	"gfx\\ui\\timer_body.bmp",
-	"gfx\\ui\\left_arrow.bmp",
-	"gfx\\ui\\right_arrow.bmp",
-	"gfx\\ui\\left_menu_body.bmp",
-	"gfx\\ui\\developed.bmp",
-	"gfx\\ui\\party.bmp",
+struct Gfx
+{
+	SDL_Texture* t;
+	SDL_Surface* s;
 };
+
+std::unordered_map<std::string, Gfx> gfx;
+
 int max_sprite = 1;
 
 struct Pop
@@ -169,4 +151,5 @@ extern bool quit = false;
 int map_mode = 1;
 unsigned long long delay = 0;
 int tmp[16];
-std::string scope = "";
+std::vector<std::string> scope;
+std::unordered_map<std::string, std::string> keys;
