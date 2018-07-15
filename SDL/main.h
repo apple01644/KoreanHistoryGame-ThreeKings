@@ -27,10 +27,11 @@
 
 extern const int scr_w = 1920;
 extern const int scr_h = 1080;
+float scr_r = scr_h / 1080.0;
 extern const int MAX_SPRITE = 32;
 extern const int MAX_MAP = 1;
 extern const int MAX_PARTY = 9;
-extern const int MAX_FONT = 3;
+extern const int MAX_FONT = 4;
 extern const int MAX_PROV = 17;
 extern const char ESCAPE = 0x1b;
 int NUM_SPR = 0;
@@ -77,9 +78,11 @@ std::string currentDir;
 extern std::string font_file[MAX_FONT] = {
 	"ttf\\NanumBarunGothicLight.ttf",
 	"ttf\\NanumBrush.ttf",
-	"ttf\\NanumBarunGothicBold.ttf"
+	"ttf\\NanumBarunGothicBold.ttf",
+	"ttf\\NanumBarunGothic.ttf"
 };
 extern const unsigned int font_size[MAX_FONT] = {
+	72,
 	72,
 	72,
 	72
@@ -208,6 +211,7 @@ struct Media{
 	std::string name;
 	long money = 0;
 	unsigned long power = 0;
+	unsigned char good = 0;
 };
 
 struct Force{
@@ -215,7 +219,7 @@ struct Force{
 	std::string name;
 	long money = 0;
 	unsigned long power = 0;
-	char good = 0;
+	unsigned char good = 0;
 
 };
 
@@ -224,6 +228,7 @@ struct Company{
 	std::string name;
 	long money = 0;
 	unsigned long power = 0;
+	unsigned char good = 0;
 };
 
 struct Education{
@@ -232,6 +237,7 @@ struct Education{
 	long money = 0;
 	unsigned long power = 0;
 	unsigned int type = 0;
+	unsigned char good = 0;
 
 };
 
@@ -252,7 +258,7 @@ public:
 	unsigned int h = 0;
 	unsigned int id = 0;
 	unsigned int parent = 0;
-
+	bool removing = false;
 	unsigned char type = wd_none;
 
 	std::unordered_map<std::string, std::string> var;
@@ -278,6 +284,7 @@ void Widget::init(int X, int Y, unsigned int W, unsigned int H, unsigned char Ty
 	type = Type;
 	id = gui.size();
 	parent = id;
+	var["name"] = s;
 	ikeys[s] = id;
 }
 void Widget::move_left()
@@ -312,12 +319,24 @@ unsigned long long delay = 0;
 int tmp[16];
 int tmp_s[16];
 std::list<Man> man;
+
 std::list<Message> msg;
 std::list<Media> media;
 std::list<Force> force;
 std::list<Company> company;
+
 std::list<Education> education;
 
 unsigned long play_id = 1;
 bool play_av = false;
 std::list<Man>::iterator player = man.begin();
+
+void pop_char(int, int);
+void pop_comp(int, int);
+void pop_comp_info(int, int);
+void pop_gove(int, int);
+void pop_gun(int, int);
+void pop_media(int, int);
+void pop_law(int, int);
+
+void normal_start();
