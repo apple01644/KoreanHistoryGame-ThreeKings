@@ -96,8 +96,12 @@ SDL_Renderer* REND;
 ///////////////////////////
 
 extern Uint32 color(int, int, int);
-extern SDL_Color c_black = { 0, 0, 0 };
-extern SDL_Color c_white = { 255, 255, 255 };
+std::unordered_map<std::string, SDL_Color> Color;
+void set_color()
+{
+	Color["c_white"] = { 255, 255, 255 };
+	Color["c_black"] = { 0, 0, 0 };
+}
 
 ///////////////////////////
 //       IMPORTANT       //
@@ -112,6 +116,9 @@ struct Gfx
 
 std::unordered_map<std::string, Gfx> gfx;
 std::unordered_map<std::string, Mix_Music*> sfx;
+std::vector<std::string> scope;
+std::unordered_map<std::string, std::string> keys;
+std::unordered_map<std::string, int> ikeys;
 
 int max_sprite = 1;
 
@@ -230,7 +237,8 @@ struct Education{
 
 enum {
 	wd_none,
-	wd_image
+	wd_image,
+	wd_label
 };
 
 
@@ -253,10 +261,25 @@ public:
 	bool avail_ev = false;
 	void move_left();
 	void remove();
+	void init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s);
+	Widget(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s) {
+		init(X, Y, W, H, Type, s);
+	}
 };
 
 std::vector<Widget> gui;
 
+void Widget::init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s)
+{
+	x = X;
+	y = Y;
+	w = W;
+	h = H;
+	type = Type;
+	id = gui.size();
+	parent = id;
+	ikeys[s] = id;
+}
 void Widget::move_left()
 {
 
@@ -288,8 +311,6 @@ int map_mode = 1;
 unsigned long long delay = 0;
 int tmp[16];
 int tmp_s[16];
-std::vector<std::string> scope;
-std::unordered_map<std::string, std::string> keys;
 std::list<Man> man;
 std::list<Message> msg;
 std::list<Media> media;
