@@ -50,8 +50,8 @@ void pop_char(int x, int y)
 		Widget temp(0, 0, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "potrait\\kdj";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 }
@@ -67,16 +67,16 @@ void pop_comp(int x, int y)
 		Widget temp(450, 10, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "ui\\left_menu_button";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(458, 18, 24, 24, wd_image, id + "_cancel_button");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
@@ -124,16 +124,16 @@ void pop_comp_info(int x, int y)
 		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "ui\\left_menu_button";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
@@ -184,16 +184,16 @@ void pop_gove(int x, int y)
 		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "ui\\left_menu_button";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
@@ -298,16 +298,16 @@ void pop_gun(int x, int y)
 		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "ui\\left_menu_button";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
@@ -382,16 +382,16 @@ void pop_media(int x, int y)
 		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "ui\\left_menu_button";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
@@ -439,16 +439,16 @@ void pop_law(int x, int y)
 		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
 		temp.var["img"] = "ui\\left_menu_button";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys[id];
-		temp.avail_ev = true;
-		temp.ev = parent_remove;
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
 		gui.push_back(temp);
 	}
 	{
@@ -474,13 +474,18 @@ void safe_start()
 
 	{
 		Widget temp(0, 0, 140, 140, wd_image, "@ui\\potrait");
-		temp.var["img"] = "potrait\\kdj";
+		temp.var["img"] = "potrait\\kys";
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(0, 0, 140, 140, wd_image, "@ui\\potrait_case");
-		temp.var["img"] = "ui\\potrait_case";
+		temp.var["img"] = "ui\\potrait_case_blue";
 		temp.parent = ikeys["@ui\\potrait"];
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(300, 300, 140, 100, wd_image, "@ui\\tooltip");
+		temp.var["img"] = "ui\\body";
 		gui.push_back(temp);
 	}
 
@@ -618,18 +623,18 @@ void safe_start()
 			gui.push_back(temp);
 		}
 	}
-	gui[ikeys["@ui\\left_menu_button[0]"]].avail_ev = true;
-	gui[ikeys["@ui\\left_menu_button[0]"]].ev = LeftMenu_Item0_Click;
-	gui[ikeys["@ui\\left_menu_button[1]"]].avail_ev = true;
-	gui[ikeys["@ui\\left_menu_button[1]"]].ev = LeftMenu_Item1_Click;
-	gui[ikeys["@ui\\left_menu_button[2]"]].avail_ev = true;
-	gui[ikeys["@ui\\left_menu_button[2]"]].ev = LeftMenu_Item2_Click;
-	gui[ikeys["@ui\\left_menu_button[3]"]].avail_ev = true;
-	gui[ikeys["@ui\\left_menu_button[3]"]].ev = LeftMenu_Item3_Click;
-	gui[ikeys["@ui\\left_menu_button[4]"]].avail_ev = true;
-	gui[ikeys["@ui\\left_menu_button[4]"]].ev = LeftMenu_Item4_Click;
-	gui[ikeys["@ui\\left_menu_button[5]"]].avail_ev = true;
-	gui[ikeys["@ui\\left_menu_button[5]"]].ev = LeftMenu_Item5_Click;
+	gui[ikeys["@ui\\left_menu_button[0]"]].avail_mousedown_ev = true;
+	gui[ikeys["@ui\\left_menu_button[0]"]].mousedown_ev = LeftMenu_Item0_Click;
+	gui[ikeys["@ui\\left_menu_button[1]"]].avail_mousedown_ev = true;
+	gui[ikeys["@ui\\left_menu_button[1]"]].mousedown_ev = LeftMenu_Item1_Click;
+	gui[ikeys["@ui\\left_menu_button[2]"]].avail_mousedown_ev = true;
+	gui[ikeys["@ui\\left_menu_button[2]"]].mousedown_ev = LeftMenu_Item2_Click;
+	gui[ikeys["@ui\\left_menu_button[3]"]].avail_mousedown_ev = true;
+	gui[ikeys["@ui\\left_menu_button[3]"]].mousedown_ev = LeftMenu_Item3_Click;
+	gui[ikeys["@ui\\left_menu_button[4]"]].avail_mousedown_ev = true;
+	gui[ikeys["@ui\\left_menu_button[4]"]].mousedown_ev = LeftMenu_Item4_Click;
+	gui[ikeys["@ui\\left_menu_button[5]"]].avail_mousedown_ev = true;
+	gui[ikeys["@ui\\left_menu_button[5]"]].mousedown_ev = LeftMenu_Item5_Click;
 	
 	{
 		Widget temp(0, 48 * left_menu_items, 48, 32, wd_none, "@ui\\left_menu_trailer");

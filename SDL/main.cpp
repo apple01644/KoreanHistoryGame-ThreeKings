@@ -540,47 +540,47 @@ void data_set()
 {
 	{
 		Man m;
-		m.set(2002, "김윤수", 0, 0, 0, 20, 2, 30);
+		m.set(2002, "김윤수", 0, 0, 0, 20, 2, 30, "potrait\\kms");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(2002, "김태윤", 0, 0, 0, 20, 2, 30);
+		m.set(2002, "김태윤", 0, 0, 0, 20, 2, 30, "potrait\\kyk");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(2002, "윤재상", 0, 0, 0, 20, 2, 30);
+		m.set(2002, "윤재상", 0, 0, 0, 20, 2, 30, "potrait\\ysm");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(2002, "신정우", 0, 127, 127, 20, 2, 30);
+		m.set(2002, "신정우", 0, 127, 127, 20, 2, 30, "potrait\\ssj");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(2002, "전인성", 0, 127, 127, 20, 2, 30);
+		m.set(2002, "전인성", 0, 127, 127, 20, 2, 30, "potrait\\hhy");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(1927, "김영삼", 0, -30, 10, 10, 30, 5);
+		m.set(1927, "김영삼", 0, -30, 10, 10, 30, 5, "potrait\\kys");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(1924, "김대중", 0, -60, -30, 20, 40, 25);
+		m.set(1924, "김대중", 0, -60, -30, 20, 40, 25, "potrait\\kdj");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(1931, "전두환", 26, 60, 30, 10, 50, 15);
+		m.set(1931, "전두환", 26, 60, 30, 10, 50, 15, "potrait\\jdh");
 		man.push_back(m);
 	}
 	{
 		Man m;
-		m.set(1932, "노태우", 26, 50, 25, 20, 50, 5);
+		m.set(1932, "노태우", 26, 50, 25, 20, 50, 5, "potrait\\ntw");
 		man.push_back(m);
 	}
 }
@@ -693,14 +693,7 @@ void start()
 		num = (num + 1) % std::stoi(keys["loading"]);
 	}
 	data_set();
-	for (auto i = man.begin(); i != man.end(); i++)
-	{
-		if (i->id == play_id)
-		{
-			player = i;
-			break;
-		}
-	}
+	play_id = man.begin();
 	trd_step.join();
 	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
 	safe_start();
@@ -905,7 +898,7 @@ void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned
 
 	if (type == wd_none)
 	{
-		if (I->avail_ev)
+		if (I->avail_mousedown_ev)
 		{
 			SDL_RenderCopy(REND, gfx["ui\\fuchsia-black"].t, NULL, &r);
 		}
@@ -942,10 +935,10 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 	{
 		if (j != i)
 		{
-			set_rect(&r, I->rx, I->ry);
 			auto J = (gui.begin() + j);
-			if (J->parent == I->id)
+			if (J->parent == I->id && I->enable)
 			{
+				set_rect(&r, I->rx, I->ry);
 				J->rx = r.x + J->x;
 				J->ry = r.y + J->y;
 				set_rect(&r, J->rx, J->ry, J->w, J->h);
@@ -953,6 +946,17 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 				child_ui(j, J, r);
 			}
 		}
+	}
+}
+int mother(const int i)
+{
+	if ((gui.begin() + i)->id == (gui.begin() + i)->parent)
+	{
+		return (gui.begin() + i)->id;
+	}
+	else
+	{
+		return mother((gui.begin() + i)->parent);
 	}
 }
 void ui(SDL_Event *e)
@@ -963,6 +967,8 @@ void ui(SDL_Event *e)
 	char buf[320] = { 0, };
 	sprintf_s(buf, "%d년 %02d월 %02d일\n", year, mon, day);
 	gui[ikeys["@ui\\timer_text"]].var["text"] = buf;
+	gui[ikeys["@ui\\potrait"]].var["img"] = play_id->potrait;
+
 
 	while (SDL_PollEvent(e) != 0)
 	{
@@ -981,36 +987,69 @@ void ui(SDL_Event *e)
 			}
 			}
 		}
-		case SDL_MOUSEBUTTONDOWN: {
-			SDL_GetMouseState(&x, &y);
-			break;
 		}
-		}
+		
+		SDL_GetMouseState(&x, &y);
 
+
+		int ii_mousedown = -1;
+		int mot_mousedown = -1;
+		int ii_mousehover = -1;
+		int mot_mousehover = -1;
 		for (auto i =0; i < gui.size(); i++)
 		{
 			auto I = *(gui.begin() + i);
-			if (I.avail_ev)
+			if (I.enable)
 			{
-				if (e->type == SDL_MOUSEBUTTONDOWN && 
-					I.rx <= x &&
-					I.ry <= y &&
-					I.rx + I.w >= x &&
-					I.ry + I.h >= y
-					)
+				if (I.avail_mousedown_ev)
 				{
-					(gui.begin() + i)->ev(i, x, y);
-					break;
+					if (e->type == SDL_MOUSEBUTTONDOWN &&
+						I.rx <= x &&
+						I.ry <= y &&
+						I.rx + I.w >= x &&
+						I.ry + I.h >= y
+						)
+					{
+						if (mother(i) > mot_mousedown)
+						{
+							mot_mousedown = mother(i);
+							ii_mousedown = i;
+						}
+						//break;
+					}
+				}
+				if (I.avail_mousehover_ev)
+				{
+					if (I.rx <= x &&
+						I.ry <= y &&
+						I.rx + I.w >= x &&
+						I.ry + I.h >= y
+						)
+					{
+						if (mother(i) > mot_mousehover)
+						{
+							mot_mousehover = mother(i);
+							ii_mousehover = i;
+						}
+					}
 				}
 			}
 		}
-	}
 
+		if (ii_mousedown != -1)
+		{
+			(gui.begin() + ii_mousedown)->mousedown_ev(ii_mousedown, x, y);
+		}
+		if (ii_mousehover != -1)
+		{
+			(gui.begin() + ii_mousehover)->mousehover_ev(ii_mousehover, x, y);
+		}
+	}
 
 	for (auto i = 0; i < gui.size(); i++)
 	{
 		auto I = (gui.begin() + i);
-		if (I->id == I->parent)
+		if (I->id == I->parent && I->enable)
 		{
 			I->rx = I->x;
 			I->ry = I->y;

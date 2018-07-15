@@ -164,6 +164,7 @@ Party party[MAX_PARTY];
 
 struct Man {
 	std::string name = "이름없음";
+	std::string potrait = "potrait\\cjy";
 	unsigned int born_year = 0;
 	unsigned long id = 0;
 	bool live = false;
@@ -175,7 +176,7 @@ struct Man {
 	unsigned char ambition = rand();
 	unsigned char religion = rand();
 	std::unordered_map<std::string, bool> traits;
-	void set(unsigned int year, std::string named, long moneye, char p_fasc, char p_libe, unsigned char hon, unsigned char amb, unsigned char reg)
+	void set(unsigned int year, std::string named, long moneye, char p_fasc, char p_libe, unsigned char hon, unsigned char amb, unsigned char reg, std::string c)
 	{
 		if (born_year == 0)
 		{
@@ -196,6 +197,7 @@ struct Man {
 			honor = hon;
 			ambition = amb;
 			religion = reg;
+			potrait = c;
 			live = true;
 		}
 		else
@@ -260,11 +262,14 @@ public:
 	unsigned int parent = 0;
 	bool removing = false;
 	unsigned char type = wd_none;
+	bool enable = true;
 
 	std::unordered_map<std::string, std::string> var;
 
-	void(*ev)(int, int, int);
-	bool avail_ev = false;
+	void(*mousedown_ev)(int, int, int);
+	bool avail_mousedown_ev = false;
+	void(*mousehover_ev)(int, int, int);
+	bool avail_mousehover_ev = false;
 	void move_left();
 	void remove();
 	void init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s);
@@ -327,7 +332,7 @@ std::list<Company> company;
 
 std::list<Education> education;
 
-unsigned long play_id = 1;
+std::list<Man>::iterator play_id;
 bool play_av = false;
 std::list<Man>::iterator player = man.begin();
 
