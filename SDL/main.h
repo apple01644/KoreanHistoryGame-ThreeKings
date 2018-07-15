@@ -11,7 +11,7 @@
 #include <fstream>
 #include <vector>
 #include <cmath>
-#include <ctime>`
+#include <ctime>
 #include <thread>
 #include <list>
 #include <direct.h>
@@ -20,6 +20,8 @@
 #include <io.h>
 #include <fcntl.h>
 #include <unordered_map>
+#include <map>
+#include <limits>
 
 #pragma execution_character_set("utf-8")
 
@@ -28,7 +30,7 @@ extern const int scr_h = 1080;
 extern const int MAX_SPRITE = 32;
 extern const int MAX_MAP = 1;
 extern const int MAX_PARTY = 9;
-extern const int MAX_FONT = 2;
+extern const int MAX_FONT = 3;
 extern const int MAX_PROV = 17;
 extern const char ESCAPE = 0x1b;
 int NUM_SPR = 0;
@@ -40,6 +42,7 @@ void ui(SDL_Event*);
 
 bool init();
 bool loadMedia();
+void safe_start();
 void close();
 
 void LOG_A(std::string);
@@ -55,17 +58,31 @@ void LOG_Stop();
 void set_rect(SDL_Rect*, int, int, int, int);
 void set_rect(SDL_Rect*, int, int);
 
-void draw_string(int, std::string, SDL_Color, SDL_Rect*);
+int get_chrs(std::string);
+void draw_string_s(int, std::string, SDL_Color, SDL_Rect*);
+void draw_string(int, std::string, SDL_Color, SDL_Point*, int, float,int);
+
+std::unordered_map<unsigned long, bool> char_id;
+enum {
+	left_align = 0,
+	right_align = 1,
+	center_align = 2,
+	top_align = 3,
+	bottom_align = 6,
+	middle_align = 9
+};
 
 std::string currentDir;
 
 extern std::string font_file[MAX_FONT] = {
 	"ttf\\NanumBarunGothicLight.ttf",
-	"ttf\\NanumBrush.ttf"
+	"ttf\\NanumBrush.ttf",
+	"ttf\\NanumBarunGothicBold.ttf"
 };
 extern const unsigned int font_size[MAX_FONT] = {
-	30,
-	20
+	72,
+	72,
+	72
 };
 extern TTF_Font* fonts[MAX_FONT] = {};
 
@@ -137,8 +154,9 @@ Party party[MAX_PARTY];
 
 struct Man {
 	std::string name = "이름없음";
-	unsigned int born_year = 1983;
-	unsigned long id;
+	unsigned int born_year = 0;
+	unsigned long id = 0;
+	bool live = false;
 	long money = 0;
 	long prestige = 0;
 	char fascist = rand();
@@ -147,6 +165,34 @@ struct Man {
 	unsigned char ambition = rand();
 	unsigned char religion = rand();
 	std::unordered_map<std::string, bool> traits;
+	void set(unsigned int year, std::string named, long moneye, char p_fasc, char p_libe, unsigned char hon, unsigned char amb, unsigned char reg)
+	{
+		if (born_year == 0)
+		{
+			for (long int i = 1; i < 32767; i++)
+			{
+				if (!char_id[i])
+				{
+					char_id[i] = true;
+					id = i;
+					break;
+				}
+			}
+			born_year = year;
+			name = named;
+			money = moneye;
+			fascist = p_fasc;
+			liberty = p_libe;
+			honor = hon;
+			ambition = amb;
+			religion = reg;
+			live = true;
+		}
+		else
+		{
+			LOG_W("MUTIPLE DEFINE CHARACTER");
+		}
+	}
 };
 
 
@@ -182,7 +228,48 @@ struct Education{
 
 };
 
-enum { msgtype_None };
+enum {
+	wd_none,
+	wd_image
+};
+
+
+class Widget {
+public:
+	int x = 0;
+	int y = 0;
+	int rx = 0;
+	int ry = 0;
+	unsigned int w = 0;
+	unsigned int h = 0;
+	unsigned int id = 0;
+	unsigned int parent = 0;
+
+	unsigned char type = wd_none;
+
+	std::unordered_map<std::string, std::string> var;
+
+	void(*ev)(int, int, int);
+	bool avail_ev = false;
+	void move_left();
+	void remove();
+};
+
+std::vector<Widget> gui;
+
+void Widget::move_left()
+{
+
+};
+void Widget::remove()
+{
+	gui.erase(gui.begin() + id);
+	//L//OG_W("1");
+};
+
+enum { msgtype_None,
+msgType_Imagebox
+};
 
 struct Message
 {
@@ -200,10 +287,16 @@ extern bool quit = false;
 int map_mode = 1;
 unsigned long long delay = 0;
 int tmp[16];
+int tmp_s[16];
 std::vector<std::string> scope;
 std::unordered_map<std::string, std::string> keys;
+std::list<Man> man;
 std::list<Message> msg;
 std::list<Media> media;
 std::list<Force> force;
 std::list<Company> company;
 std::list<Education> education;
+
+unsigned long play_id = 1;
+bool play_av = false;
+std::list<Man>::iterator player = man.begin();

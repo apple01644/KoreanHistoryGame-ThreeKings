@@ -367,6 +367,27 @@ void data_read(std::string path)
 		bool used = false;
 		for (std::string line; std::getline(in, line); i++, used = false)
 		{
+
+			for (int j = 0; j < line.length() - 1; j++)
+			{
+				if (line.at(j) == '=')
+				{
+					if (line.at(j + 1) == '=')
+					{
+						for (int k = j; k < line.length(); k++) {
+							if (line.at(k) == ' ')
+							{
+								line.insert(line.begin() + k, ' ');
+								k++;
+							}
+						}
+						data_proc(line.substr(0, j), line.substr(j + 2, line.length() - j - 2));
+						used = true;
+						break;
+					}
+				}
+			}
+
 			for (int j = 0; j < line.length(); j++)
 			{
 				if (line.at(j) == ' ' || line.at(j) == '\t' || line.at(j) == '\r')
@@ -374,13 +395,17 @@ void data_read(std::string path)
 					line.erase(line.begin() + j);
 				}
 			}
-			for (int j = 0; j < line.length(); j++)
+
+			if (!used)
 			{
-				if (line.at(j) == '=')
+				for (int j = 0; j < line.length(); j++)
 				{
-					data_proc(line.substr(0, j), line.substr(j + 1, line.length() - j - 1));
-					used = true;
-					break;
+					if (line.at(j) == '=')
+					{
+						data_proc(line.substr(0, j), line.substr(j + 1, line.length() - j - 1));
+						used = true;
+						break;
+					}
 				}
 			}
 			if (!used)
@@ -413,7 +438,7 @@ void data_read(std::string path)
 
 void prov_set()
 {
-
+	//SDL_Delay(60000);
 	SDL_Surface* map = IMG_Load((currentDir + "\\" + "map\\prov.bmp").c_str());
 
 	int w, h;
@@ -510,9 +535,52 @@ void prov_set()
 
 void data_set()
 {
-
+	{
+		Man m;
+		m.set(2002, "김윤수", 0, 0, 0, 20, 2, 30);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(2002, "김태윤", 0, 0, 0, 20, 2, 30);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(2002, "윤재상", 0, 0, 0, 20, 2, 30);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(2002, "신정우", 0, 127, 127, 20, 2, 30);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(2002, "전인성", 0, 127, 127, 20, 2, 30);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(1927, "김영삼", 0, -30, 10, 10, 30, 5);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(1924, "김대중", 0, -60, -30, 20, 40, 25);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(1931, "전두환", 26, 60, 30, 10, 50, 15);
+		man.push_back(m);
+	}
+	{
+		Man m;
+		m.set(1932, "노태우", 26, 50, 25, 20, 50, 5);
+		man.push_back(m);
+	}
 }
-
 void start()
 {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
@@ -537,24 +605,6 @@ void start()
 			prv[i].pop.push_back(p);
 		}
 	}
-
-	SDL_Delay(1000);
-	SDL_SetRenderDrawColor(REND, 0x23, 0x23, 0x23, 0xFF);
-	SDL_RenderClear(REND);
-
-	SDL_Rect r;
-	r.x = scr_w / 2 - 320;
-	r.y = scr_h / 2 - 240;
-	r.w = 640;
-	r.h = 480;
-
-
-	r.x -= 16;
-	r.y -= 16;
-	r.w += 32;
-	r.h += 32;
-	SDL_RenderCopy(REND, gfx["ui\\back_board"].t, NULL, &r);
-	
 
 	std::thread trd_step(prov_set);
 	tmp[0] = 1;
@@ -584,9 +634,27 @@ void start()
 	party[4].liberty = -30;
 	party[4].c = color(0,0,0);
 
+	SDL_Rect r;
+	set_rect(&r,0,0,0,0);
+	SDL_Point p;
 	int num = 0;
 	while (tmp[0] == 1)
 	{
+		SDL_SetRenderDrawColor(REND, 0x23, 0x23, 0x23, 0xFF);
+		SDL_RenderClear(REND);
+
+		r.x = scr_w / 2 - 320;
+		r.y = scr_h / 2 - 240;
+		r.w = 640;
+		r.h = 480;
+
+
+		r.x -= 16;
+		r.y -= 16;
+		r.w += 32;
+		r.h += 32;
+		SDL_RenderCopy(REND, gfx["ui\\back_board"].t, NULL, &r);
+
 		set_rect(&r,0,0,800,128);
 		SDL_RenderCopy(REND, gfx["ui\\game_logo"].t, NULL, &r);
 
@@ -597,10 +665,22 @@ void start()
 		set_rect(&r, scr_w / 2 - 320, scr_h / 2 - 240, 640, 480);
 		SDL_RenderCopy(REND, gfx[keys["loading[" + std::to_string(num) +"]"]].t, NULL, &r);
 
-		set_rect(&r, scr_w / 2 - 320, scr_h / 2 + 360 , 640,  scr_h / 2 - 480);
+		std::string s = keys["tip[" + std::to_string(rand() % std::stoi(keys["tip"])) + "]"];
+		tmp[1] = get_chrs(s) * (scr_h / 2 - 480 - 24) * 0.6;
+		set_rect(&r, scr_w / 2 - tmp[1] / 2, scr_h / 2 + 360 + 12, tmp[1], scr_h / 2 - 480 - 24);
+		r.x -= 12;
+		r.y -= 12;
+		r.w += 24;
+		r.h += 24;
+		r.x += 6;
+		r.y += 6;
+		r.w -= 12;
+		r.h -= 12;
 		SDL_RenderCopy(REND, gfx["ui\\paper"].t, NULL, &r);
-		set_rect(&r, scr_w / 2 - 320, scr_h / 2 + 360 + 12, 640, scr_h / 2 - 480 - 24);
-		draw_string(0,keys["tip"], c_black, &r);
+		set_rect(&r, scr_w / 2 - tmp[1] / 2, scr_h / 2 + 360 + 12, tmp[1], scr_h / 2 - 480 - 24);
+		p.x = r.x + r.w / 2;
+		p.y = r.y + r.h / 2;
+		draw_string(2,s, c_black, &p, r.h, 0.6, middle_align + center_align);
 
 
 		SDL_RenderPresent(REND);
@@ -608,14 +688,204 @@ void start()
 		num = (num + 1) % std::stoi(keys["loading"]);
 	}
 	data_set();
+	for (auto i = man.begin(); i != man.end(); i++)
+	{
+		if (i->id == play_id)
+		{
+			player = i;
+			break;
+		}
+	}
 	trd_step.join();
-	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);
-	
+	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
+	safe_start();
 }
 
+void gui_remove(int id)
+{
+	(gui.begin() + id)->remove();
+	for (int a = 0;a < gui.size(); a++)
+	{
+		for(int b = 0; b < gui.size(); b++)
+		{
+			if ((gui.begin() + b)->parent == (gui.begin() + a)->id)
+			{
+				(gui.begin() + b)->parent -= 1;
+			}
+		}
+		(gui.begin() + a)->id -= 1;
+	}
+}
+void remove_game(int id, int x, int y)
+{
+	(gui.begin() + id)->x += 30;
+}
+void remove(int id, int x, int y)
+{
+	gui_remove(id);
+}
+
+void safe_start()
+{
+	{
+		Widget temp;
+		temp.x = 140;
+		temp.y = 40;
+		temp.w = 10;
+		temp.h = 140;
+		temp.ev = remove;
+		temp.avail_ev = true;
+		temp.id = gui.size();
+		temp.parent = temp.id;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp;
+		temp.x = 30;
+		temp.y = 40;
+		temp.w = 240;
+		temp.h = 240;
+		temp.ev = remove_game;
+		temp.avail_ev = true;
+		temp.id = gui.size();
+		temp.parent = temp.id;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp;
+		temp.x = 0;
+		temp.y = 0;
+		temp.w = 20;
+		temp.h = 20;
+		temp.avail_ev = false;
+		temp.id = gui.size();
+		temp.parent = 1;
+		gui.push_back(temp);
+	}
+}
+
+std::string get_ideology(char f, char l)
+{
+	if (f > 60)
+	{
+		if (l > 60)
+		{
+			return "전체주의";
+		}
+		else if (l > 20)
+		{
+			return "국수주의";
+		}
+		else if (l > -20)
+		{
+			return "국가사회주의";
+		}
+		else if (l > -60)
+		{
+			return "공산주의";
+		}
+		else
+		{
+			return "왕정주의";
+		}
+	}
+	else if (f > 20)
+	{
+		if (l > 60)
+		{
+			return "근본주의";
+		}
+		else if (l > 20)
+		{
+			return "보수주의";
+		}
+		else if (l > -20)
+		{
+			return "과두주의";
+		}
+		else if (l > -60)
+		{
+			return "스탈린주의";
+		}
+		else
+		{
+			return "사회주의";
+		}
+	}
+	else if (f > -20)
+	{
+		if (l > 60)
+		{
+			return "자유주의";
+		}
+		else if (l > 20)
+		{
+			return "자유보수주의";
+		}
+		else if (l > -20)
+		{
+			return "중도주의";
+		}
+		else if (l > -60)
+		{
+			return "신자유주의";
+		}
+		else
+		{
+			return "사회민주주의";
+		}
+	}
+	else if (f > -60)
+	{
+		if (l > 60)
+		{
+			return "자본주의";
+		}
+		else if (l > 20)
+		{
+			return "봉건주의";
+		}
+		else if (l > -20)
+		{
+			return "의회주의";
+		}
+		else if (l > -60)
+		{
+			return "집산주의";
+		}
+		else
+		{
+			return "무정부사회주의";
+		}
+	}
+	else
+	{
+		if (l > 60)
+		{
+			return "무정부주의";
+		}
+		else if (l > 20)
+		{ 
+			return "대중주의";
+		}
+		else if (l > -20)
+		{
+			return "민주주의";
+		}
+		else if (l > -60)
+		{
+			return "노조주의";
+		}
+		else
+		{
+			return "무정부공산주의";
+		}
+	}
+}
 void draw_find(int x, int y)
 {
 	SDL_Rect r;
+	SDL_Point p;
 
 	//Body
 	set_rect(&r, x + 0, y + 0, 300, 400);
@@ -623,36 +893,75 @@ void draw_find(int x, int y)
 	SDL_RenderCopy(REND, gfx["ui\\body"].t ,NULL, &r);
 
 	//Upper Div
-	set_rect(&r, x + 20, y + 20, 300 - 40, 360 - 40);
-	SDL_RenderDrawRect(REND, &r);
-	SDL_RenderCopy(REND, gfx["ui\\body"].t, NULL, &r);
+	int t = 0;
 
-	for (int i = 0; i < 320; i += 40)
+	int j = 0;
+	auto k = man.begin();
+	for (; j > 0; k != man.end())
 	{
-		set_rect(&r, x + 20, y + 20 + i, 300 - 40, 40);
+		j--;
+		k++;
+	}
+	for (int i = 0; i + t < 320 && k != man.end(); i += 40)
+	{
+		set_rect(&r, x + 20, y + 20 + i + t, 300 - 40, 40);
 		SDL_RenderDrawRect(REND, &r);
 		SDL_RenderCopy(REND, gfx["ui\\body"].t, NULL, &r);
+
+		r.x += 115;
+		r.w -= 190;
+		r.y += 5;
+		r.h -= 10;
+
+
+		if (k._Ptr->_Myval.live)
+		{
+			r.x -= 115 - 20;
+
+			p.x = r.x;
+			p.y = r.y + r.h / 2;
+
+			draw_string(0, k._Ptr->_Myval.name,c_white,&p,30, 0.77 ,left_align + middle_align);
+
+			p.x += 100;
+			
+			draw_string(0, std::to_string(year - k._Ptr->_Myval.born_year + 1), c_white, &p, 30, 0.5, center_align + middle_align);
+
+			p.x += 30;
+
+			draw_string(0, get_ideology(k._Ptr->_Myval.fascist, k._Ptr->_Myval.liberty), c_white, &p, 30, 0.77, left_align + middle_align);
+		}
+		k++;
 	}
+
+	set_rect(&r, x + 20, y + 20, 300 - 40, 360 - 40);
+	SDL_RenderDrawRect(REND, &r);
+	
 
 
 	//Under Div
-	//set_rect(&r, x + 20, y + 360, 300 - 40, 20);
-	//SDL_RenderDrawRect(REND, &r);
 
 	//Accept
 	set_rect(&r, x + 20 + 5, y + 360, 110, 20);
 	SDL_RenderDrawRect(REND, &r);
 	SDL_RenderCopy(REND, gfx["ui\\button"].t, NULL, &r);
-	
+	p.x = r.x + r.w / 2;
+	p.y = r.y + r.h / 2;
+	draw_string(2, "검색", c_white, &p, 18, 0.7,center_align + middle_align);
+
 	//Deny
 	set_rect(&r, x + 20 + 150 - 5, y + 360, 110, 20);
 	SDL_RenderDrawRect(REND, &r);
 	SDL_RenderCopy(REND, gfx["ui\\button"].t, NULL, &r);
+	p.x = r.x + r.w / 2;
+	p.y = r.y + r.h / 2;
+	draw_string(2, "취소", c_white, &p, 18, 0.7, center_align + middle_align);
 
 }
 
 void step()
 {
+
 	while(!quit)
 	{
 		if (delay > 200000000)
@@ -671,7 +980,8 @@ void draw()
 	SDL_RenderClear(REND);
 
 	SDL_Rect r;
-	
+	SDL_Point p;
+
 	double per = 0.66;
 	double wper = per * (scr_w / 1920.0);
 	double hper = per * (scr_h / 1080.0);
@@ -836,25 +1146,64 @@ void draw()
 	//Timer
 	set_rect(&r, scr_w - 244, 0, 244, 32);
 	SDL_RenderCopy(REND, gfx["ui\\timer_body"].t, NULL, &r);
-	set_rect(&r, scr_w - 244 + 26, 4, 182, 20);
 	char buf[320] = { 0, };
 	sprintf_s(buf, "%d년 %02d월 %02d일\n", year, mon, day);
-
-	draw_string(0, buf, c_white, &r);
+	p.x = r.x + r.w / 2 + 10;
+	p.y = r.y + r.h / 2;
+	draw_string(0, buf, c_white, &p, 20, 0.6, middle_align + center_align);
 
 	//Potrait
 	set_rect(&r, 2, 2, 140, 140);
-	SDL_RenderCopy(REND, gfx["ui\\potrait_back"].t, NULL, &r);
+	SDL_RenderCopy(REND, gfx["potrait\\kdj"].t, NULL, &r);
+	//set_rect(&r, 2, 2, 140, 140);
+	//SDL_RenderCopy(REND, gfx["ui\\potrait_back"].t, NULL, &r);
 	set_rect(&r, 8, 8, 128, 128);
 	SDL_RenderCopy(REND, gfx["ui\\potrait_case"].t, NULL, &r);
 
-	draw_find(500,50);
+
+	set_rect(&r, 72 - 47.5, 72 - 17.5, 95 , 35);
+	//SDL_RenderCopy(REND, gfx["ui\\timer_body"].t, NULL, &r);
+	p.x = r.x + r.w / 2;
+	p.y = r.y + r.h / 2;
+	
+	if (play_id >= 0)
+	{
+		draw_string(0, player->name, c_white, &p, 35, 0.77, middle_align + center_align);
+	}
+	draw_find(200,50);
 
 	return;
 }
+
+void child_ui(unsigned int i, std::reverse_iterator<std::vector<Widget>::iterator> I, SDL_Rect r)
+{
+	for (int j = 0; j < gui.size(); j++)
+	{
+		if (j != i)
+		{
+			set_rect(&r, I->rx, I->ry);
+			auto J = (gui.rbegin() + j);
+			if (J->parent == I->id)
+			{
+				J->rx = r.x + J->x;
+				J->ry = r.y + J->y;
+				set_rect(&r, J->rx, J->ry, J->w, J->h);
+				if (J->avail_ev)
+				{
+					SDL_RenderCopy(REND, gfx["ui\\fuchsia-black"].t, NULL, &r);
+				}
+				else
+				{
+					SDL_RenderCopy(REND, gfx["ui\\black-white"].t, NULL, &r);
+				}
+				child_ui(j, J, r);
+			}
+		}
+	}
+}
 void ui(SDL_Event *e)
 {
-	//SDL_Rect r;
+	SDL_Rect r;
 	int x, y;
 	draw();
 
@@ -862,37 +1211,140 @@ void ui(SDL_Event *e)
 	{
 		switch (e->type)
 		{
-			case SDL_QUIT: {
+		case SDL_QUIT: {
+			quit = true;
+			return;
+		}
+		case SDL_KEYDOWN: {
+			switch (e->key.keysym.sym)
+			{
+			case SDLK_ESCAPE: {
 				quit = true;
-				return;
+				break;
 			}
-			case SDL_KEYDOWN: {
-				switch (e->key.keysym.sym)
+			}
+		}
+		case SDL_MOUSEBUTTONDOWN: {
+			SDL_GetMouseState(&x, &y);
+			break;
+		}
+		}
+
+		for (auto i =0; i < gui.size(); i++)
+		{
+			auto I = *(gui.rbegin() + i);
+			if (I.avail_ev)
+			{
+				if (e->type == SDL_MOUSEBUTTONDOWN && 
+					I.rx <= x &&
+					I.ry <= y &&
+					I.rx + I.w >= x &&
+					I.ry + I.h >= y
+					)
 				{
-				case SDLK_ESCAPE: {
-					quit = true;
+					(gui.rbegin() + i)->ev(gui.size() - i - 1, x, y);
 					break;
-				}
-				case SDLK_r: {
-					//map_init();
-					break;
-				}
 				}
 			}
 		}
 	}
 
+
+	for (auto i = 0; i < gui.size(); i++)
+	{
+		auto I = (gui.rbegin() + i);
+		if (I->id == I->parent)
+		{
+			I->rx = I->x;
+			I->ry = I->y;
+			set_rect(&r, I->rx, I->ry, I->w, I->h);
+			if (I->avail_ev)
+			{
+				SDL_RenderCopy(REND, gfx["ui\\fuchsia-black"].t, NULL, &r);
+			}
+			else
+			{
+				SDL_RenderCopy(REND, gfx["ui\\black-white"].t, NULL, &r);
+			}
+			child_ui(i,I,r);
+		}
+
+	}
+
 	SDL_RenderPresent(REND);
+	return;
+
+
 	
 }
 
-
-void draw_string(int i, std::string s, SDL_Color color, SDL_Rect* r) {
+int get_chrs(std::string s)
+{
+	unsigned int chr_len = s.length();
+	const char* chr = s.c_str();
+	int beg = 0, chrs = 0, bias = 0, all_line = 0;
+	for (int i = 0; i < chr_len;)
+	{
+		if (chr[i] >= 0)
+		{
+			bias = 1;
+		}
+		else if (chr[i] >= -64 && chr[i] <= -33 && chr[i + 1] <= -65)//-128 ~ - 65
+		{
+			bias = 2;
+		}
+		else if (chr[i] >= -32 && chr[i] <= -17 && chr[i + 1] <= -65 && chr[i + 2] <= -65)
+		{
+			bias = 3;
+		}
+		else if (chr[i] >= -16 && chr[i] <= -9 && chr[i + 1] <= -65 && chr[i + 2] <= -65 && chr[i + 3] <= -65)
+		{
+			bias = 4;
+		}
+		chrs++;
+		//if (chrs >= len_in_lin || i + bias >= chr_len - 1 || chr[i] == 10)
+		//{
+		//	chrs = 0;
+		//	beg = i + bias;
+		//	all_line++;
+		//}
+		i += bias;
+	}
+	return chrs;
+}
+void draw_string_s(int i, std::string s, SDL_Color color, SDL_Rect* r) {
 	SDL_Surface* surf = TTF_RenderUTF8_Solid(fonts[i], s.c_str(), color);
 	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, surf);
 	SDL_FreeSurface(surf);
 	SDL_RenderCopy(REND, t, NULL, r);
 	SDL_DestroyTexture(t);
+}
+void draw_string(int ind, std::string s, SDL_Color color, SDL_Point* p, int size, float ratio , int opt)
+{
+	SDL_Rect r;
+	r.x = p->x;
+	r.y = p->y;
+	r.w = get_chrs(s) * size * ratio;
+	r.h = size;
+	switch (opt % 3)
+	{
+	case right_align:
+		r.x -= r.w;
+		break;
+	case center_align:
+		r.x -= r.w / 2;
+		break;
+	}
+	switch (opt / 3)
+	{
+	case top_align / 3:
+		r.y -= r.h;
+		break;
+	case middle_align / 3:
+		r.y -= r.h / 2;
+		break;
+	}
+	draw_string_s(ind, s, color,&r);
 }
 
 void set_rect(SDL_Rect *r, int x, int y, int w, int h)
@@ -911,6 +1363,7 @@ void set_rect(SDL_Rect *r, int x, int y)
 bool init()
 {
 	setlocale(LC_ALL, "");
+	std::ios_base::sync_with_stdio(false);
 	char curDir[1000];
 	_getcwd(curDir, 1000);
 	currentDir = curDir;
@@ -1043,6 +1496,20 @@ bool loadMedia()
 	}
 	keys[tag] = num;
 
+
+	tag = "potrait";
+	path = currentDir + "\\" + "gfx\\" + tag;
+	num = 0;
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		gfx_read(pStr, num, tag);
+		num++;
+	}
+	keys[tag] = num;
 
 	tag = "loading";
 	path = currentDir + "\\" + "gfx\\" + tag;
