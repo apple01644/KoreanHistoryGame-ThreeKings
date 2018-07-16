@@ -67,6 +67,10 @@ void pop_char(int x, int y)
 void pop_comp(int x, int y)
 {
 	std::string id = empty_gui_slot("@ui\\company");
+	if (id != "@ui\\company-0")
+	{
+		gui[ikeys["@ui\\company-0"]].removing = true;
+	}
 	{
 		Widget temp(x, y, 500, 700, wd_image, id);
 		temp.var["img"] = "ui\\body";
@@ -201,7 +205,11 @@ void pop_comp_info(int x, int y)
 }
 void pop_gove(int x, int y)
 {
-	std::string id = empty_gui_slot("@ui\\company_info");
+	std::string id = empty_gui_slot("@ui\\goverment");
+	if (id != "@ui\\goverment-0")
+	{
+		gui[ikeys["@ui\\goverment-0"]].removing = true;
+	}
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
@@ -252,14 +260,46 @@ void pop_gove(int x, int y)
 	}
 	{
 		Widget temp(10, 5, 180, 180, wd_image, id + "_owner1_face");
-		temp.var["img"] = "potrait\\yjy";
+		temp.var["img"] = "potrait\\who";
+
+		auto I = man.begin();
+		for (int a = 0; a < man.size(); a++, I++)
+		{
+			if (I->id == president_id)
+			{
+				temp.var["img"] = I->potrait;
+			}
+		}
 		temp.parent = ikeys[id + "_owner"];
 		gui.push_back(temp);
 	}
 	{
+		Widget temp(0, 0, 180, 180, wd_image, id + "_owner1_face_case");
+		temp.var["img"] = "ui\\potrait_case_blue";
+
+		temp.parent = ikeys[id + "_owner1_face"];
+		gui.push_back(temp);
+	}
+	{
 		Widget temp(190, 25, 160, 160, wd_image, id + "_owner2_face");
-		temp.var["img"] = "potrait\\bgh";
+		temp.var["img"] = "potrait\\who";
+
+		auto I = man.begin();
+		for (int a = 0; a < man.size(); a++, I++)
+		{
+			if (I->id == prime_id)
+			{
+				temp.var["img"] = I->potrait;
+			}
+		}
 		temp.parent = ikeys[id + "_owner"];
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(0, 0, 160, 160, wd_image, id + "_owner2_face_case");
+		temp.var["img"] = "ui\\potrait_case_gold";
+
+		temp.parent = ikeys[id + "_owner2_face"];
 		gui.push_back(temp);
 	}
 	{
@@ -280,10 +320,18 @@ void pop_gove(int x, int y)
 	}
 	for (int i = 0; i < mans; i++)
 	{
-		Widget temp(10 + side * i, 10, 90, 90, wd_image, id + "_major["+std::to_string(i)+"]" );
-		temp.var["img"] = "potrait\\cih";
-		temp.parent = ikeys[id + "_major"];
-		gui.push_back(temp);
+		{
+			Widget temp(10 + side * i, 10, 90, 90, wd_image, id + "_major[" + std::to_string(i) + "]");
+			temp.var["img"] = "potrait\\cih";
+			temp.parent = ikeys[id + "_major"];
+			gui.push_back(temp); 
+		}
+		{
+			Widget temp(0, 0, 90, 90, wd_image, id + "_major[" + std::to_string(i) + "]_case");
+			temp.var["img"] = "ui\\potrait_case_gold";
+			temp.parent = ikeys[id + "_major[" + std::to_string(i) + "]"];
+			gui.push_back(temp);
+		}
 	}
 
 	{
@@ -292,7 +340,7 @@ void pop_gove(int x, int y)
 		temp.parent = ikeys[id];
 		gui.push_back(temp);
 	}
-	mans = 3;
+	mans = 4;
 	if (3 < mans)
 	{
 		side = 250 / (mans - 1);
@@ -303,9 +351,68 @@ void pop_gove(int x, int y)
 	}
 	for (int i = 0; i < mans; i++)
 	{
-		Widget temp(10 + side * i, 10, 90, 90, wd_image, id + "_miner[" + std::to_string(i) + "]");
-		temp.var["img"] = "potrait\\acs";
-		temp.parent = ikeys[id + "_miner"];
+		{
+			Widget temp(10 + side * i, 10, 90, 90, wd_image, id + "_miner[" + std::to_string(i) + "]");
+			temp.var["img"] = "potrait\\acs";
+			temp.parent = ikeys[id + "_miner"];
+			gui.push_back(temp); }
+		{
+			Widget temp(0, 0, 90, 90, wd_image, id + "_miner[" + std::to_string(i) + "]_case");
+			temp.var["img"] = "ui\\potrait_case_gold";
+			temp.parent = ikeys[id + "_miner[" + std::to_string(i) + "]"];
+			gui.push_back(temp);
+		}
+	}
+}
+
+
+void pop_cong(int x, int y)
+{
+	std::string id = empty_gui_slot("@ui\\congress");
+	if (id != "@ui\\congress-0")
+	{
+		gui[ikeys["@ui\\congress-0"]].removing = true;
+	}
+	{
+		Widget temp(x, y, 400, 520, wd_image, id);
+		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
+		temp.var["img"] = "ui\\left_menu_button";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
+		temp.var["img"] = "ui\\heard_menu_close";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(200, 25, 24, 24, wd_label, id + "_title");
+
+		temp.parent = ikeys[id];
+		temp.var["text"] = "입법부";
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "40";
+		temp.var["ratio"] = "0.8";
 		gui.push_back(temp);
 	}
 }
@@ -313,6 +420,10 @@ void pop_gove(int x, int y)
 void pop_gun(int x, int y)
 {
 	std::string id = empty_gui_slot("@ui\\gun");
+	if (id != "@ui\\gun-0")
+	{
+		gui[ikeys["@ui\\gun-0"]].removing = true;
+	}
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
@@ -372,6 +483,10 @@ void pop_gun(int x, int y)
 void pop_media(int x, int y)
 {
 	std::string id = empty_gui_slot("@ui\\media");
+	if (id != "@ui\\media-0")
+	{
+		gui[ikeys["@ui\\media-0"]].removing = true;
+	}
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
@@ -465,7 +580,11 @@ void pop_media(int x, int y)
 
 void pop_law(int x, int y)
 {
-	std::string id = empty_gui_slot("@ui\\media");
+	std::string id = empty_gui_slot("@ui\\law");
+	if (id != "@ui\\law-0")
+	{
+		gui[ikeys["@ui\\law-0"]].removing = true;
+	}
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
@@ -528,6 +647,78 @@ void pop_law(int x, int y)
 	}
 }
 
+
+void pop_quit(int x, int y)
+{
+	std::string id = empty_gui_slot("@ui\\quit");
+	if (id != "@ui\\quit-0")
+	{
+		gui[ikeys["@ui\\quit-0"]].removing = true;
+	}
+	{
+		Widget temp(x, y, 400, 200, wd_image, id);
+		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
+		temp.var["img"] = "ui\\left_menu_button";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
+		temp.var["img"] = "ui\\heard_menu_close";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(200, 25, 0, 0, wd_label, id + "_title");
+
+		temp.parent = ikeys[id];
+		temp.var["text"] = "종료하시겠습니까?";
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "40";
+		temp.var["ratio"] = "0.8";
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(150, 95, 100, 40, wd_image, id + "_quit_button");
+		temp.var["img"] = "ui\\button";
+		temp.parent = ikeys[id];
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = LetQuit;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(50, 20, 0, 0, wd_label, id + "_title");
+
+		temp.parent = ikeys[id + "_quit_button"];
+		temp.var["text"] = "예";
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "30";
+		temp.var["ratio"] = "0.8";
+		gui.push_back(temp);
+	}
+}
+
 void safe_start()
 {
 	const int minimap_trailer_items = std::stoi(keys["minimap_trailer_items"]);
@@ -537,7 +728,7 @@ void safe_start()
 
 	{
 		Widget temp(0, 0, 140, 140, wd_image, "@ui\\potrait");
-		temp.var["id"] = "1";
+		temp.var["id"] = std::to_string(play_id);
 		temp.var["time"] = "0";
 
 		auto I = man.begin();
@@ -563,6 +754,7 @@ void safe_start()
 	{
 		Widget temp(300, 300, 280, 200, wd_image, "@ui\\tooltip");
 		temp.var["img"] = "ui\\body";
+		temp.var["life"] = "0";
 		temp.mousestep_ev = Tooltip_Step;
 		temp.avail_mousestep_ev = true;
 		gui.push_back(temp);
@@ -577,7 +769,10 @@ void safe_start()
 		temp.var["size"] = "20";
 		temp.var["ratio"] = "0.6";
 		temp.var["line"] = "21";
+		temp.enable = false;
 		temp.parent = ikeys["@ui\\tooltip"];
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Tooltip_Step;
 		gui.push_back(temp);
 	}
 
@@ -626,16 +821,31 @@ void safe_start()
 		gui.push_back(temp);
 	}
 	{
-		Widget temp(144, 0, 100, 144, wd_none, "@ui\\right_hand");
+		Widget temp(144, 0, 170, 144, wd_none, "@ui\\right_hand");
 		gui.push_back(temp);
 	}
 
 	for (int i = 0; i < right_hand_items; i++)
 	{
-		Widget temp(0, (i * 144 / right_hand_items), 100, 144 / right_hand_items, wd_image, "@ui\\right_hand[" + std::to_string(i) + "]");
-		temp.var["img"] = "ui\\right_heard_body";
-		temp.parent = ikeys["@ui\\right_hand"];
-		gui.push_back(temp);
+		{
+			Widget temp(0, (i * 144 / right_hand_items), 170, 144 / right_hand_items, wd_image, "@ui\\right_hand[" + std::to_string(i) + "]");
+			temp.var["img"] = "ui\\right_heard_body";
+			LOG_W(std::to_string(i), std::to_string(temp.id));
+			temp.parent = ikeys["@ui\\right_hand"];
+			gui.push_back(temp);
+		}
+		{
+			Widget temp(10, 72 / right_hand_items, 0, 0, wd_label, "@ui\\right_hand[" + std::to_string(i) + "]_label");
+			
+			LOG_W(std::to_string(i), std::to_string(ikeys["@ui\\right_hand[" + std::to_string(i) + "]"]));
+			temp.parent = ikeys["@ui\\right_hand[" + std::to_string(i) + "]"];
+			temp.var["opt"] = std::to_string(middle_align + left_align);
+			temp.var["ind"] = "2";
+			temp.var["color"] = "c_white";
+			temp.var["size"] = "20";
+			temp.var["ratio"] = "0.6";
+			gui.push_back(temp);
+		}
 	}
 
 	{

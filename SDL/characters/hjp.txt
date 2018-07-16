@@ -1,0 +1,14 @@
+#Man
+Man = <
+	na,e = ±èÅÂÀ±
+	potrait = potrait\hjp
+	id = 18
+	born_year = 1939
+	money = 8739
+	prestige = 5459
+	fascist = 43
+	liberty = -53
+	honor = 196
+	ambition = 91
+	religion = 216
+>

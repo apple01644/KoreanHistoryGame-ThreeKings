@@ -1,0 +1,14 @@
+#Man
+Man = <
+	na,e = ¿À¹Ù¸¶
+	potrait = potrait\kjs
+	id = 36
+	born_year = 1962
+	money = 8911
+	prestige = 2763
+	fascist = 100
+	liberty = 86
+	honor = 6
+	ambition = 44
+	religion = 213
+>

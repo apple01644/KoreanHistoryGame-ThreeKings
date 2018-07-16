@@ -1,0 +1,14 @@
+#Man
+Man = <
+	na,e = ¸¶°èÀÎ
+	potrait = potrait\ggy
+	id = 14
+	born_year = 1934
+	money = 6239
+	prestige = 2407
+	fascist = -15
+	liberty = 35
+	honor = 83
+	ambition = 219
+	religion = 118
+>

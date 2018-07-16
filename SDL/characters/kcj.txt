@@ -1,0 +1,14 @@
+#Man
+Man = <
+	na,e = 제갈산이
+	potrait = potrait\kcj
+	id = 33
+	born_year = 1934
+	money = 5035
+	prestige = 6237
+	fascist = -102
+	liberty = -7
+	honor = 145
+	ambition = 116
+	religion = 133
+>

@@ -1,0 +1,14 @@
+#Man
+Man = <
+	na,e = 초사이언
+	potrait = potrait\cih
+	id = 9
+	born_year = 1934
+	money = 7660
+	prestige = 8240
+	fascist = -118
+	liberty = 89
+	honor = 110
+	ambition = 225
+	religion = 200
+>

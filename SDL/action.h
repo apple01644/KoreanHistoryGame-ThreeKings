@@ -118,9 +118,20 @@ void Paper_Step(int id, int x, int y)
 }
 
 void Tooltip_Step(int id, int x, int y) {
-	(gui.begin() + id)->x = x + 10;
-	(gui.begin() + id)->y = y + 10;
-	parent_front(id);
+	if (gui[ikeys["@ui\\tooltip"]].enable)
+	{
+		if (std::stoi(gui[ikeys["@ui\\tooltip"]].var["life"]) > 0)
+		{
+			(gui.begin() + id)->x = x + 10;
+			(gui.begin() + id)->y = y + 10;
+			parent_front(id);
+			gui[ikeys["@ui\\tooltip"]].var["life"] = std::to_string(std::stoi(gui[ikeys["@ui\\tooltip"]].var["life"]) - 1);
+			if (gui[ikeys["@ui\\tooltip"]].var["life"] == "0")
+			{
+				gui[ikeys["@ui\\tooltip"]].enable = false;
+			}
+		}
+	}
 }
 
 void Potrait_Hover(int id, int x, int y) {
@@ -129,12 +140,16 @@ void Potrait_Hover(int id, int x, int y) {
 	//if (std::stoi((gui.begin() + id)->var["time"]) > 20)
 	{
 		gui[ikeys["@ui\\tooltip"]].enable = true;
+		gui[ikeys["@ui\\tooltip"]].var["life"] = "10";
 		auto I = man.begin();
 		for (int a = 0; I != man.end(); a++)
 		{
 			if (std::to_string(I->id) == gui[id].var["id"])
 			{
-				gui[ikeys["@ui\\tooltip_text"]].var["text"] = I->name;
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] = "이름 : " + I->name;
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] += "\n생년 : " + std::to_string(I->born_year);
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] += "\n자금 : " + std::to_string(I->money);
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] += "\n명예 : " + std::to_string(I->prestige);
 				break;
 			}
 			I++;
@@ -143,4 +158,8 @@ void Potrait_Hover(int id, int x, int y) {
 	}
 
 	parent_front(id);
+}
+
+void LetQuit(int id, int x, int y) {
+	quit = true;
 }

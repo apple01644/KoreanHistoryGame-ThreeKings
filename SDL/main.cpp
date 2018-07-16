@@ -454,6 +454,7 @@ void data_proc( std::string s1, std::string s2)
 			else if (s1 == "id")
 			{
 				I->id = std::stoi(s2);
+				LOG_W("the id", s2);
 			}
 		}
 		else if (s == "Party")
@@ -589,7 +590,7 @@ void data_read(std::string path)
 				{
 					line.erase(line.begin() + j);
 				}
-				else if (line.at(j) == '\"')
+				else if (line.at(j) == '"')
 				{
 					line.erase(line.begin() + j);
 					break;
@@ -844,8 +845,6 @@ void start()
 	} while (tmp[0] == 1);
 
 	trd_step.join();
-	LOG_W(std::to_string(man.size()));
-	play_id = man.begin();
 
 	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
 	safe_start();
@@ -853,127 +852,10 @@ void start()
 
 void normal_start()
 {
-	pop_gove(200, 200);
+	pop_cong(200, 200);
+	pop_quit(200, 200);
 }
 
-std::string get_ideology(char f, char l)
-{
-	if (f > 60)
-	{
-		if (l > 60)
-		{
-			return "전체주의";
-		}
-		else if (l > 20)
-		{
-			return "국수주의";
-		}
-		else if (l > -20)
-		{
-			return "국가사회주의";
-		}
-		else if (l > -60)
-		{
-			return "공산주의";
-		}
-		else
-		{
-			return "왕정주의";
-		}
-	}
-	else if (f > 20)
-	{
-		if (l > 60)
-		{
-			return "근본주의";
-		}
-		else if (l > 20)
-		{
-			return "보수주의";
-		}
-		else if (l > -20)
-		{
-			return "과두주의";
-		}
-		else if (l > -60)
-		{
-			return "스탈린주의";
-		}
-		else
-		{
-			return "사회주의";
-		}
-	}
-	else if (f > -20)
-	{
-		if (l > 60)
-		{
-			return "자유주의";
-		}
-		else if (l > 20)
-		{
-			return "자유보수주의";
-		}
-		else if (l > -20)
-		{
-			return "중도주의";
-		}
-		else if (l > -60)
-		{
-			return "신자유주의";
-		}
-		else
-		{
-			return "사회민주주의";
-		}
-	}
-	else if (f > -60)
-	{
-		if (l > 60)
-		{
-			return "자본주의";
-		}
-		else if (l > 20)
-		{
-			return "봉건주의";
-		}
-		else if (l > -20)
-		{
-			return "의회주의";
-		}
-		else if (l > -60)
-		{
-			return "집산주의";
-		}
-		else
-		{
-			return "무정부사회주의";
-		}
-	}
-	else
-	{
-		if (l > 60)
-		{
-			return "무정부주의";
-		}
-		else if (l > 20)
-		{ 
-			return "대중주의";
-		}
-		else if (l > -20)
-		{
-			return "민주주의";
-		}
-		else if (l > -60)
-		{
-			return "노조주의";
-		}
-		else
-		{
-			return "무정부공산주의";
-		}
-	}
-}
 
 void step()
 {
@@ -1123,10 +1005,6 @@ void ui(SDL_Event *e)
 	SDL_Rect r;
 	int x, y;
 	draw();
-	char buf[320] = { 0, };
-	sprintf_s(buf, "%d년 %02d월 %02d일\n", year, mon, day);
-	gui[ikeys["@ui\\timer_text"]].var["text"] = buf;
-	gui[ikeys["@ui\\potrait"]].var["img"] = play_id->potrait;
 
 
 	while (SDL_PollEvent(e) != 0)
@@ -1134,14 +1012,14 @@ void ui(SDL_Event *e)
 		switch (e->type)
 		{
 		case SDL_QUIT: {
-			quit = true;
+			pop_quit(scr_w / 2 - 200, scr_h / 2 - 100);
 			return;
 		}
 		case SDL_KEYDOWN: {
 			switch (e->key.keysym.sym)
 			{
 			case SDLK_ESCAPE: {
-				quit = true;
+				pop_quit(scr_w / 2 - 200, scr_h / 2 - 100);
 				break;
 			}
 			}
@@ -1217,8 +1095,41 @@ void ui(SDL_Event *e)
 		{
 			(gui.begin() + ii_mouseup)->mouseup_ev(ii_mouseup, x, y);
 		}
+
+		for (bool go = true; go;)
+		{
+			go = false;
+			for (auto i = 0; i < gui.size(); i++)
+			{
+				auto I = (gui.begin() + i);
+				if (I->removing)
+				{
+					gui_remove(i);
+					go = true;
+				}
+
+			}
+		}
+
 	}
 
+	char buf[320] = { 0, };
+	sprintf_s(buf, "%d년 %02d월 %02d일\n", year, mon, day);
+	gui[ikeys["@ui\\timer_text"]].var["text"] = buf;
+
+	auto I = man.begin();
+	for (int a = 0; a < man.size(); a++, I++)
+	{
+		if (I->id == play_id)
+		{
+			gui[ikeys["@ui\\right_hand[0]_label"]].var["text"] = "자금 : " + std::to_string(I->money);
+			gui[ikeys["@ui\\right_hand[1]_label"]].var["text"] = "명예 : " + std::to_string(I->prestige);
+			gui[ikeys["@ui\\right_hand[2]_label"]].var["text"] = "사상 : " + get_ideology(I->fascist, I->liberty);
+			gui[ikeys["@ui\\right_hand[3]_label"]].var["text"] = "직업 : 백수";
+			gui[ikeys["@ui\\potrait"]].var["img"] = I->potrait;
+			break;
+		}
+	}
 
 	for (auto i = 0; i < gui.size(); i++)
 	{
@@ -1232,21 +1143,6 @@ void ui(SDL_Event *e)
 			child_ui(i,I,r);
 		}
 
-	}
-
-	for (bool go = true; go;)
-	{
-		go = false;
-		for (auto i = 0; i < gui.size(); i++)
-		{
-			auto I = (gui.begin() + i);
-			if (I->removing)
-			{
-				gui_remove(i);
-				go = true;
-			}
-
-		}
 	}
 
 	SDL_RenderPresent(REND);
@@ -1391,10 +1287,14 @@ void draw_line(int ind, std::string s, int max_line, SDL_Color color, SDL_Point*
 		if ((max_line > 0 && chrs >= max_line) || chr[i] == '\n')
 		{
 			lines++;
-			draw_string(ind,s.substr(st, i- st),color,p,size,ratio,opt);
+
+			draw_string(ind, s.substr(st, i - st), color, p, size, ratio, opt);
 			p->y += size;
 			st = i;
 			chrs = 0;
+			if (chr[i] == '\n') {
+				st++;
+			}
 		}
 
 		i += bias;
@@ -1530,6 +1430,19 @@ bool loadMedia()
 
 	tag = "common";
 	path = currentDir + "\\" + "common\\";
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		data_read(pStr);
+		num++;
+	}
+	keys[tag] = num;
+
+	tag = "characters";
+	path = currentDir + "\\" + tag + "\\";
 	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
 		char* pStr;

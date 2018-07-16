@@ -343,12 +343,11 @@ std::list<Company> company;
 
 std::list<Education> education;
 
-std::list<Man>::iterator play_id;
 bool play_av = false;
-std::list<Man>::iterator player = man.begin();
 
-unsigned int president_id = 0;
-unsigned int prime_id = 0;
+unsigned int president_id = rand() % 54;
+unsigned int prime_id = rand() % 54;
+unsigned int play_id = 1;
 
 void pop_char(int, int);
 void pop_comp(int, int);
@@ -368,5 +367,123 @@ int mother(const int i)
 	else
 	{
 		return mother((gui.begin() + i)->parent);
+	}
+}
+std::string get_ideology(char f, char l)
+{
+	if (f > 60)
+	{
+		if (l > 60)
+		{
+			return "전체주의";
+		}
+		else if (l > 20)
+		{
+			return "국수주의";
+		}
+		else if (l > -20)
+		{
+			return "국가사회주의";
+		}
+		else if (l > -60)
+		{
+			return "공산주의";
+		}
+		else
+		{
+			return "왕정주의";
+		}
+	}
+	else if (f > 20)
+	{
+		if (l > 60)
+		{
+			return "근본주의";
+		}
+		else if (l > 20)
+		{
+			return "보수주의";
+		}
+		else if (l > -20)
+		{
+			return "과두주의";
+		}
+		else if (l > -60)
+		{
+			return "스탈린주의";
+		}
+		else
+		{
+			return "사회주의";
+		}
+	}
+	else if (f > -20)
+	{
+		if (l > 60)
+		{
+			return "자유주의";
+		}
+		else if (l > 20)
+		{
+			return "자유보수주의";
+		}
+		else if (l > -20)
+		{
+			return "중도주의";
+		}
+		else if (l > -60)
+		{
+			return "신자유주의";
+		}
+		else
+		{
+			return "사회민주주의";
+		}
+	}
+	else if (f > -60)
+	{
+		if (l > 60)
+		{
+			return "자본주의";
+		}
+		else if (l > 20)
+		{
+			return "봉건주의";
+		}
+		else if (l > -20)
+		{
+			return "의회주의";
+		}
+		else if (l > -60)
+		{
+			return "집산주의";
+		}
+		else
+		{
+			return "무정부사회주의";
+		}
+	}
+	else
+	{
+		if (l > 60)
+		{
+			return "무정부주의";
+		}
+		else if (l > 20)
+		{
+			return "대중주의";
+		}
+		else if (l > -20)
+		{
+			return "민주주의";
+		}
+		else if (l > -60)
+		{
+			return "노조주의";
+		}
+		else
+		{
+			return "무정부공산주의";
+		}
 	}
 }

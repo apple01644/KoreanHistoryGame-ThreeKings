@@ -1,0 +1,14 @@
+#Man
+Man = <
+	na,e = 황보르기니
+	potrait = potrait\hsh
+	id = 20
+	born_year = 1920
+	money = 4539
+	prestige = 764
+	fascist = -80
+	liberty = 88
+	honor = 20
+	ambition = 44
+	religion = 24
+>
