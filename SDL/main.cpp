@@ -612,6 +612,7 @@ void start()
 	}
 
 	std::thread trd_step(prov_set);
+	data_set();
 	tmp[0] = 1;
 
 	party[0].name = "자유 민주 연합";
@@ -643,7 +644,7 @@ void start()
 	set_rect(&r,0,0,0,0);
 	SDL_Point p;
 	int num = 0;
-	while (tmp[0] == 1)
+	do
 	{
 		SDL_SetRenderDrawColor(REND, 0x23, 0x23, 0x23, 0xFF);
 		SDL_RenderClear(REND);
@@ -691,10 +692,10 @@ void start()
 		SDL_RenderPresent(REND);
 		SDL_Delay(3000);
 		num = (num + 1) % std::stoi(keys["loading"]);
-	}
-	data_set();
-	play_id = man.begin();
+	} while (tmp[0] == 1);
 	trd_step.join();
+	play_id = man.begin();
+
 	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
 	safe_start();
 }
@@ -948,17 +949,7 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 		}
 	}
 }
-int mother(const int i)
-{
-	if ((gui.begin() + i)->id == (gui.begin() + i)->parent)
-	{
-		return (gui.begin() + i)->id;
-	}
-	else
-	{
-		return mother((gui.begin() + i)->parent);
-	}
-}
+
 void ui(SDL_Event *e)
 {
 	SDL_Rect r;
@@ -991,40 +982,50 @@ void ui(SDL_Event *e)
 		
 		SDL_GetMouseState(&x, &y);
 
-
 		int ii_mousedown = -1;
 		int mot_mousedown = -1;
 		int ii_mousehover = -1;
 		int mot_mousehover = -1;
+		int ii_mouseup = -1;
+		int mot_mouseup = -1;
+
 		for (auto i =0; i < gui.size(); i++)
 		{
 			auto I = *(gui.begin() + i);
 			if (I.enable)
 			{
-				if (I.avail_mousedown_ev)
+				if (I.avail_mousestep_ev)
 				{
-					if (e->type == SDL_MOUSEBUTTONDOWN &&
-						I.rx <= x &&
-						I.ry <= y &&
-						I.rx + I.w >= x &&
-						I.ry + I.h >= y
-						)
-					{
-						if (mother(i) > mot_mousedown)
-						{
-							mot_mousedown = mother(i);
-							ii_mousedown = i;
-						}
-						//break;
-					}
+					I.mousestep_ev(i, x, y);
 				}
-				if (I.avail_mousehover_ev)
+				if (I.rx <= x &&
+					I.ry <= y &&
+					I.rx + I.w >= x &&
+					I.ry + I.h >= y)
 				{
-					if (I.rx <= x &&
-						I.ry <= y &&
-						I.rx + I.w >= x &&
-						I.ry + I.h >= y
-						)
+					if (I.avail_mousedown_ev)
+					{
+						if (e->type == SDL_MOUSEBUTTONDOWN)
+						{
+							if (mother(i) > mot_mousedown)
+							{
+								mot_mousedown = mother(i);
+								ii_mousedown = i;
+							}
+						}
+					}
+					if (I.avail_mouseup_ev)
+					{
+						if (e->type == SDL_MOUSEBUTTONUP)
+						{
+							if (mother(i) > mot_mouseup)
+							{
+								mot_mouseup = mother(i);
+								ii_mouseup = i;
+							}
+						}
+					}
+					if (I.avail_mousehover_ev)
 					{
 						if (mother(i) > mot_mousehover)
 						{
@@ -1044,7 +1045,12 @@ void ui(SDL_Event *e)
 		{
 			(gui.begin() + ii_mousehover)->mousehover_ev(ii_mousehover, x, y);
 		}
+		if (ii_mouseup != -1)
+		{
+			(gui.begin() + ii_mouseup)->mouseup_ev(ii_mouseup, x, y);
+		}
 	}
+
 
 	for (auto i = 0; i < gui.size(); i++)
 	{

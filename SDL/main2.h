@@ -44,6 +44,15 @@ void pop_char(int x, int y)
 	{
 		Widget temp(x, y, 140, 140, wd_image, id);
 		temp.var["img"] = "potrait\\bgh";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -61,6 +70,15 @@ void pop_comp(int x, int y)
 	{
 		Widget temp(x, y, 500, 700, wd_image, id);
 		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -118,6 +136,15 @@ void pop_comp_info(int x, int y)
 	{
 		Widget temp(x, y, 400, 550, wd_image, id);
 		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -178,6 +205,15 @@ void pop_gove(int x, int y)
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -280,6 +316,15 @@ void pop_gun(int x, int y)
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -330,6 +375,15 @@ void pop_media(int x, int y)
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -415,6 +469,15 @@ void pop_law(int x, int y)
 	{
 		Widget temp(x, y, 400, 520, wd_image, id);
 		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
 		gui.push_back(temp);
 	}
 	{
@@ -480,7 +543,8 @@ void safe_start()
 	{
 		Widget temp(0, 0, 140, 140, wd_image, "@ui\\potrait_case");
 		temp.var["img"] = "ui\\potrait_case_blue";
-		temp.parent = ikeys["@ui\\potrait"];
+		temp.parent = ikeys["@ui\\potrait"];			 
+		
 		gui.push_back(temp);
 	}
 	{
@@ -493,6 +557,14 @@ void safe_start()
 	{
 		Widget temp(scr_w / 2 - 400, scr_h - 20, 800, 800, wd_image, "@ui\\issue");
 		temp.var["img"] = "ui\\paper";
+
+		temp.mousedown_ev = Paper_Click;
+		temp.avail_mousedown_ev = true;
+		
+		temp.mousestep_ev = Paper_Step;
+		temp.avail_mousestep_ev = true;
+		temp.var["going"] = "down";
+
 		gui.push_back(temp);
 	}
 

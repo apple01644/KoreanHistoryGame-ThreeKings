@@ -268,8 +268,16 @@ public:
 
 	void(*mousedown_ev)(int, int, int);
 	bool avail_mousedown_ev = false;
+
 	void(*mousehover_ev)(int, int, int);
 	bool avail_mousehover_ev = false;
+
+	void(*mouseup_ev)(int, int, int);
+	bool avail_mouseup_ev = false;
+
+	void(*mousestep_ev)(int, int, int);
+	bool avail_mousestep_ev = false;
+
 	void move_left();
 	void remove();
 	void init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s);
@@ -345,3 +353,14 @@ void pop_media(int, int);
 void pop_law(int, int);
 
 void normal_start();
+int mother(const int i)
+{
+	if ((gui.begin() + i)->id == (gui.begin() + i)->parent)
+	{
+		return (gui.begin() + i)->id;
+	}
+	else
+	{
+		return mother((gui.begin() + i)->parent);
+	}
+}
