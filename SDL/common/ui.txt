@@ -1,27 +1,30 @@
-minimap_trailer_items[0] = ui\minimap_trailer_find_button
-minimap_trailer_items[1] = ui\minimap_trailer_help_button
-minimap_trailer_items[2] = ui\minimap_trailer_menu_button
-minimap_trailer_items = 3
+
+minimap_trailer_items = [
+	ui\minimap_trailer_find_button
+	ui\minimap_trailer_help_button
+	ui\minimap_trailer_menu_button
+]
 
 minimap_background = ui\right_heard_body
 
-minimap_header_items[0] = ui\developed
-minimap_header_items[1] = ui\party
-minimap_header_items[2] = None
-minimap_header_items[3] = None
-minimap_header_items[4] = None
-minimap_header_items[5] = None
-minimap_header_items[6] = None
-minimap_header_items[7] = None
-minimap_header_items = 8
+minimap_header_items = [
+	ui\developed
+	ui\party
+	None
+	None
+	None
+	None
+	None
+	None
+]
 minimap_header_back = ui\right_heard_body
 
 right_hand_items = 4
-
-left_menu_items[0] = ui\goverment
-left_menu_items[1] = ui\company
-left_menu_items[2] = ui\court
-left_menu_items[3] = ui\gun
-left_menu_items[4] = ui\book
-left_menu_items[5] = ui\note
-left_menu_items = 6
+left_menu_items = [
+	ui\goverment
+	ui\company
+	ui\court
+	ui\gun
+	ui\book
+	ui\note
+]

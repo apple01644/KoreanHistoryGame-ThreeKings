@@ -116,3 +116,31 @@ void Paper_Step(int id, int x, int y)
 		return;
 	}
 }
+
+void Tooltip_Step(int id, int x, int y) {
+	(gui.begin() + id)->x = x + 10;
+	(gui.begin() + id)->y = y + 10;
+	parent_front(id);
+}
+
+void Potrait_Hover(int id, int x, int y) {
+	//(gui.begin() + id)->var["time"] = std::to_string(std::stoi((gui.begin() + id)->var["time"]) + 3);
+
+	//if (std::stoi((gui.begin() + id)->var["time"]) > 20)
+	{
+		gui[ikeys["@ui\\tooltip"]].enable = true;
+		auto I = man.begin();
+		for (int a = 0; I != man.end(); a++)
+		{
+			if (std::to_string(I->id) == gui[id].var["id"])
+			{
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] = I->name;
+				break;
+			}
+			I++;
+		}
+
+	}
+
+	parent_front(id);
+}

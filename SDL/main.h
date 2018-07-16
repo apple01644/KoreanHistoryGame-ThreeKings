@@ -60,9 +60,10 @@ void set_rect(SDL_Rect*, int, int, int, int);
 void set_rect(SDL_Rect*, int, int);
 
 int get_chrs(std::string);
+int get_lines(std::string, int);
 void draw_string_s(int, std::string, SDL_Color, SDL_Rect*);
 void draw_string(int, std::string, SDL_Color, SDL_Point*, int, float,int);
-
+void draw_line(int, std::string, int, SDL_Color, SDL_Point*, int, float, int);
 std::unordered_map<unsigned long, bool> char_id;
 enum {
 	left_align = 0,
@@ -246,7 +247,8 @@ struct Education{
 enum {
 	wd_none,
 	wd_image,
-	wd_label
+	wd_label,
+	wd_text
 };
 
 
@@ -331,6 +333,7 @@ int map_mode = 1;
 unsigned long long delay = 0;
 int tmp[16];
 int tmp_s[16];
+
 std::list<Man> man;
 
 std::list<Message> msg;
@@ -343,6 +346,9 @@ std::list<Education> education;
 std::list<Man>::iterator play_id;
 bool play_av = false;
 std::list<Man>::iterator player = man.begin();
+
+unsigned int president_id = 0;
+unsigned int prime_id = 0;
 
 void pop_char(int, int);
 void pop_comp(int, int);

@@ -345,11 +345,176 @@ void data_proc( std::string s1, std::string s2)
 {
 	if (s2 == "{")
 	{
-		scope.push_back(s1);
+		scope.push_back("}" + s1);
+		return;
+	}
+	if (s2 == "[")
+	{
+		scope.push_back("]" + s1);
+		keys[s1] = "0";
+		return;
+	}
+	if (s2 == "<")
+	{
+		scope.push_back(">" + s1);
+		if (s1 == "Man")
+		{
+			Man m;
+			keys[s1] = std::to_string(man.size());
+			LOG_O("GOOD!", keys["Man"]);
+			man.push_back(m);
+		}
+		else if (s1 == "Party")
+		{
+			Party m;
+			if (keys[s1] == "")
+			{
+				keys[s1] = "0";
+			}
+			else
+			{
+				keys[s1] = std::to_string(std::stoi(keys[s1]) + 1);
+			}
+			LOG_O("GOOD!", keys["Party"]);
+			party[std::stoi(keys[s1])] = m;
+		}
+		else
+		{
+			LOG_W("Error! in data proc", s1);
+			//quit = true;
+		}
 		return;
 	}
 
-	keys[s1] = s2;
+	if (scope.begin() == scope.end())
+	{
+		keys[s1] = s2;
+	}
+	else if ((scope.end() - 1)->at(0)=='>')
+	{
+		std::string s = (scope.end() - 1)->substr(1);
+		if (s == "Man")
+		{
+			auto I = man.begin();
+			for (int i = 0; i < std::stoi(keys[s]); i++)
+			{
+				I++;
+			}
+			if (s1 == "name")
+			{
+				I->name = s2;
+			}
+			else if (s1 == "potrait")
+			{
+				I->potrait = s2;
+			}
+			else if (s1 == "live")
+			{
+				if (s2 == "true")
+				{
+					I->live = true;
+				}
+				else if (s2 == "false")
+				{
+					I->live = false;
+				}
+			}
+			else if (s1 == "born_year")
+			{
+				I->born_year= std::stoi(s2);
+			}
+			else if (s1 == "money")
+			{
+				I->money = std::stoi(s2);
+			}
+			else if (s1 == "prestige")
+			{
+				I->prestige = std::stoi(s2);
+			}
+			else if (s1 == "fascist")
+			{
+				I->fascist = std::stoi(s2);
+			}
+			else if (s1 == "liberty")
+			{
+				I->liberty = std::stoi(s2);
+			}
+			else if (s1 == "honor")
+			{
+				I->honor = std::stoi(s2);
+			}
+			else if (s1 == "ambition")
+			{
+				I->ambition = std::stoi(s2);
+			}
+			else if (s1 == "religion")
+			{
+				I->religion = std::stoi(s2);
+			}
+			else if (s1 == "id")
+			{
+				I->id = std::stoi(s2);
+			}
+		}
+		else if (s == "Party")
+		{
+			if (s1 == "name")
+			{
+				party[std::stoi(keys[s])].name = s2;
+			}
+			else if (s1 == "fascist")
+			{
+				party[std::stoi(keys[s])].facism = std::stoi(s2);
+			}
+			else if (s1 == "liberty")
+			{
+				party[std::stoi(keys[s])].liberty = std::stoi(s2);
+			}
+			else if (s1 == "color" && false)
+			{
+				for (int i = 0; i < s2.length(); i++)
+				{
+					if (s2.at(i) == '(')
+					{
+						s2 = s2.substr(i + 1);
+						break;
+					}
+				}
+				for (int i = 0; i < s2.length(); i++)
+				{
+					if (s2.at(i) == ')')
+					{
+						s2 = s2.substr(0, i);
+						break;
+					}
+				}
+				std::string buf = "";
+				int j = 0;
+				int rgb[3] = { 0 };
+				for (int i = 0; i < s2.length(), j < 3; i++)
+				{
+					if (s2.at(i) == ',')
+					{
+						rgb[j] = std::stoi(buf);
+						j++;
+						buf = "";
+					}
+					else
+					{
+						buf += s2.at(i);
+					}
+					if (i == s2.length() - 1)
+					{
+						rgb[j] = std::stoi(buf);
+						buf = "";
+						j++;
+					}
+
+				}
+				party[std::stoi(keys[s])].c = color(rgb[0], rgb[1], rgb[2]);
+			}
+		}
+	}
 	LOG_H(s1,s2);
 }
 void data_read(std::string path)
@@ -367,10 +532,36 @@ void data_read(std::string path)
 		bool used = false;
 		for (std::string line; std::getline(in, line); i++, used = false)
 		{
-			if (line == "")
+			if (line == "" or line == "癤풫an")
 			{
 				continue;
 			}
+			bool can_do_it = true;
+			for (int j = 0; j < line.length(); j++)
+			{
+				if (line.at(j) == '#')
+				{
+					if (j > 0)
+					{
+						if (line.at(j - 1) == '\\')
+						{
+							continue;
+						}
+					}
+					if (j == 0)
+					{
+						can_do_it = false;
+						break;
+					}
+					line = line.substr(0, j);
+					break;
+				}
+			}
+			if (!can_do_it)
+			{
+				continue;
+			}
+
 			for (int j = 0; j < line.length() - 1; j++)
 			{
 				if (line.at(j) == '=')
@@ -384,6 +575,7 @@ void data_read(std::string path)
 								k++;
 							}
 						}
+
 						data_proc(line.substr(0, j), line.substr(j + 2, line.length() - j - 2));
 						used = true;
 						break;
@@ -397,6 +589,11 @@ void data_read(std::string path)
 				{
 					line.erase(line.begin() + j);
 				}
+				else if (line.at(j) == '\"')
+				{
+					line.erase(line.begin() + j);
+					break;
+				}
 			}
 
 			if (!used)
@@ -405,6 +602,7 @@ void data_read(std::string path)
 				{
 					if (line.at(j) == '=')
 					{
+						int k;
 						data_proc(line.substr(0, j), line.substr(j + 1, line.length() - j - 1));
 						used = true;
 						break;
@@ -413,9 +611,29 @@ void data_read(std::string path)
 			}
 			if (!used)
 			{
-				if (line == "}")
+				if (line == "}" || line == "]" || line == ">")
 				{
+					if (line != (scope.end() - 1)->substr(0, 1)) 
+					{
+						LOG_W("Syntax Error of ", path);
+						used = true;
+						quit = true;
+					}
 					scope.pop_back();
+				}
+			}
+			if (!used && scope.size() > 0)
+			{
+				if ((scope.end() - 1)->at(0) == ']')
+				{
+					keys[(scope.end() - 1)->substr(1) + "[" + keys[(scope.end() - 1)->substr(1)] + "]"] = line;
+					keys[(scope.end() - 1)->substr(1)] = std::to_string(std::stoi(keys[(scope.end() - 1)->substr(1)]) + 1);
+					used = true;
+				}
+				if ((scope.end() - 1)->at(0) == '>')
+				{
+					keys[(scope.end() - 1)->substr(1)] = std::to_string(std::stoi(keys[(scope.end() - 1)->substr(1)]) + 1);
+					used = true;
 				}
 			}
 		}
@@ -423,7 +641,7 @@ void data_read(std::string path)
 
 		if (scope.end() - scope.begin() != 0)
 		{
-			LOG_O("Syntax Error of ", path);
+			LOG_W("Syntax Error of ", path);
 			quit = true;
 		}
 		else
@@ -538,51 +756,6 @@ void prov_set()
 
 void data_set()
 {
-	{
-		Man m;
-		m.set(2002, "김윤수", 0, 0, 0, 20, 2, 30, "potrait\\kms");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(2002, "김태윤", 0, 0, 0, 20, 2, 30, "potrait\\kyk");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(2002, "윤재상", 0, 0, 0, 20, 2, 30, "potrait\\ysm");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(2002, "신정우", 0, 127, 127, 20, 2, 30, "potrait\\ssj");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(2002, "전인성", 0, 127, 127, 20, 2, 30, "potrait\\hhy");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(1927, "김영삼", 0, -30, 10, 10, 30, 5, "potrait\\kys");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(1924, "김대중", 0, -60, -30, 20, 40, 25, "potrait\\kdj");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(1931, "전두환", 26, 60, 30, 10, 50, 15, "potrait\\jdh");
-		man.push_back(m);
-	}
-	{
-		Man m;
-		m.set(1932, "노태우", 26, 50, 25, 20, 50, 5, "potrait\\ntw");
-		man.push_back(m);
-	}
 }
 void start()
 {
@@ -602,6 +775,7 @@ void start()
 		file_prov_read(pStr);
 	}
 
+
 	for (int i = 0; i < MAX_PROV; i++)
 	{
 		for (int j = 0; j < prv[i].man * 3; j++)
@@ -611,39 +785,14 @@ void start()
 		}
 	}
 
-	std::thread trd_step(prov_set);
 	data_set();
 	tmp[0] = 1;
-
-	party[0].name = "자유 민주 연합";
-	party[0].facism = 10;
-	party[0].liberty = 60; 
-	party[0].c = color(74,143,0);
-
-	party[1].name = "한나라당";
-	party[1].facism = 30;
-	party[1].liberty = 40;
-	party[1].c = color(0,131,203);
-
-	party[2].name = "새천년 민주당";
-	party[2].facism = -10;
-	party[2].liberty = 10;
-	party[2].c = color(0,153,153);
-
-	party[3].name = "민주 노동당";
-	party[3].facism = -30;
-	party[3].liberty = 10;
-	party[3].c = color(255,102,0);
-
-	party[4].name = "사회당";
-	party[4].facism = -60;
-	party[4].liberty = -30;
-	party[4].c = color(0,0,0);
 
 	SDL_Rect r;
 	set_rect(&r,0,0,0,0);
 	SDL_Point p;
 	int num = 0;
+	std::thread trd_step(prov_set);
 	do
 	{
 		SDL_SetRenderDrawColor(REND, 0x23, 0x23, 0x23, 0xFF);
@@ -693,7 +842,9 @@ void start()
 		SDL_Delay(3000);
 		num = (num + 1) % std::stoi(keys["loading"]);
 	} while (tmp[0] == 1);
+
 	trd_step.join();
+	LOG_W(std::to_string(man.size()));
 	play_id = man.begin();
 
 	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
@@ -826,7 +977,6 @@ std::string get_ideology(char f, char l)
 
 void step()
 {
-
 	while(!quit)
 	{
 		if (delay > 200000000)
@@ -927,6 +1077,24 @@ void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned
 		p.x = I->rx;
 		p.y = I->ry;
 		draw_string(std::stoi(I->var["ind"]), I->var["text"], Color[I->var["color"]], &p, std::stoi(I->var["size"]), std::stof(I->var["ratio"]), std::stoi(I->var["opt"]));
+		return;
+	}
+	if (type == wd_text)
+	{
+		SDL_Point p;
+		p.x = I->rx;
+		p.y = I->ry;
+
+		switch (std::stoi(I->var["opt"]) / 3)
+		{
+		case bottom_align / 3:
+			p.y -= std::stoi(I->var["size"]) * (get_lines(I->var["text"], std::stoi(I->var["line"])) - 1);
+			break;
+		case middle_align / 3:
+			p.y -= std::stoi(I->var["size"]) * (get_lines(I->var["text"], std::stoi(I->var["line"])) - 1) / 2;
+			break;
+		}
+		draw_line(std::stoi(I->var["ind"]), I->var["text"], std::stoi(I->var["line"]), Color[I->var["color"]], &p, std::stoi(I->var["size"]), std::stof(I->var["ratio"]), std::stoi(I->var["opt"]));
 		return;
 	}
 }
@@ -1085,6 +1253,50 @@ void ui(SDL_Event *e)
 	return;
 }
 
+int get_lines(std::string s, int max_line)
+{
+	int lines = 0;
+	unsigned int chr_len = s.length();
+	const char* chr = s.c_str();
+	int beg = 0, chrs = 0, bias = 0, all_line = 0;
+	for (int i = 0; i < chr_len;)
+	{
+		if (chr[i] >= 0)
+		{
+			if (chr[i] == '\n')
+			{
+				lines++;
+			}
+			bias = 1;
+		}
+		else if (chr[i] >= -64 && chr[i] <= -33 && chr[i + 1] <= -65)//-128 ~ - 65
+		{
+			bias = 2;
+		}
+		else if (chr[i] >= -32 && chr[i] <= -17 && chr[i + 1] <= -65 && chr[i + 2] <= -65)
+		{
+			bias = 3;
+		}
+		else if (chr[i] >= -16 && chr[i] <= -9 && chr[i + 1] <= -65 && chr[i + 2] <= -65 && chr[i + 3] <= -65)
+		{
+			bias = 4;
+		}
+		chrs++;
+
+		if (max_line > 0 && chrs >= max_line)
+		{
+			lines++;
+			chrs = 0;
+		}
+
+		i += bias;
+	}
+	if (chrs > 0)
+	{
+		lines++;
+	}
+	return lines;
+}
 int get_chrs(std::string s)
 {
 	unsigned int chr_len = s.length();
@@ -1109,12 +1321,6 @@ int get_chrs(std::string s)
 			bias = 4;
 		}
 		chrs++;
-		//if (chrs >= len_in_lin || i + bias >= chr_len - 1 || chr[i] == 10)
-		//{
-		//	chrs = 0;
-		//	beg = i + bias;
-		//	all_line++;
-		//}
 		i += bias;
 	}
 	return chrs;
@@ -1144,7 +1350,7 @@ void draw_string(int ind, std::string s, SDL_Color color, SDL_Point* p, int size
 	}
 	switch (opt / 3)
 	{
-	case top_align / 3:
+	case bottom_align / 3:
 		r.y -= r.h;
 		break;
 	case middle_align / 3:
@@ -1152,6 +1358,52 @@ void draw_string(int ind, std::string s, SDL_Color color, SDL_Point* p, int size
 		break;
 	}
 	draw_string_s(ind, s, color,&r);
+}
+void draw_line(int ind, std::string s, int max_line, SDL_Color color, SDL_Point* p, int size, float ratio, int opt)
+{
+	int lines = 0;
+	const unsigned int chr_len = s.length();
+	const char* chr = s.c_str();
+	int i, beg = 0, chrs = 0, bias = 0, st = 0;
+	for (i = 0; i < chr_len;)
+	{
+		bias = 1;
+		if (chr[i] >= 0)
+		{
+		}
+		else if (chr[i] >= -64 && chr[i] <= -33 && chr[i + 1] <= -65)//-128 ~ - 65
+		{
+			bias = 2;
+		}
+		else if (chr[i] >= -32 && chr[i] <= -17 && chr[i + 1] <= -65 && chr[i + 2] <= -65)
+		{
+			bias = 3;
+		}
+		else if (chr[i] >= -16 && chr[i] <= -9 && chr[i + 1] <= -65 && chr[i + 2] <= -65 && chr[i + 3] <= -65)
+		{
+			bias = 4;
+		}
+		else
+		{
+			break;
+		}
+		chrs++;
+		if ((max_line > 0 && chrs >= max_line) || chr[i] == '\n')
+		{
+			lines++;
+			draw_string(ind,s.substr(st, i- st),color,p,size,ratio,opt);
+			p->y += size;
+			st = i;
+			chrs = 0;
+		}
+
+		i += bias;
+	}
+	if (chrs > 0)
+	{
+		lines++;
+		draw_string(ind, s.substr(st, i - st), color, p, size, ratio, opt);
+	}
 }
 
 void set_rect(SDL_Rect *r, int x, int y, int w, int h)

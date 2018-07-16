@@ -1,0 +1,32 @@
+﻿#Partys Max Number is 9
+Party = <
+	name = "자유 민주 연합
+	fascist = 10
+	liberty = 60
+	color = (74,143,0)
+>
+Party = <
+	name = "한나라당
+	fascist = 30
+	liberty = 40
+	color = (0,131,203)
+>
+Party = <
+	name = "새천년 민주당
+	fascist = -10
+	liberty = 10
+	color = (0,153,153)
+>
+Party = <
+	name = "민주 노동당
+	fascist = -30
+	liberty = 10
+	color = (255,102,0)
+>
+
+Party = <
+	name = "사회당
+	fascist = -60
+	liberty = -30
+	color = (0,0,0)
+>

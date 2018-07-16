@@ -4,26 +4,26 @@ ind=2
 clt=3
 man=1
 
-pop={
+pop=<
    support=2
    issue=241
    income=3
    facism=-10
    liberty=9
-}
+>
 
-pop={
+pop=<
    support=4
    issue=255
    income=3
    facism=-61
    liberty=-33
-}
+>
 
-pop={
+pop=<
    support=5
    issue=44
    income=3
    facism=-12
    liberty=42
-}
+>

@@ -537,19 +537,47 @@ void safe_start()
 
 	{
 		Widget temp(0, 0, 140, 140, wd_image, "@ui\\potrait");
-		temp.var["img"] = "potrait\\kys";
+		temp.var["id"] = "1";
+		temp.var["time"] = "0";
+
+		auto I = man.begin();
+		for (int a = 0; I != man.end(); a++)
+		{
+			if (std::to_string(I->id) == temp.var["id"])
+			{
+				temp.var["img"] = I->potrait;
+				break;
+			}
+			I++;
+		}
+		temp.mousehover_ev = Potrait_Hover;
+		temp.avail_mousehover_ev = true;
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(0, 0, 140, 140, wd_image, "@ui\\potrait_case");
 		temp.var["img"] = "ui\\potrait_case_blue";
-		temp.parent = ikeys["@ui\\potrait"];			 
-		
+		temp.parent = ikeys["@ui\\potrait"];	
 		gui.push_back(temp);
 	}
 	{
-		Widget temp(300, 300, 140, 100, wd_image, "@ui\\tooltip");
+		Widget temp(300, 300, 280, 200, wd_image, "@ui\\tooltip");
 		temp.var["img"] = "ui\\body";
+		temp.mousestep_ev = Tooltip_Step;
+		temp.avail_mousestep_ev = true;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(20, 20, 0, 0, wd_text, "@ui\\tooltip_text");
+
+		temp.var["text"] = "동해물과 백두산이 마르고 닳도록 하느님이 보우하사 우리 나라 만세 무궁화 삼천리 화려 강산";
+		temp.var["opt"] = std::to_string(top_align + left_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "20";
+		temp.var["ratio"] = "0.6";
+		temp.var["line"] = "21";
+		temp.parent = ikeys["@ui\\tooltip"];
 		gui.push_back(temp);
 	}
 
@@ -607,7 +635,6 @@ void safe_start()
 		Widget temp(0, (i * 144 / right_hand_items), 100, 144 / right_hand_items, wd_image, "@ui\\right_hand[" + std::to_string(i) + "]");
 		temp.var["img"] = "ui\\right_heard_body";
 		temp.parent = ikeys["@ui\\right_hand"];
-
 		gui.push_back(temp);
 	}
 

@@ -3,50 +3,50 @@ eco=2
 ind=3
 clt=3
 man=2
-pop={
+pop=<
    support=0
    issue=133
    income=2
    facism=11
    liberty=60
-}
+>
 
-pop={
+pop=<
    support=1
    issue=97
    income=2
    facism=31
    liberty=40
-}
+>
 
-pop={
+pop=<
    support=1
    issue=32
    income=2
    facism=33
    liberty=43
-}
+>
 
-pop={
+pop=<
    support=1
    issue=101
    income=2
    facism=30
    liberty=43
-}
+>
 
-pop={
+pop=<
    support=1
    issue=182
    income=2
    facism=30
    liberty=37
-}
+>
 
-pop={
+pop=<
    support=2
    issue=101
    income=2
    facism=-7
    liberty=12
-}
+>
