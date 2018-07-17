@@ -1,0 +1,22 @@
+#Controller
+
+prov_id_miner = [
+	1
+	5
+	6
+	8
+	9
+	12
+	13
+	14
+	17
+]
+prov_id_major = [
+	2
+	3
+	4
+	7
+	10
+	15
+	16
+]

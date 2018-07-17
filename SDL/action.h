@@ -34,31 +34,39 @@ void parent_remove(int id, int x, int y)
 
 void LeftMenu_Item0_Click(int id, int x, int y)
 {
-	pop_gove(200, 200);
+	pop_gove(350, 300);
 }
 void LeftMenu_Item1_Click(int id, int x, int y)
 {
-	pop_cong(200, 200);
+	pop_cong(350, 300);
 }
 void LeftMenu_Item2_Click(int id, int x, int y)
 {
-	pop_comp(200,200);
+	pop_comp(350,300);
 }
 void LeftMenu_Item3_Click(int id, int x, int y)
 {
-	pop_law(200, 200);
+	pop_law(350, 300);
 }
 void LeftMenu_Item4_Click(int id, int x, int y)
 {
-	pop_gun(200,200);
+	pop_gun(350,300);
 }
 void LeftMenu_Item5_Click(int id, int x, int y)
 {
-	pop_edu(200, 200);
+	pop_edu(350, 300);
 }
 void LeftMenu_Item6_Click(int id, int x, int y)
 {
-	pop_media(200, 200);
+	pop_media(350, 300);
+}
+void LeftMenu_Item7_Click(int id, int x, int y)
+{
+	pop_prov(350, 300);
+}
+void LeftMenu_Item8_Click(int id, int x, int y)
+{
+	pop_party(350, 300);
 }
 
 
@@ -143,7 +151,7 @@ void Tooltip_Step(int id, int x, int y) {
 void Potrait_Mousedown(int id, int x, int y)
 {
 	//pop_comp(200, 200);
-	pop_char(200, 200, std::stoi((gui.begin() + id)->var["id"]));
+	pop_char(350, 50, std::stoi((gui.begin() + id)->var["id"]));
 }
 
 void Potrait_Hover(int id, int x, int y) {
@@ -198,43 +206,8 @@ void Character_Step(int id)
 			}
 			I++;
 		}
-
-		if (I->work == "None")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case";
-		}
-		else if (I->work == "국회의원" || I->work == "국회의장")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_gold_cong";
-		}
-		else if (I->work == "대통령")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_blue";
-		}
-		else if (I->work == "시장" || I->work == "도지사" || I->work == "총리")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_gold";
-		}
-		else if (I->work == "기업가")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_company";
-		}
-		else if (I->work == "건달")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_gun";
-		}
-		else if (I->work == "판사")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_law";
-		}
-		else if (I->work == "기자")
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case_media";
-		}
-		else
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = "ui\\potrait_case";
-		}
+		gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = get_case(I->work);
+	
 
 		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["text"] = std::to_string(relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)]);
 		if (relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)] > 0)
@@ -366,10 +339,10 @@ void Scroll_Step(int id)
 	}
 	else if (std::stoi(gui[id].var["scroll"]) < (std::stoi(gui[id].var["items"]) - 1) * 90)
 	{
-		gui[id].var["scroll"] = std::to_string((std::stoi(gui[id].var["scroll"]) + (std::stoi(gui[id].var["items"]) - 1) * 90) / 2);
+		//gui[id].var["scroll"] = std::to_string((std::stoi(gui[id].var["scroll"]) + (std::stoi(gui[id].var["items"]) - 1) * 90) / 2);
 		if (std::stoi(gui[id].var["scroll"]) > 0)
 		{
-			gui[id].var["scroll"] = "0";
+			//gui[id].var["scroll"] = "0";
 		}
 	}
 	else if (std::stoi(gui[id].var["scroll"]) > std::stoi(gui[id].var["items"]) * 90)
@@ -379,17 +352,25 @@ void Scroll_Step(int id)
 
 	for (int a = 0; a <  std::stoi(gui[id].var["items"]); a++)
 	{
+		if (std::to_string(a) == gui[id].var["select"])
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["img"] = "ui\\body";
+		}
+		else
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["img"] = "ui\\button";
+		}
 		int y = 90 * a + std::stoi(gui[id].var["scroll"]);
 		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = y;
 		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90;
-		if (y >= 560 || y + 90 <= 0)
+		if (y >= gui[id].h - 90 || y + 90 <= 0)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = false;
 		}
-		else if (y + 90 > 560)
+		else if (y + 90 > gui[id].h)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
-			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 560 - y;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = gui[id].h - y;
 		}
 		else if (y < 0)
 		{
@@ -398,14 +379,103 @@ void Scroll_Step(int id)
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = 0;
 
 		}
+		else
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+		}
 	}
 }
 void Scroll_Scroll(int id, int x, int y, int dy)
 {
-	gui[id].var["scroll"] = std::to_string(std::stoi(gui[id].var["scroll"]) - dy * 5);
+	gui[id].var["scroll"] = std::to_string(std::stoi(gui[id].var["scroll"]) + dy * 5);
+}
+void Scroll_Mousedown(int id, int x, int y)
+{
+	y -= gui[id].ry;
+	for (int a = 0; a < std::stoi(gui[id].var["items"]); a++)
+	{
+		int Y = 90 * a + std::stoi(gui[id].var["scroll"]);
+		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = Y;
+		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90;
+		if (Y >= gui[id].h - 90 || Y + 90 <= 0)
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = false;
+		}
+		else if (Y + 90 > gui[id].h)
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = gui[id].h - Y;
+		}
+		else if (Y < 0)
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90 + Y;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = 0;
+
+		}
+		else
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+		}
+		
+		if (gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable &&
+			y > Y && 
+			y < Y + gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h)
+		{
+
+			if (gui[id].var["select"] == "-1")
+			{
+				gui[id].var["select"] = std::to_string(a);
+				{
+					Widget temp(160, 50, 720, 630, wd_image, gui[mother(id)].var["name"] + "_pop");
+					temp.var["img"] = "ui\\body";
+					temp.var["items"] = std::to_string(prv[a].pop.size());
+					temp.var["scroll"] = "-45";
+					temp.var["select"] = "-1";
+
+					temp.step_ev = Scroll_Step;
+					temp.avail_step_ev = true;
+					temp.mousewheel_ev = Scroll_Scroll;
+					temp.avail_mousewheel_ev = true;
+					temp.mousedown_ev = Scroll_Mousedown;
+					temp.avail_mousedown_ev = true;
+
+					temp.parent = ikeys[gui[mother(id)].var["name"]];
+					gui.push_back(temp);
+				}
+				for (int i = 0; i < prv[a].pop.size(); i++)
+				{
+					Widget temp(0, 90 * i, 720, 90, wd_image, gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]");
+
+					temp.var["img"] = "ui\\button";
+					temp.parent = ikeys[gui[mother(id)].var["name"] + "_pop"];
+					gui.push_back(temp);
+					//if (false)
+					{
+						Widget temp2(360, 45, 0, 0, wd_label, id + "_pop[" + std::to_string(i) + "]_name");
+
+						temp2.parent = ikeys[gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]"];
+						temp2.var["text"] = get_ideology(prv[a].pop[i].fascist, prv[a].pop[i].liberty);
+						temp2.var["opt"] = std::to_string(middle_align + center_align);
+						temp2.var["ind"] = "2";
+						temp2.var["color"] = "c_white";
+						temp2.var["size"] = "40";
+						temp2.var["ratio"] = "0.8";
+						gui.push_back(temp2);
+					}
+				}
+			}
+			else
+			{
+				gui[id].var["select"] = "-1";
+				gui[ikeys[gui[mother(id)].var["name"] + "_pop"]].removing = true;
+			}
 
 
 
+			break;
+		}
+	}
 }
 
 void Companyitems_Step(int id)
@@ -416,7 +486,7 @@ void Companyitems_Step(int id)
 	{
 		for (int a = 0; a < std::stoi(gui[ikeys[gui[id].var["name"] + "_content"]].var["items"]); a++)
 		{
-			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = 174 * I->power / stats["all_comp_power"];
+			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = (174 * I->power) / stats["all_comp_power"];
 			I++;
 		}
 	}
@@ -428,7 +498,7 @@ void Mediaitems_Step(int id)
 	{
 		for (int a = 0; a < std::stoi(gui[ikeys[gui[id].var["name"] + "_content"]].var["items"]); a++)
 		{
-			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = 174 * I->power / stats["all_media_power"];
+			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = (174 * I->power) / stats["all_media_power"];
 			I++;
 		}
 	}
@@ -440,7 +510,7 @@ void Forceitems_Step(int id)
 	{
 		for (int a = 0; a < std::stoi(gui[ikeys[gui[id].var["name"] + "_content"]].var["items"]); a++)
 		{
-			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = 174 * I->power / stats["all_force_power"];
+			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = (174 * I->power) / stats["all_force_power"];
 			I++;
 		}
 	}
@@ -452,7 +522,7 @@ void Educationitems_Step(int id)
 	{
 		for (int a = 0; a < std::stoi(gui[ikeys[gui[id].var["name"] + "_content"]].var["items"]); a++)
 		{
-			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = 174 * I->power / stats["all_education_power"];
+			gui[ikeys[gui[id].var["name"] + "_content[" + std::to_string(a) + "]_power"]].w = (174 * I->power) / stats["all_education_power"];
 			I++;
 		}
 	}
@@ -477,6 +547,8 @@ void Partylist_Step(int id)
 			gui[ikeys[gui[id].var["name"] + "_list[" + std::to_string(i) + "]"]].enable = true;
 			gui[ikeys[gui[id].var["name"] + "_list[" + std::to_string(i) + "]"]].var["img"] = I->potrait;
 			gui[ikeys[gui[id].var["name"] + "_list[" + std::to_string(i) + "]"]].var["id"] = std::to_string(I->id);
+			gui[ikeys[gui[id].var["name"] + "_list[" + std::to_string(i) + "]_case"]].var["img"] = gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = get_case(I->work);
+
 			i++;
 		}
 		I++;

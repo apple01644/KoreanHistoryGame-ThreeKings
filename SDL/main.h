@@ -136,6 +136,8 @@ struct Pop
 	unsigned support = rand() % MAX_PROV;
 	unsigned issue = 0;
 	unsigned income = 0;
+	char fascist = rand() % 256 - 128;
+	char liberty = rand() % 256 - 128;
 };
 
 struct Province
@@ -152,6 +154,8 @@ struct Province
 	unsigned int ind = 0;
 	unsigned int clt = 0;
 	unsigned int man = 0;
+
+	bool enable = true;
 
 	std::vector<Pop> pop;
 
@@ -376,6 +380,7 @@ void pop_law(int, int);
 void pop_cong(int, int);
 void pop_edu(int, int);
 void pop_party(int, int);
+void pop_prov(int, int);
 
 void normal_start();
 int mother(const int i)
@@ -505,5 +510,45 @@ std::string get_ideology(char f, char l)
 		{
 			return "무정부공산주의";
 		}
+	}
+}
+
+std::string get_case(std::string s)
+{
+	if (s == "None")
+	{
+		return "ui\\potrait_case";
+	}
+	else if (s == "국회의원" || s == "국회의장")
+	{
+		return "ui\\potrait_case_gold_cong";
+	}
+	else if (s == "대통령")
+	{
+		return "ui\\potrait_case_blue";
+	}
+	else if (s == "시장" || s == "도지사" || s == "총리")
+	{
+		return "ui\\potrait_case_gold";
+	}
+	else if (s == "기업가")
+	{
+		return "ui\\potrait_case_company";
+	}
+	else if (s == "건달")
+	{
+		return "ui\\potrait_case_gun";
+	}
+	else if (s == "판사")
+	{
+		return "ui\\potrait_case_law";
+	}
+	else if (s == "기자")
+	{
+		return "ui\\potrait_case_media";
+	}
+	else
+	{
+		return "ui\\potrait_case";
 	}
 }

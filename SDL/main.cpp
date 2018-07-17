@@ -126,6 +126,11 @@ void file_proc(int id, std::string s1, std::string s2)
 		prv[id].man = std::stoi(s2);
 		return;
 	}
+	if (s1 == "man")
+	{
+		prv[id].man = std::stoi(s2);
+		return;
+	}
 	if (s1 == "clt")
 	{
 		prv[id].clt = std::stoi(s2);
@@ -139,6 +144,11 @@ void file_proc(int id, std::string s1, std::string s2)
 	if (s1 == "eco")
 	{
 		prv[id].eco = std::stoi(s2);
+		return;
+	}
+	if (s1 == "name")
+	{
+		prv[id].name = s2;
 		return;
 	}
 	if (s2 == "{")
@@ -156,7 +166,7 @@ void file_proc(int id, std::string s1, std::string s2)
 		prv[id].pop[tmp[0]].support = std::stoi(s2);
 		return;
 	}
-	if (s1 == "pop.i8ssue")
+	if (s1 == "pop.issue")
 	{
 		prv[id].pop[tmp[0]].issue = std::stoi(s2);
 		return;
@@ -164,6 +174,18 @@ void file_proc(int id, std::string s1, std::string s2)
 	if (s1 == "pop.income")
 	{
 		prv[id].pop[tmp[0]].income = std::stoi(s2);
+		return;
+	}
+	if (s1 == "enable")
+	{
+		if (s2 == "false")
+		{
+			prv[id].enable = false;
+		}
+		else
+		{
+			prv[id].enable = true;
+		}
 		return;
 	}
 }
@@ -190,7 +212,7 @@ void file_prov_read(std::string path)
 					{
 						if (path.at(l) == '.')
 						{
-							prv[id].name = path.substr(k + 1, l - k - 1);
+							//prv[id].name = path.substr(k + 1, l - k - 1);
 							break;
 						}
 					}
@@ -661,7 +683,7 @@ void data_read(std::string path)
 
 void prov_set()
 {
-	//SDL_Delay(60000);
+	SDL_Delay(1000);
 	SDL_Surface* map = IMG_Load((currentDir + "\\" + "map\\prov.bmp").c_str());
 
 	int w, h;
@@ -977,6 +999,24 @@ void normal_start()
 			I++;
 		}
 	}
+	for (int a = 0; a < std::stoi(keys["all_lawer"]); a++)
+	{
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "판사";
+				keys["lawer[" + std::to_string(a) + "]"] = std::to_string(I->id);
+				break;
+			}
+		}
+	}
 
 	for (int i = 0; i < 3; i++)
 	{
@@ -984,7 +1024,7 @@ void normal_start()
 		o.money = rand() % 10000;
 		o.good = 60 + rand() % 196;
 		o.power = 60 + rand() % 196;
-		o.name = "회사";
+		o.name = keys["CompanyNames[" + std::to_string(i) + "]"];
 		while (true)
 		{
 			the_man = 1 + rand() % (man.size() - 1);
@@ -1009,7 +1049,7 @@ void normal_start()
 		o.money = rand() % 10000;
 		o.good = 60 + rand() % 196;
 		o.power = 60 + rand() % 196;
-		o.name = "언론사";
+		o.name = keys["MediaNames[" + std::to_string(i) + "]"];
 		while (true)
 		{
 			the_man = 1 + rand() % (man.size() - 1);
@@ -1033,7 +1073,7 @@ void normal_start()
 		o.money = rand() % 10000;
 		o.good = 60 + rand() % 196;
 		o.power = 60 + rand() % 196;
-		o.name = "사인파";
+		o.name = keys["ForceNames[" + std::to_string(i) + "]"];
 		while (true)
 		{
 			the_man = 1 + rand() % (man.size() - 1);
@@ -1057,7 +1097,7 @@ void normal_start()
 		o.money = rand() % 10000;
 		o.good = 60 + rand() % 196;
 		o.power = 60 + rand() % 196;
-		o.name = "삼세대학교";
+		o.name = keys["EducationNames[" + std::to_string(i) + "]"];
 		while (true)
 		{
 			the_man = 1 + rand() % (man.size() - 1);
@@ -1091,9 +1131,15 @@ void normal_start()
 				}
 				if (I->live && I->party == -1)
 				{
-					if (rand() % ((int)sqrt(pow(I->fascist - party[0].facism,2)+pow(I->liberty - party[0].liberty,2)) + 1) < 10)
+					if (party[i].owner == 0 || rand() % ((int)sqrt(pow(I->fascist - party[i].facism,2)+pow(I->liberty - party[i].liberty,2)) + 1) < 10)
 					{
 						I->party = i; 
+						if (party[i].owner == 0)
+						{
+							party[i].owner = I->id;
+							party[i].liberty = I->liberty;
+							party[i].facism = I->fascist;
+						}
 					}
 					break;
 				}
@@ -1102,9 +1148,8 @@ void normal_start()
 	}
 
 
-	pop_party(200, 200);
+	//pop_prov(200, 200);
 }
-
 
 void step()
 {

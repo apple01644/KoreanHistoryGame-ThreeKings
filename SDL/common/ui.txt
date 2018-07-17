@@ -29,4 +29,5 @@ left_menu_items = [
 	ui\book
 	ui\note
 	ui\state
+	ui\the_party
 ]
