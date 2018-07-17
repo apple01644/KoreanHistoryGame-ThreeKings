@@ -1,7 +1,8 @@
-#Man
+﻿#Man
 Man = <
-	na,e = ġŰ�Ͽ콺 ��
+	name = 치키니우스 박
 	potrait = potrait\bgh
+	live = true
 	id = 3
 	born_year = 1936
 	money = 2654

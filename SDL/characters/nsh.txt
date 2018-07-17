@@ -1,7 +1,8 @@
-#Man
+﻿#Man
 Man = <
-	na,e = Ȳâ��
+	name = 윤보선
 	potrait = potrait\nsh
+	live = true
 	id = 46
 	born_year = 1977
 	money = 3171

@@ -22,9 +22,11 @@ minimap_header_back = ui\right_heard_body
 right_hand_items = 4
 left_menu_items = [
 	ui\goverment
+	ui\congress
 	ui\company
 	ui\court
 	ui\gun
 	ui\book
 	ui\note
+	ui\state
 ]

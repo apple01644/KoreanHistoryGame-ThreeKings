@@ -1,7 +1,8 @@
-#Man
+﻿#Man
 Man = <
-	na,e = â��ȣ
+	name = 창원호
 	potrait = potrait\cgh
+	live = true
 	id = 7
 	born_year = 1962
 	money = 5424

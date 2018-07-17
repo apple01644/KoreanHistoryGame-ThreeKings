@@ -1,0 +1,5 @@
+#Nation jobs
+
+all_congress = 9
+all_major = 7
+all_miner = 9

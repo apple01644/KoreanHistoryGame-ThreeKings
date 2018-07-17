@@ -402,6 +402,7 @@ void data_proc( std::string s1, std::string s2)
 			}
 			if (s1 == "name")
 			{
+				LOG_W("name is ",s2);
 				I->name = s2;
 			}
 			else if (s1 == "potrait")
@@ -852,8 +853,256 @@ void start()
 
 void normal_start()
 {
-	pop_cong(200, 200);
-	pop_quit(200, 200);
+	int the_man;
+	while (true)
+	{
+		the_man = 1 + rand() % (man.size() - 1);  
+		auto I = man.begin();
+		for (int a = 0; a < the_man; a++)
+		{
+			I++;
+		}
+		if (I->live && I->work == "None")
+		{
+			I->work = "대통령"; 
+			president_id = I->id;
+			break;
+		}
+	}
+
+	while (true)
+	{
+		the_man = 1 + rand() % (man.size() - 1);  
+		auto I = man.begin();
+		for (int a = 0; a < the_man; a++)
+		{
+			I++;
+		}
+		if (I->live && I->work == "None")
+		{
+			I->work = "총리";
+			prime_id = I->id;
+			break;
+		}
+	}
+
+	while (true)
+	{
+		the_man = 1 + rand() % (man.size() - 1);  
+		auto I = man.begin();
+		for (int a = 0; a < the_man; a++)
+		{
+			I++;
+		}
+		if (I->live && I->work == "None")
+		{
+			I->work = "국회의장";
+			congress_id = I->id;
+			break;
+		}
+	}
+
+
+	for (int a = 0; a < std::stoi(keys["all_congress"]); a++)
+	{
+		while(true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);  
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "국회의원";
+				keys["congress[" + std::to_string(a) + "]"] = std::to_string(I->id);
+				break;
+			}
+		}
+	}
+	for (int a = 0; a < std::stoi(keys["all_major"]); a++)
+	{
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);  
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "시장";
+				keys["major[" + std::to_string(a) + "]"] = std::to_string(I->id);
+				break;
+			}
+		}
+	}
+	for (int a = 0; a < std::stoi(keys["all_miner"]); a++)
+	{
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);  
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "도지사";
+				keys["miner[" + std::to_string(a) + "]"] = std::to_string(I->id);
+				break;
+			}
+		}
+	}
+	{
+		auto I = man.begin();
+		for (int a = 0; a < man.size(); a++)
+		{
+			if (I->live)
+			{
+				auto J = man.begin();
+				for (int b = 0; b < man.size(); b++)
+				{
+					if (J->live)
+					{
+						relation[std::to_string(I->id) + "<" + std::to_string(J->id)] = 35 - 0.5 * sqrt(pow(I->fascist - J->fascist,2)+ pow(I->liberty - J->liberty, 2)) + rand() % 10;
+						relation[std::to_string(J->id) + "<" + std::to_string(I->id)] = 35 - 0.5 * sqrt(pow(J->fascist - I->fascist, 2) + pow(J->liberty - I->liberty, 2)) + rand() % 10;
+					}
+					J++;
+				}
+			}
+			I++;
+		}
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		Company o;
+		o.money = rand() % 10000;
+		o.good = 60 + rand() % 196;
+		o.power = 60 + rand() % 196;
+		o.name = "회사";
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "기업가";
+				o.owner = I->id;
+				break;
+			}
+		}
+		company.push_back(o);
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		Media o;
+		o.money = rand() % 10000;
+		o.good = 60 + rand() % 196;
+		o.power = 60 + rand() % 196;
+		o.name = "언론사";
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "기자";
+				o.owner = I->id;
+				break;
+			}
+		}
+		media.push_back(o);
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		Force o;
+		o.money = rand() % 10000;
+		o.good = 60 + rand() % 196;
+		o.power = 60 + rand() % 196;
+		o.name = "사인파";
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "건달";
+				o.owner = I->id;
+				break;
+			}
+		}
+		force.push_back(o);
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		Education o;
+		o.money = rand() % 10000;
+		o.good = 60 + rand() % 196;
+		o.power = 60 + rand() % 196;
+		o.name = "삼세대학교";
+		while (true)
+		{
+			the_man = 1 + rand() % (man.size() - 1);
+			auto I = man.begin();
+			for (int a = 0; a < the_man; a++)
+			{
+				I++;
+			}
+			if (I->live && I->work == "None")
+			{
+				I->work = "교수";
+				o.owner = I->id;
+				break;
+			}
+		}
+		education.push_back(o);
+	}
+
+	for (int i = 0; i < 9; i++)
+	{
+		for (int j = 0; j < 10; j++)
+		{
+			int the_man = 0;
+			for (int k = 0; k < 100; k++)
+			{
+				the_man = 1 + rand() % (man.size() - 1);
+				auto I = man.begin();
+				for (int l = 0; l < the_man; l++)
+				{
+					I++;
+				}
+				if (I->live && I->party == -1)
+				{
+					if (rand() % ((int)sqrt(pow(I->fascist - party[0].facism,2)+pow(I->liberty - party[0].liberty,2)) + 1) < 10)
+					{
+						I->party = i; 
+					}
+					break;
+				}
+			}
+		}
+	}
+
+
+	pop_party(200, 200);
 }
 
 
@@ -861,12 +1110,13 @@ void step()
 {
 	while(!quit)
 	{
-		if (delay > 200000000)
+		if (delay > 200000000 / pow(4,game_speed - 1))
 		{
 			day_over();
 			delay = 0;
 		}
 		delay++;
+
 		//map_step();
 	}
 	return;
@@ -987,7 +1237,7 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 		if (j != i)
 		{
 			auto J = (gui.begin() + j);
-			if (J->parent == I->id && I->enable)
+			if (J->parent == I->id && J->enable)
 			{
 				set_rect(&r, I->rx, I->ry);
 				J->rx = r.x + J->x;
@@ -1006,6 +1256,35 @@ void ui(SDL_Event *e)
 	int x, y;
 	draw();
 
+	{
+		{
+			stats["all_comp_power"] = 0;
+			auto I = company.begin();
+			for (int i = 0; i < company.size(); i++)
+			{
+				stats["all_comp_power"] += I->power;
+				I++;
+			}
+		} 
+		{
+			stats["all_media_power"] = 0;
+			auto I = media.begin();
+			for (int i = 0; i < media.size(); i++)
+			{
+				stats["all_media_power"] += I->power;
+				I++;
+			}
+		}
+		{
+			stats["all_force_power"] = 0;
+			auto I = force.begin();
+			for (int i = 0; i < force.size(); i++)
+			{
+				stats["all_force_power"] += I->power;
+				I++;
+			}
+		}
+	}
 
 	while (SDL_PollEvent(e) != 0)
 	{
@@ -1034,6 +1313,8 @@ void ui(SDL_Event *e)
 		int mot_mousehover = -1;
 		int ii_mouseup = -1;
 		int mot_mouseup = -1;
+		int ii_mousewheel = -1;
+		int mot_mousewheel = -1;
 
 		for (auto i =0; i < gui.size(); i++)
 		{
@@ -1057,6 +1338,7 @@ void ui(SDL_Event *e)
 							{
 								mot_mousedown = mother(i);
 								ii_mousedown = i;
+								continue;
 							}
 						}
 					}
@@ -1068,6 +1350,7 @@ void ui(SDL_Event *e)
 							{
 								mot_mouseup = mother(i);
 								ii_mouseup = i;
+								continue;
 							}
 						}
 					}
@@ -1077,23 +1360,46 @@ void ui(SDL_Event *e)
 						{
 							mot_mousehover = mother(i);
 							ii_mousehover = i;
+							continue;
+						}
+					}
+					if (I.avail_mousewheel_ev)
+					{
+						if (e->type == SDL_MOUSEWHEEL)
+						{
+							if (mother(i) > mot_mousewheel)
+							{
+								mot_mousewheel = mother(i);
+								ii_mousewheel = i;
+								continue;
+							}
 						}
 					}
 				}
 			}
 		}
 
-		if (ii_mousedown != -1)
+		if (ii_mousedown != -1 && gui.size() > ii_mousedown)
 		{
-			(gui.begin() + ii_mousedown)->mousedown_ev(ii_mousedown, x, y);
+			if ((gui.begin() + ii_mousedown)->enable)
+			{
+				(gui.begin() + ii_mousedown)->mousedown_ev(ii_mousedown, x, y);
+			}
 		}
-		if (ii_mousehover != -1)
+		if (ii_mousehover != -1 && gui.size() > ii_mousehover && e->type != SDL_MOUSEBUTTONDOWN)
 		{
-			(gui.begin() + ii_mousehover)->mousehover_ev(ii_mousehover, x, y);
+			if ((gui.begin() + ii_mousehover)->enable)
+			{
+				(gui.begin() + ii_mousehover)->mousehover_ev(ii_mousehover, x, y);
+			}
 		}
-		if (ii_mouseup != -1)
+		if (ii_mouseup != -1 && gui.size() > ii_mouseup)
 		{
 			(gui.begin() + ii_mouseup)->mouseup_ev(ii_mouseup, x, y);
+		}
+		if (ii_mousewheel != -1 && gui.size() > ii_mousewheel)
+		{
+			(gui.begin() + ii_mousewheel)->mousewheel_ev(ii_mousewheel, x, y, e->wheel.y);
 		}
 
 		for (bool go = true; go;)
@@ -1111,6 +1417,19 @@ void ui(SDL_Event *e)
 			}
 		}
 
+	}
+
+
+	for (auto i = 0; i < gui.size(); i++)
+	{
+		auto I = *(gui.begin() + i);
+		if (I.enable)
+		{
+			if (I.avail_step_ev)
+			{
+				I.step_ev(i);
+			}
+		}
 	}
 
 	char buf[320] = { 0, };
@@ -1145,6 +1464,20 @@ void ui(SDL_Event *e)
 
 	}
 
+	for (bool go = true; go;)
+	{
+		go = false;
+		for (auto i = 0; i < gui.size(); i++)
+		{
+			auto I = (gui.begin() + i);
+			if (I->removing)
+			{
+				gui_remove(i);
+				go = true;
+			}
+
+		}
+	}
 	SDL_RenderPresent(REND);
 	return;
 }
@@ -1468,6 +1801,19 @@ bool loadMedia()
 	}
 	keys[tag] = num;
 
+	tag = "logo";
+	path = currentDir + "\\" + "gfx\\" + tag;
+	num = 0;
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		gfx_read(pStr, num, tag);
+		num++;
+	}
+	keys[tag] = num;
 
 	tag = "potrait";
 	path = currentDir + "\\" + "gfx\\" + tag;

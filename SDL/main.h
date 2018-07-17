@@ -65,6 +65,7 @@ void draw_string_s(int, std::string, SDL_Color, SDL_Rect*);
 void draw_string(int, std::string, SDL_Color, SDL_Point*, int, float,int);
 void draw_line(int, std::string, int, SDL_Color, SDL_Point*, int, float, int);
 std::unordered_map<unsigned long, bool> char_id;
+std::unordered_map<std::string, long> stats;
 enum {
 	left_align = 0,
 	right_align = 1,
@@ -105,6 +106,9 @@ void set_color()
 {
 	Color["c_white"] = { 255, 255, 255 };
 	Color["c_black"] = { 0, 0, 0 };
+	Color["c_green"] = { 0, 170, 0 };
+	Color["c_red"] = { 170, 0, 0 };
+	Color["c_yellow"] = { 170, 170, 0 };
 }
 
 ///////////////////////////
@@ -123,6 +127,7 @@ std::unordered_map<std::string, Mix_Music*> sfx;
 std::vector<std::string> scope;
 std::unordered_map<std::string, std::string> keys;
 std::unordered_map<std::string, int> ikeys;
+std::unordered_map<std::string, signed char> relation;
 
 int max_sprite = 1;
 
@@ -160,22 +165,26 @@ struct Party
 	char liberty = 0;
 	std::string name = "";
 	unsigned int c = 0;
+	unsigned long owner = 0;
 };
 Party party[MAX_PARTY];
 
 struct Man {
 	std::string name = "이름없음";
 	std::string potrait = "potrait\\cjy";
+	std::string work = "None";
+
 	unsigned int born_year = 0;
 	unsigned long id = 0;
 	bool live = false;
 	long money = 0;
 	long prestige = 0;
-	char fascist = rand();
-	char liberty = rand();
-	unsigned char honor = rand();
-	unsigned char ambition = rand();
-	unsigned char religion = rand();
+	char fascist = rand() % 256 - 128;
+	char liberty = rand() % 256 - 128;
+	char party = -1;
+	unsigned char honor = rand() % 256;
+	unsigned char ambition = rand() % 256;
+	unsigned char religion = rand() % 256;
 	std::unordered_map<std::string, bool> traits;
 	void set(unsigned int year, std::string named, long moneye, char p_fasc, char p_libe, unsigned char hon, unsigned char amb, unsigned char reg, std::string c)
 	{
@@ -227,7 +236,7 @@ struct Force{
 };
 
 struct Company{
-	unsigned long owner = 0;
+	unsigned long owner = rand() % 30 + 1;
 	std::string name;
 	long money = 0;
 	unsigned long power = 0;
@@ -239,7 +248,6 @@ struct Education{
 	std::string name;
 	long money = 0;
 	unsigned long power = 0;
-	unsigned int type = 0;
 	unsigned char good = 0;
 
 };
@@ -280,6 +288,12 @@ public:
 	void(*mousestep_ev)(int, int, int);
 	bool avail_mousestep_ev = false;
 
+	void(*mousewheel_ev)(int, int, int, int);
+	bool avail_mousewheel_ev = false;
+
+	void(*step_ev)(int);
+	bool avail_step_ev = false;
+
 	void move_left();
 	void remove();
 	void init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s);
@@ -308,6 +322,7 @@ void Widget::move_left()
 };
 void Widget::remove()
 {
+	ikeys.erase((gui.begin() + id)->var["name"]);
 	gui.erase(gui.begin() + id);
 	//L//OG_W("1");
 };
@@ -333,6 +348,7 @@ int map_mode = 1;
 unsigned long long delay = 0;
 int tmp[16];
 int tmp_s[16];
+unsigned int game_speed = 1;
 
 std::list<Man> man;
 
@@ -345,17 +361,21 @@ std::list<Education> education;
 
 bool play_av = false;
 
-unsigned int president_id = rand() % 54;
-unsigned int prime_id = rand() % 54;
+unsigned int president_id;
+unsigned int prime_id;
+unsigned int congress_id;
 unsigned int play_id = 1;
 
-void pop_char(int, int);
+void pop_char(int, int,int);
 void pop_comp(int, int);
 void pop_comp_info(int, int);
 void pop_gove(int, int);
 void pop_gun(int, int);
 void pop_media(int, int);
 void pop_law(int, int);
+void pop_cong(int, int);
+void pop_edu(int, int);
+void pop_party(int, int);
 
 void normal_start();
 int mother(const int i)

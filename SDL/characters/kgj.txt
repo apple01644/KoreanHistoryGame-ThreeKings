@@ -1,7 +1,8 @@
-#Man
+﻿#Man
 Man = <
-	na,e = �ְ濵
+	name = 허경영
 	potrait = potrait\kgj
+	live = true
 	id = 35
 	born_year = 1959
 	money = 6840

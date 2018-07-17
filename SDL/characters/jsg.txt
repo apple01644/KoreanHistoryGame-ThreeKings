@@ -1,7 +1,8 @@
-#Man
+ï»¿#Man
 Man = <
-	na,e = Á¶»ıÁø
+	name = ì¡°ìƒì§„
 	potrait = potrait\jsg
+	live = true
 	id = 30
 	born_year = 1975
 	money = 8641
