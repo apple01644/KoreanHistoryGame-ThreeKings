@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <unordered_map>
 #include <map>
+#include <locale>
 #include <limits>
 
 #pragma execution_character_set("utf-8")
@@ -127,13 +128,13 @@ std::unordered_map<std::string, Mix_Music*> sfx;
 std::vector<std::string> scope;
 std::unordered_map<std::string, std::string> keys;
 std::unordered_map<std::string, int> ikeys;
-std::unordered_map<std::string, signed char> relation;
+std::unordered_map<std::string, signed long> relation;
 
 int max_sprite = 1;
 
 struct Pop
 {
-	unsigned support = rand() % MAX_PROV;
+	unsigned support = rand() % 5;
 	unsigned issue = 0;
 	unsigned income = 0;
 	char fascist = rand() % 256 - 128;
@@ -186,6 +187,7 @@ struct Man {
 	char fascist = rand() % 256 - 128;
 	char liberty = rand() % 256 - 128;
 	char party = -1;
+	char charge = rand() % 64;
 	unsigned char honor = rand() % 256;
 	unsigned char ambition = rand() % 256;
 	unsigned char religion = rand() % 256;
@@ -331,13 +333,10 @@ void Widget::remove()
 	//L//OG_W("1");
 };
 
-enum { msgtype_None,
-msgType_Imagebox
-};
-
 struct Message
 {
-	unsigned int type = msgtype_None;
+	unsigned long sender = 0;
+	std::string s;
 };
 
 ///////////////////////////
@@ -352,7 +351,7 @@ int map_mode = 1;
 unsigned long long delay = 0;
 int tmp[16];
 int tmp_s[16];
-unsigned int game_speed = 1;
+unsigned int game_speed = 5;
 
 std::list<Man> man;
 
@@ -381,6 +380,7 @@ void pop_cong(int, int);
 void pop_edu(int, int);
 void pop_party(int, int);
 void pop_prov(int, int);
+void pop_speech(int, int, int, int);
 
 void normal_start();
 int mother(const int i)
@@ -552,3 +552,15 @@ std::string get_case(std::string s)
 		return "ui\\potrait_case";
 	}
 }
+void msg_push(unsigned long id, std::string s)
+{
+	Message m;
+	m.s = s;
+	m.sender = id;
+	msg.push_front(m);
+}
+std::string now_time() {
+	return std::to_string(year)+"³â "+std::to_string(mon)+"¿ù " +std::to_string(day) + "ÀÏ";
+}
+std::string empty_gui_slot(std::string);
+std::locale loc;

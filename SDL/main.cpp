@@ -34,7 +34,7 @@ int main(int argc, char* args[])
 	return 0;
 }
 
-void day_over()
+int day_over()
 {
 	bool is_yun = false;
 	if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
@@ -48,11 +48,13 @@ void day_over()
 		{
 			day = 1;
 			mon++;
+			return 1;
 		}
 		else if (day > 29 && is_yun)
 		{
 			day = 1;
 			mon++;
+			return 1;
 		}
 	}
 	else if ((mon % 2 == 1 && mon <= 7) || (mon % 2 == 0 && mon >= 8))
@@ -61,18 +63,22 @@ void day_over()
 		{
 			day = 1;
 			mon++;
+			return 1;
 		}
 	}
 	else if (day > 30)
 	{
 		day = 1;
 		mon++;
+		return 1;
 	}
 	if (mon > 12)
 	{
 		mon = 1;
 		year++;
+		return 2;
 	}
+	return 0;
 
 }
 void file_proc(int id, std::string s1, std::string s2)
@@ -1131,7 +1137,7 @@ void normal_start()
 				}
 				if (I->live && I->party == -1)
 				{
-					if (party[i].owner == 0 || rand() % ((int)sqrt(pow(I->fascist - party[i].facism,2)+pow(I->liberty - party[i].liberty,2)) + 1) < 10)
+					if (party[i].owner == 0 || rand() % ((int)sqrt(pow(I->fascist - party[i].facism,2)+pow(I->liberty - party[i].liberty,2)) + 1) < 40)
 					{
 						I->party = i; 
 						if (party[i].owner == 0)
@@ -1153,13 +1159,371 @@ void normal_start()
 
 void step()
 {
+	int t = 0;
 	while(!quit)
 	{
-		if (delay > 200000000 / pow(4,game_speed - 1))
+		if (delay > 5 / game_speed)
 		{
-			day_over();
+			t = day_over();
 			delay = 0;
+
+			if (year % 5 == 2)
+			{
+				if (day == 19 && mon == 12)
+				{
+					{
+						auto I = man.begin();
+						for (; I != man.end(); I++)
+						{
+							stats["vote[" + std::to_string(I->id) + "]"] = 0;
+						}
+					}
+					for (int a = 0; a < MAX_PROV; a++)
+					{
+						for (Pop b : prv[a].pop)
+						{
+							auto I = man.begin();
+							auto J = man.begin();
+							int p = 200;
+							for (; I != man.end(); I++)
+							{
+								
+								if (I->live && I->work == "None")
+								{
+									if (p > sqrt(pow(I->fascist - b.fascist, 2) + pow(I->liberty - b.liberty, 2)))
+									{
+										p = sqrt(pow(I->fascist - b.fascist, 2) + pow(I->liberty - b.liberty, 2));
+										J = I;
+									}
+								}
+							}
+							if (p != 200)
+							{
+								stats["vote[" + std::to_string(J->id) + "]"]++;
+							}
+						}
+					}
+					{
+						auto I = man.begin();
+						auto J = man.begin();
+						int vote = -1;
+						for (; I != man.end(); I++)
+						{
+							if (I->live)
+							{
+								if (vote < stats["vote[" + std::to_string(I->id) + "]"])
+								{
+									vote = stats["vote[" + std::to_string(I->id) + "]"];
+									J = I;
+								}
+							}
+						}
+						auto K = man.begin();
+						for (; K != man.end(); K++)
+						{
+							if (K->live && K->id == president_id)
+							{
+								K->work = "None";
+							}
+						}
+
+
+
+						president_id = J->id;
+						msg_push(J->id, "저 " + J->name + "을 대통령으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+						J->work = "대통령";
+					}
+				}
+			}
+
+			if (year % 4 == 2)
+			{
+				if (day == 13 && mon == 6)
+				{
+
+					for (int a = 0; a < std::stoi(keys["prov_id_miner"]); a++)
+					{
+						{
+							auto I = man.begin();
+							for (; I != man.end(); I++)
+							{
+								stats["vote[" + std::to_string(I->id) + "]"] = 0;
+							}
+						}
+						auto I = man.begin();
+						auto J = man.begin();
+						int p = 200;
+						for (Pop b : prv[std::stoi(keys["prov_id_miner["+std::to_string(a)+"]"]) - 1].pop)
+						{
+							auto I = man.begin();
+							auto J = man.begin();
+							int p = 200;
+							for (; I != man.end(); I++)
+							{
+
+								if (I->live && I->work == "None")
+								{
+									if (p > sqrt(pow(I->fascist - b.fascist, 2) + pow(I->liberty - b.liberty, 2)))
+									{
+										p = sqrt(pow(I->fascist - b.fascist, 2) + pow(I->liberty - b.liberty, 2));
+										J = I;
+									}
+								}
+							}
+							if (p != 200)
+							{
+								stats["vote[" + std::to_string(J->id) + "]"]++;
+							}
+						}
+						{
+							auto I = man.begin();
+							auto J = man.begin();
+							int vote = -1;
+							for (; I != man.end(); I++)
+							{
+								if (I->live)
+								{
+									if (vote < stats["vote[" + std::to_string(I->id) + "]"])
+									{
+										vote = stats["vote[" + std::to_string(I->id) + "]"];
+										J = I;
+									}
+								}
+							}
+							auto K = man.begin();
+							for (; K != man.end(); K++)
+							{
+								if (K->live && K->id == std::stoi(keys["miner[" + std::to_string(a) + "]"]))
+								{
+									K->work = "None";
+								}
+							}
+
+
+
+							keys["miner[" + std::to_string(a) + "]"] = std::to_string(J->id);
+
+							msg_push(J->id, "저 " + J->name + "을 " + prv[std::stoi(keys["prov_id_miner[" + std::to_string(a) + "]"]) - 1].name + " 도지사으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+							J->work = "도지사";
+						}
+					}
+					for (int a = 0; a < std::stoi(keys["prov_id_major"]); a++)
+					{
+						{
+							auto I = man.begin();
+							for (; I != man.end(); I++)
+							{
+								stats["vote[" + std::to_string(I->id) + "]"] = 0;
+							}
+						}
+						auto I = man.begin();
+						auto J = man.begin();
+						int p = 200;
+						for (Pop b : prv[std::stoi(keys["prov_id_major[" + std::to_string(a) + "]"]) - 1].pop)
+						{
+							auto I = man.begin();
+							auto J = man.begin();
+							int p = 200;
+							for (; I != man.end(); I++)
+							{
+
+								if (I->live && I->work == "None")
+								{
+									if (p > sqrt(pow(I->fascist - b.fascist, 2) + pow(I->liberty - b.liberty, 2)))
+									{
+										p = sqrt(pow(I->fascist - b.fascist, 2) + pow(I->liberty - b.liberty, 2));
+										J = I;
+									}
+								}
+							}
+							if (p != 200)
+							{
+								stats["vote[" + std::to_string(J->id) + "]"]++;
+							}
+						}
+						{
+							auto I = man.begin();
+							auto J = man.begin();
+							int vote = -1;
+							for (; I != man.end(); I++)
+							{
+								if (I->live)
+								{
+									if (vote < stats["vote[" + std::to_string(I->id) + "]"])
+									{
+										vote = stats["vote[" + std::to_string(I->id) + "]"];
+										J = I;
+									}
+								}
+							}
+							auto K = man.begin();
+							for (; K != man.end(); K++)
+							{
+								if (K->live && K->id == std::stoi(keys["major[" + std::to_string(a) + "]"]))
+								{
+									K->work = "None";
+								}
+							}
+
+
+
+							keys["major[" + std::to_string(a) + "]"] = std::to_string(J->id);
+							msg_push(J->id, "저 " + J->name + "을 " + prv[std::stoi(keys["prov_id_major[" + std::to_string(a) + "]"]) - 1].name + " 시장으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+							J->work = "시장";
+						}
+					}
+				}
+			}
+			if (t >= 1)
+			{
+			}
+			else
+			{
+				{
+					auto I = man.begin();
+					for (int a = 0; a < man.size(); a++)
+					{
+						if (I->live)
+						{
+							if ((int)I->charge + 1 > 100)
+							{
+								I->charge = 100;
+							}
+							else
+							{
+								I->charge += 1;
+							}
+						}
+						I++;
+					}
+				}
+
+
+				auto I = man.begin();
+				for (int a = 0; a < man.size(); a++)
+				{
+					if (I->live && I->id != play_id)
+					{
+						auto K = man.begin();
+						auto J = man.begin();
+						int t = 0;
+						int p = 100;
+						int aprv = -1;
+						int apop = -1;
+						for (int b = 0; b < man.size(); b++)
+						{
+							if (K->live)
+							{
+								if (relation[std::to_string(J->id) + "<" + std::to_string(I->id)] > 255)
+								{
+									relation[std::to_string(J->id) + "<" + std::to_string(I->id)] = 255;
+								}
+								if (relation[std::to_string(J->id) + "<" + std::to_string(I->id)] < -256)
+								{
+									relation[std::to_string(J->id) + "<" + std::to_string(I->id)] = -256;
+								}
+								if (relation[std::to_string(I->id) + "<" + std::to_string(J->id)] > 255)
+								{
+									relation[std::to_string(I->id) + "<" + std::to_string(J->id)] = 255;
+								}
+								if (relation[std::to_string(I->id) + "<" + std::to_string(J->id)] < -256)
+								{
+									relation[std::to_string(I->id) + "<" + std::to_string(J->id)] = -256;
+								}
+								if (p < (K->money + K->prestige - I->money - I->prestige) / 100 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)],2)) / 20 )
+								{
+									if (I->charge >= 40)
+									{
+										p = (K->money + K->prestige - I->money - I->prestige) / 100 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
+										t = 1;
+										p += rand() % 20;
+										J = K;
+									}
+								}
+								if (p < sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
+								{
+									if (I->charge >= 40)
+									{
+										p = sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
+										p += rand() % 20;
+										t = 2;
+										J = K;
+									}
+								}
+								if (p < 110 - sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
+								{
+									if (I->charge >= 40)
+									{
+										p = 110 - sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
+										p += rand() % 20;
+										t = 1;
+										J = K;
+									}
+								}
+							}
+						}
+
+						for (int i = 0; i < MAX_PROV; i++)
+						{
+							for (int z = 0; z < prv[i].pop.size(); z++)
+							{
+								if (I->charge >= 60)
+								{
+									if (p < 200 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2)) )
+									{
+										p = 200 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2));
+										t = 3;
+										aprv = i;
+										apop = z;
+									}
+								}
+							}
+						}
+
+
+						if (t == 0)
+						{
+
+						}
+						else if (t == 1)
+						{
+							I->charge -= 40;
+							relation[std::to_string(J->id) + "<" + std::to_string(I->id)] += 2;
+
+							J->prestige += I->prestige / 10000;
+							I->prestige += J->prestige / 10000;
+
+							relation[std::to_string(I->id) + "<" + std::to_string(J->id)] += 10;
+
+							if (J->id == play_id)
+							{
+								msg_push(I->id,"안녕 하십니까? "+J->name+"씨\n저는 당신의 행동에 감명 받았습니다.\n언제 차 한잔 이라도 합시다.\n\n"+I->name+"올림" + "\n" + now_time());
+							}
+
+						}
+						else if (t == 2)
+						{
+							I->charge -= 40;
+							relation[std::to_string(J->id) + "<" + std::to_string(I->id)] -= 2;
+
+							J->prestige -= I->prestige / 100;
+							I->prestige -= J->prestige / 100;
+
+							relation[std::to_string(I->id) + "<" + std::to_string(J->id)] -= 10;
+							msg_push(I->id, "당신의 행동은 매우 쓸모 없는 짓이다.\n" + J->name + "! 당신에게는 정치인이라는 자리는 과분하다.\n\n국민의 대변자이자 "+ I->work +"인 " + I->name + "\n" + now_time());
+						}
+						else if (t == 3)
+						{
+							I->charge -= 60;
+							speech(I->id, aprv, apop);
+						}
+
+					}
+					I++;
+				}
+			}
 		}
+		SDL_Delay(100);
 		delay++;
 
 		//map_step();
@@ -1489,7 +1853,7 @@ void ui(SDL_Event *e)
 			gui[ikeys["@ui\\right_hand[0]_label"]].var["text"] = "자금 : " + std::to_string(I->money);
 			gui[ikeys["@ui\\right_hand[1]_label"]].var["text"] = "명예 : " + std::to_string(I->prestige);
 			gui[ikeys["@ui\\right_hand[2]_label"]].var["text"] = "사상 : " + get_ideology(I->fascist, I->liberty);
-			gui[ikeys["@ui\\right_hand[3]_label"]].var["text"] = "직업 : 백수";
+			gui[ikeys["@ui\\right_hand[3]_label"]].var["text"] = "행동력 : " +std::to_string(I ->charge);
 			gui[ikeys["@ui\\potrait"]].var["img"] = I->potrait;
 			break;
 		}

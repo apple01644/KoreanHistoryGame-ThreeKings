@@ -151,7 +151,10 @@ void Tooltip_Step(int id, int x, int y) {
 void Potrait_Mousedown(int id, int x, int y)
 {
 	//pop_comp(200, 200);
-	pop_char(350, 50, std::stoi((gui.begin() + id)->var["id"]));
+	if (gui[id].var["id"] != "")
+	{
+		pop_char(350, 50, std::stoi(gui[id].var["id"]));
+	}
 }
 
 void Potrait_Hover(int id, int x, int y) {
@@ -190,6 +193,46 @@ void Potrait_Hover(int id, int x, int y) {
 
 void Character_Step(int id)
 {
+	auto I = man.begin();
+	for (int a = 0; a < man.size(); a++)
+	{
+		if (std::to_string(I->id) == (gui.begin() + id)->var["id"])
+		{
+			break;
+		}
+		I++;
+	}
+	gui[ikeys[gui[id].var["name"] + "_owner_case"]].var["img"] = get_case(I->work);
+	if (I->work == "None")
+	{
+		gui[ikeys[gui[id].var["name"] + "_title"]].var["text"] = I->name;
+	}
+	else
+	{
+		gui[ikeys[gui[id].var["name"] + "_title"]].var["text"] = I->work + " " + I->name;
+	}
+
+	gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["text"] = std::to_string(relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)]);
+
+	if (relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)] > 0)
+	{
+		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["color"] = "c_green";
+	}
+	else if (relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)] < 0)
+	{
+		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["color"] = "c_red";
+	}
+	else
+	{
+		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["color"] = "c_yellow";
+	}
+		
+	gui[ikeys[gui[id].var["name"] + "right[1]_label"]].var["text"] = std::to_string(year - I->born_year + 1) + "세";;
+	gui[ikeys[gui[id].var["name"] + "right[2]_label"]].var["text"] = "자금 : " + std::to_string(I->money);
+	gui[ikeys[gui[id].var["name"] + "right[3]_label"]].var["text"] = "명예 : " + std::to_string(I->prestige);
+	gui[ikeys[gui[id].var["name"] + "right[0]_label"]].var["text"] = get_ideology(I->fascist, I->liberty);
+
+
 	if ((gui.begin() + id)->var["id"] == std::to_string(play_id))
 	{
 		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_left"]].enable = false;
@@ -197,33 +240,6 @@ void Character_Step(int id)
 	}
 	else
 	{
-		auto I = man.begin();
-		for (int a = 0; a < man.size(); a++)
-		{
-			if (std::to_string(I->id) == (gui.begin() + id)->var["id"])
-			{
-				break;
-			}
-			I++;
-		}
-		gui[ikeys[(gui.begin() + id)->var["name"] + "_owner_case"]].var["img"] = get_case(I->work);
-	
-
-		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["text"] = std::to_string(relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)]);
-		if (relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)] > 0)
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["color"] = "c_green";
-		}
-		else if (relation[(gui.begin() + id)->var["id"] + "<" + std::to_string(play_id)] < 0)
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["color"] = "c_red";
-		}
-		else
-		{
-			gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_right_label"]].var["color"] = "c_yellow";
-		}
-
-
 		gui[ikeys[(gui.begin() + id)->var["name"] + "_relation_left_label"]].var["text"] = std::to_string(relation[std::to_string(play_id) + "<" + (gui.begin() + id)->var["id"]]);
 
 
@@ -337,7 +353,7 @@ void Scroll_Step(int id)
 	{
 		gui[id].var["scroll"] = std::to_string((std::stoi(gui[id].var["scroll"]) + 0) / 2);
 	}
-	else if (std::stoi(gui[id].var["scroll"]) < (std::stoi(gui[id].var["items"]) - 1) * 90)
+	else if (std::stoi(gui[id].var["scroll"]) < (std::stoi(gui[id].var["items"]) - 1) * std::stoi(gui[id].var["def_h"]))
 	{
 		//gui[id].var["scroll"] = std::to_string((std::stoi(gui[id].var["scroll"]) + (std::stoi(gui[id].var["items"]) - 1) * 90) / 2);
 		if (std::stoi(gui[id].var["scroll"]) > 0)
@@ -345,9 +361,9 @@ void Scroll_Step(int id)
 			//gui[id].var["scroll"] = "0";
 		}
 	}
-	else if (std::stoi(gui[id].var["scroll"]) > std::stoi(gui[id].var["items"]) * 90)
+	else if (std::stoi(gui[id].var["scroll"]) > std::stoi(gui[id].var["items"]) * std::stoi(gui[id].var["def_h"]))
 	{
-		gui[id].var["scroll"] = std::to_string(std::stoi(gui[id].var["items"]) * 90);
+		gui[id].var["scroll"] = std::to_string(std::stoi(gui[id].var["items"]) * std::stoi(gui[id].var["def_h"]));
 	}
 
 	for (int a = 0; a <  std::stoi(gui[id].var["items"]); a++)
@@ -360,14 +376,14 @@ void Scroll_Step(int id)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["img"] = "ui\\button";
 		}
-		int y = 90 * a + std::stoi(gui[id].var["scroll"]);
+		int y = std::stoi(gui[id].var["def_h"]) * a + std::stoi(gui[id].var["scroll"]);
 		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = y;
-		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90;
-		if (y >= gui[id].h - 90 || y + 90 <= 0)
+		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]);
+		if (y >= gui[id].h - std::stoi(gui[id].var["def_h"]) || y + std::stoi(gui[id].var["def_h"]) <= 0)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = false;
 		}
-		else if (y + 90 > gui[id].h)
+		else if (y + std::stoi(gui[id].var["def_h"]) > gui[id].h)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = gui[id].h - y;
@@ -375,7 +391,7 @@ void Scroll_Step(int id)
 		else if (y < 0)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
-			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90 + y;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]) + y;
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = 0;
 
 		}
@@ -389,19 +405,20 @@ void Scroll_Scroll(int id, int x, int y, int dy)
 {
 	gui[id].var["scroll"] = std::to_string(std::stoi(gui[id].var["scroll"]) + dy * 5);
 }
+
 void Scroll_Mousedown(int id, int x, int y)
 {
 	y -= gui[id].ry;
 	for (int a = 0; a < std::stoi(gui[id].var["items"]); a++)
 	{
-		int Y = 90 * a + std::stoi(gui[id].var["scroll"]);
+		int Y = std::stoi(gui[id].var["def_h"]) * a + std::stoi(gui[id].var["scroll"]);
 		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = Y;
-		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90;
-		if (Y >= gui[id].h - 90 || Y + 90 <= 0)
+		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]);
+		if (Y >= gui[id].h - std::stoi(gui[id].var["def_h"]) || Y + std::stoi(gui[id].var["def_h"]) <= 0)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = false;
 		}
-		else if (Y + 90 > gui[id].h)
+		else if (Y + std::stoi(gui[id].var["def_h"]) > gui[id].h)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = gui[id].h - Y;
@@ -409,9 +426,8 @@ void Scroll_Mousedown(int id, int x, int y)
 		else if (Y < 0)
 		{
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
-			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = 90 + Y;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]) + Y;
 			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = 0;
-
 		}
 		else
 		{
@@ -426,49 +442,10 @@ void Scroll_Mousedown(int id, int x, int y)
 			if (gui[id].var["select"] == "-1")
 			{
 				gui[id].var["select"] = std::to_string(a);
-				{
-					Widget temp(160, 50, 720, 630, wd_image, gui[mother(id)].var["name"] + "_pop");
-					temp.var["img"] = "ui\\body";
-					temp.var["items"] = std::to_string(prv[a].pop.size());
-					temp.var["scroll"] = "-45";
-					temp.var["select"] = "-1";
-
-					temp.step_ev = Scroll_Step;
-					temp.avail_step_ev = true;
-					temp.mousewheel_ev = Scroll_Scroll;
-					temp.avail_mousewheel_ev = true;
-					temp.mousedown_ev = Scroll_Mousedown;
-					temp.avail_mousedown_ev = true;
-
-					temp.parent = ikeys[gui[mother(id)].var["name"]];
-					gui.push_back(temp);
-				}
-				for (int i = 0; i < prv[a].pop.size(); i++)
-				{
-					Widget temp(0, 90 * i, 720, 90, wd_image, gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]");
-
-					temp.var["img"] = "ui\\button";
-					temp.parent = ikeys[gui[mother(id)].var["name"] + "_pop"];
-					gui.push_back(temp);
-					//if (false)
-					{
-						Widget temp2(360, 45, 0, 0, wd_label, id + "_pop[" + std::to_string(i) + "]_name");
-
-						temp2.parent = ikeys[gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]"];
-						temp2.var["text"] = get_ideology(prv[a].pop[i].fascist, prv[a].pop[i].liberty);
-						temp2.var["opt"] = std::to_string(middle_align + center_align);
-						temp2.var["ind"] = "2";
-						temp2.var["color"] = "c_white";
-						temp2.var["size"] = "40";
-						temp2.var["ratio"] = "0.8";
-						gui.push_back(temp2);
-					}
-				}
 			}
 			else
 			{
 				gui[id].var["select"] = "-1";
-				gui[ikeys[gui[mother(id)].var["name"] + "_pop"]].removing = true;
 			}
 
 
@@ -478,6 +455,227 @@ void Scroll_Mousedown(int id, int x, int y)
 	}
 }
 
+void ScrollPOP_Mousedown(int id, int x, int y)
+{
+	y -= gui[id].ry;
+	for (int a = 0; a < std::stoi(gui[id].var["items"]); a++)
+	{
+		int Y = std::stoi(gui[id].var["def_h"]) * a + std::stoi(gui[id].var["scroll"]);
+		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = Y;
+		gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]);
+		if (Y >= gui[id].h - std::stoi(gui[id].var["def_h"]) || Y + std::stoi(gui[id].var["def_h"]) <= 0)
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = false;
+		}
+		else if (Y + std::stoi(gui[id].var["def_h"]) > gui[id].h)
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = gui[id].h - Y;
+		}
+		else if (Y < 0)
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]) + Y;
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = 0;
+		}
+		else
+		{
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+		}
+
+		if (gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable &&
+			y > Y &&
+			y < Y + gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h)
+		{
+
+			if (gui[id].var["select"] == "-1")
+			{
+				gui[id].var["select"] = std::to_string(a);
+
+
+
+				pop_speech(350, 300, std::stoi(gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"]), a);
+			}
+			else
+			{
+				gui[id].var["select"] = "-1";
+			}
+
+
+
+			break;
+		}
+	}
+}
+void Scrollpop_Mousedown(int id, int x, int y)
+{
+	y -= gui[id].ry;
+	
+	for (int a = 0; a < std::stoi(gui[id].var["items"]); a++)
+	{
+		int Y = std::stoi(gui[id].var["def_h"]) * a + std::stoi(gui[id].var["scroll"]);
+		{
+			{
+				gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = Y;
+				gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]);
+				if (Y >= gui[id].h - std::stoi(gui[id].var["def_h"]) || Y + std::stoi(gui[id].var["def_h"]) <= 0)
+				{
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = false;
+				}
+				else if (Y + std::stoi(gui[id].var["def_h"]) > gui[id].h)
+				{
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = gui[id].h - Y;
+				}
+				else if (Y < 0)
+				{
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h = std::stoi(gui[id].var["def_h"]) + Y;
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].y = 0;
+				}
+				else
+				{
+					gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable = true;
+				}
+			}
+
+			if (gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].enable &&
+				y > Y &&
+				y < Y + gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].h)
+			{
+
+				if (gui[id].var["select"] == "-1")
+				{
+					gui[id].var["select"] = std::to_string(a);
+
+					{
+						Widget temp(160, 270, 720, 410, wd_image, gui[mother(id)].var["name"] + "_pop");
+						temp.var["img"] = "ui\\body";
+						temp.var["items"] = std::to_string(prv[a].pop.size());
+						temp.var["scroll"] = "0";
+						temp.var["def_h"] = "40";
+						temp.var["select"] = "-1";
+
+						temp.step_ev = Scroll_Step;
+						temp.avail_step_ev = true;
+						temp.mousewheel_ev = Scroll_Scroll;
+						temp.avail_mousewheel_ev = true;
+						temp.mousedown_ev = ScrollPOP_Mousedown;
+						temp.avail_mousedown_ev = true;
+
+						temp.parent = ikeys[gui[mother(id)].var["name"]];
+						gui.push_back(temp);
+					}
+					{
+						Widget temp(0, -210, 190, 190, wd_image, gui[mother(id)].var["name"] + "_pop_owner");
+						temp.var["img"] = "ui\\body";
+						temp.parent = ikeys[gui[mother(id)].var["name"] + "_pop"];
+						gui.push_back(temp);
+					}
+					{
+						Widget temp(10, 5, 180, 180, wd_image, gui[mother(id)].var["name"] + "_pop_owner1_face");
+						temp.var["img"] = "potrait\\who";
+
+						{
+							auto I = man.begin();
+
+							for (int i = 0; i < std::stoi(keys["prov_id_miner"]); i++)
+							{
+								if (std::stoi((keys["prov_id_miner[" + std::to_string(i) + "]"])) - 1 ==
+									std::stoi(gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"]))
+								{
+									for (; I != man.end();)
+									{
+										if (std::to_string(I->id) == keys["miner[" + std::to_string(i) + "]"])
+										{
+											temp.var["img"] = I->potrait;
+											temp.var["id"] = std::to_string(I->id);
+											break;
+										}
+										I++;
+									}
+									break;
+								}
+							}
+						}
+						{
+							auto I = man.begin();
+							for (int i = 0; i < std::stoi(keys["prov_id_major"]); i++)
+							{
+								if (std::stoi(keys["prov_id_major[" + std::to_string(i) + "]"]) - 1 ==
+									std::stoi(gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"]))
+								{
+									for (; I != man.end();)
+									{
+										if (std::to_string(I->id) == keys["major[" + std::to_string(i) + "]"])
+										{
+											temp.var["img"] = I->potrait;
+											temp.var["id"] = std::to_string(I->id);
+											break;
+										}
+										I++;
+									}
+									break;
+								}
+							}}
+
+						temp.mousehover_ev = Potrait_Hover;
+						temp.avail_mousehover_ev = true;
+						temp.mousedown_ev = Potrait_Mousedown;
+						temp.avail_mousedown_ev = true;
+
+						temp.parent = ikeys[gui[mother(id)].var["name"] + "_pop_owner"];
+						gui.push_back(temp);
+					}
+					{
+						Widget temp(0, 0, 180, 180, wd_image, gui[mother(id)].var["name"] + "_pop_owner1_face_case");
+						temp.parent = ikeys[gui[mother(id)].var["name"] + "_pop_owner1_face"];
+						temp.var["img"] = "ui\\potrait_case_gold";
+						gui.push_back(temp);
+					}
+					{
+
+						for (int i = 0; i < prv[std::stoi(gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"])].pop.size(); i++)
+						{
+							Widget temp(0, std::stoi(gui[id].var["def_h"]) * i, 720, std::stoi(gui[id].var["def_h"]), wd_image, gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]");
+
+							temp.var["img"] = "ui\\button";
+							temp.parent = ikeys[gui[mother(id)].var["name"] + "_pop"];
+							gui.push_back(temp);
+							//if (false)
+							{
+								Widget temp2(360, 20, 0, 0, wd_label, id + "_pop[" + std::to_string(i) + "]_name");
+
+								temp2.parent = ikeys[gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]"];
+								temp2.var["a"] = std::to_string(a);
+								temp2.var["i"] = std::to_string(i);
+								temp2.var["text"] = get_ideology(prv[a].pop[i].fascist, prv[a].pop[i].liberty);
+								temp2.var["opt"] = std::to_string(middle_align + center_align);
+								temp2.var["ind"] = "2";
+								temp2.var["color"] = "c_white";
+								temp2.var["size"] = "30";
+								temp2.var["ratio"] = "0.8";
+								gui.push_back(temp2);
+							}
+						}
+					}
+				}
+				else
+				{
+					gui[id].var["select"] = "-1";
+					if (ikeys[gui[mother(id)].var["name"] + "_pop"] != 0)
+					{
+						gui[ikeys[gui[mother(id)].var["name"] + "_pop"]].removing = true;
+					}
+				}
+
+
+
+				break;
+			}
+		}
+	}
+}
 void Companyitems_Step(int id)
 {
 	//_content[" + std::to_string(a) + "]_power
@@ -567,3 +765,128 @@ void Partytoolbar_Mousedown(int id, int x, int y)
 		}
 	}
 }
+
+
+void Char_Real_up(int id, int x, int y)
+{
+	LOG_H("HOHO mery chrismas");
+	auto I = man.begin();
+	for (; I != man.end();)
+	{
+		if (I->id == play_id)
+		{
+			if (I->charge >= 40)
+			{
+				I->charge -= 40;
+				relation[gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"] + "<" + std::to_string(play_id)] += 2;
+				auto J = man.begin();
+				for (; J != man.end();)
+				{
+					if (std::to_string(J->id) == gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"])
+					{
+						J->prestige += I->prestige / 10000;
+						I->prestige += J->prestige / 10000;
+						break;
+					}
+					J++;
+				}
+				relation[std::to_string(play_id) + "<" + gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"]] += 10;
+			}
+			break;
+		}
+		I++;
+	}
+}
+void Char_Real_down(int id, int x, int y)
+{
+	auto I = man.begin();
+	for (; I != man.end();)
+	{
+		if (I->id == play_id)
+		{
+			if (I->charge >= 40)
+			{
+				I->charge -= 40;
+				relation[gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"] + "<" + std::to_string(play_id)] -= 2;
+				auto J = man.begin();
+				for (; J != man.end();)
+				{
+					if (std::to_string(J->id) == gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"])
+					{
+						J->prestige -= I->prestige / 100;
+						I->prestige -= J->prestige / 100;
+						break;
+					}
+					J++;
+				}
+				relation[std::to_string(play_id) + "<" + gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"]] -= 10;
+			}
+			break;
+		}
+		I++;
+	}
+}
+
+void Heard_Step(int id)
+{
+	if (msg.begin() != msg.end())
+	{
+		gui[id].var["text"] = msg.begin()->s;
+	}
+}
+void Heardclose_mousedown(int id, int x, int y)
+{
+	if (msg.begin() != msg.end())
+	{
+		msg.pop_front();
+	}
+	else
+	{
+		gui[ikeys["@ui\\heard_label"]].var["text"] = "";
+	}
+}
+void Heardopen_mousedown(int id, int x, int y)
+{
+	if (msg.begin() != msg.end())
+	{
+		pop_char(350, 50, msg.begin()->sender);
+
+		if (empty_gui_slot("@ui\\char") == "@ui\\char-0")
+		{
+			msg.pop_front();
+		}
+	}
+}
+
+void speech(int id, int Prv, int pop)
+{
+	auto I = man.begin();
+	for (; I != man.end(); I++)
+	{
+		if (I->live && I->id == play_id)
+		{
+			prv[Prv].pop[pop].fascist = ((int)prv[Prv].pop[pop].fascist * 4 + I->fascist) / 5;
+			prv[Prv].pop[pop].liberty = ((int)prv[Prv].pop[pop].liberty * 4 + I->liberty) / 5;
+		}
+	}
+}
+
+void Speech_Mousedown(int id, int x, int y)
+{
+
+	auto I = man.begin();
+	for (; I != man.end(); I++)
+	{
+		if (I->live && I->id == play_id)
+		{
+			if (I->charge >= 60)
+			{
+				speech(play_id, std::stoi(gui[id].var["prv"]), std::stoi(gui[id].var["pop"]));
+				I->charge -= 60;
+			}
+		}
+	}
+
+	gui[mother(id)].removing = true;
+}
+

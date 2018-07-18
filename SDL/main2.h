@@ -191,6 +191,47 @@ void pop_char(int x, int y, int num)
 		gui.push_back(temp3);
 	}
 
+	{
+		Widget temp(0, 30, 60, 20, wd_image, id + "_relation_up");
+		temp.var["img"] = "ui\\body";
+		temp.parent = ikeys[id + "_relation_left"];
+		temp.mousedown_ev = Char_Real_up;
+		temp.avail_mousedown_ev = true;
+		
+		gui.push_back(temp);
+	}
+	{
+		Widget temp3(30, 10, 0, 0, wd_label, id + "_relation_up_label");
+		temp3.var["text"] = "동조하기";
+		temp3.var["opt"] = std::to_string(middle_align + center_align);
+		temp3.var["ind"] = "2";
+		temp3.var["color"] = "c_white";
+		temp3.var["size"] = "20";
+		temp3.var["ratio"] = "0.6";
+		temp3.parent = ikeys[id + "_relation_up"];
+		gui.push_back(temp3);
+	}
+	{
+		Widget temp(0, 30, 60, 20, wd_image, id + "_relation_down");
+		temp.var["img"] = "ui\\body";
+		temp.mousedown_ev = Char_Real_down;
+		temp.avail_mousedown_ev = true;
+		temp.parent = ikeys[id + "_relation_right"];
+		gui.push_back(temp);
+	}
+	{
+		Widget temp3(30, 10, 0, 0, wd_label, id + "_relation_down_label");
+		temp3.var["text"] = "비난하기";
+
+		temp3.var["opt"] = std::to_string(middle_align + center_align);
+		temp3.var["ind"] = "2";
+		temp3.var["color"] = "c_white";
+		temp3.var["size"] = "20";
+		temp3.var["ratio"] = "0.6";
+		temp3.parent = ikeys[id + "_relation_down"];
+		gui.push_back(temp3);
+	}
+
 	gui[ikeys[id + "right[1]_label"]].var["text"] = std::to_string(year - I->born_year + 1) + "세";;
 	gui[ikeys[id + "right[2]_label"]].var["text"] = "자금 : " + std::to_string(I->money);
 	gui[ikeys[id + "right[3]_label"]].var["text"] = "명예 : " + std::to_string(I->prestige);
@@ -260,6 +301,7 @@ void pop_comp(int x, int y)
 		temp.var["img"] = "ui\\body";
 		temp.var["scroll"] = "0";
 		temp.var["select"] = "-1";
+		temp.var["def_h"] = "90";
 		temp.var["items"] = std::to_string(company.size());
 		temp.parent = ikeys[id];
 
@@ -849,6 +891,7 @@ void pop_gun(int x, int y)
 		temp.var["img"] = "ui\\body";
 		temp.var["scroll"] = "0";
 		temp.var["select"] = "-1";
+		temp.var["def_h"] = "90";
 		temp.var["items"] = std::to_string(media.size());
 		temp.parent = ikeys[id];
 
@@ -1025,6 +1068,7 @@ void pop_media(int x, int y)
 		temp.var["img"] = "ui\\body";
 		temp.var["scroll"] = "0";
 		temp.var["select"] = "-1";
+		temp.var["def_h"] = "90";
 		temp.var["items"] = std::to_string(media.size());
 		temp.parent = ikeys[id];
 
@@ -1201,6 +1245,7 @@ void pop_edu(int x, int y)
 		temp.var["img"] = "ui\\body";
 		temp.var["scroll"] = "0";
 		temp.var["select"] = "-1";
+		temp.var["def_h"] = "90";
 		temp.var["items"] = std::to_string(education.size());
 		temp.parent = ikeys[id];
 
@@ -1373,6 +1418,7 @@ void pop_law(int x, int y)
 		temp.var["img"] = "ui\\body";
 		temp.var["scroll"] = "0";
 		temp.var["select"] = "-1";
+		temp.var["def_h"] = "90";
 		temp.var["items"] = keys["all_lawer"];
 		
 		temp.parent = ikeys[id];
@@ -1437,6 +1483,21 @@ void pop_law(int x, int y)
 				temp2.var["opt"] = std::to_string(middle_align + center_align);
 				temp2.var["ind"] = "2";
 				temp2.var["color"] = "c_white";
+
+
+				if (relation[std::to_string(play_id) + "<" + std::to_string(I->id)] > 0)
+				{
+					temp2.var["color"] = "c_green";
+				}
+				else if (relation[std::to_string(play_id) + "<" + std::to_string(I->id)] < 0)
+				{
+					temp2.var["color"] = "c_red";
+				}
+				else
+				{
+					temp2.var["color"] = "c_yellow";
+				}
+
 				temp2.var["size"] = "40";
 				temp2.var["ratio"] = "0.6";
 				gui.push_back(temp2);
@@ -1696,6 +1757,84 @@ void pop_quit(int x, int y)
 	}
 }
 
+void pop_speech(int x, int y, int aprv, int pop)
+{
+	std::string id = empty_gui_slot("@ui\\speech");
+	if (id == "@ui\\speech-1")
+	{
+		gui[ikeys["@ui\\speech-0"]].removing = true;
+	}
+	if (id != "@ui\\speech-0")
+	{
+		return;
+	}
+	{
+		Widget temp(x, y, 400, 200, wd_image, id);
+		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
+		temp.var["img"] = "ui\\left_menu_button";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
+		temp.var["img"] = "ui\\heard_menu_close";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(200, 85, 0, 0, wd_text, id + "_title");
+
+		temp.parent = ikeys[id];
+		temp.var["text"] = prv[aprv].name + "에서 유세하시겠습니까?\n(행동포인트 60)";
+		temp.var["line"] = "21";
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "20";
+		temp.var["ratio"] = "0.8";
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(150, 95, 100, 40, wd_image, id + "_ok_button");
+		temp.var["img"] = "ui\\button";
+		temp.var["prv"] = std::to_string(aprv);
+		temp.var["pop"] = std::to_string(pop);
+		temp.parent = ikeys[id];
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Speech_Mousedown;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(50, 20, 0, 0, wd_label, id + "_button_text");
+
+		temp.parent = ikeys[id + "_ok_button"];
+		temp.var["text"] = "예";
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "30";
+		temp.var["ratio"] = "0.8";
+		gui.push_back(temp);
+	}
+}
+
 void pop_prov(int x, int y)
 {
 
@@ -1740,7 +1879,7 @@ void pop_prov(int x, int y)
 		gui.push_back(temp);
 	}
 	{
-		Widget temp(450, 25, 24, 24, wd_label, id + "_title");
+		Widget temp(530, 25, 24, 24, wd_label, id + "_title");
 
 		temp.parent = ikeys[id];
 		temp.var["text"] = "지역정보";
@@ -1756,78 +1895,87 @@ void pop_prov(int x, int y)
 	{
 		Widget temp(20, 20, 120, 660, wd_image, id + "_content");
 		temp.var["img"] = "ui\\body";
-		temp.var["items"] = std::to_string(MAX_PROV);
+		temp.var["items"] = "0";
 		temp.var["scroll"] = "-45";
 		temp.var["select"] = "-1";
+		temp.var["def_h"] = "40";
 
 		temp.step_ev = Scroll_Step;
 		temp.avail_step_ev = true;
 		temp.mousewheel_ev = Scroll_Scroll;
 		temp.avail_mousewheel_ev = true;
-		temp.mousedown_ev = Scroll_Mousedown;
+		temp.mousedown_ev = Scrollpop_Mousedown;
 		temp.avail_mousedown_ev = true;
 
 		temp.parent = ikeys[id];
 		gui.push_back(temp);
 	}
 
+	int ii = 0;
 	for (int i = 0; i < MAX_PROV; i++)
 	{
-		Widget temp(0, 90 * i, 120, 90, wd_image, id + "_content[" + std::to_string(i) + "]");
-
-		temp.var["img"] = "ui\\button";
-		temp.parent = ikeys[id + "_content"];
-		gui.push_back(temp);
-
-		if (false)
+		if (prv[i].enable)
 		{
-			Widget temp2(0, 0, 90, 90, wd_image, id + "_content[" + std::to_string(i) + "]_owner");
+			Widget temp(0, 40 * i, 120, 40, wd_image, id + "_content[" + std::to_string(ii) + "]");
 
-			//temp2.var["img"] = I->potrait;
-			//temp2.var["id"] = std::to_string(I->id);
+			temp.var["img"] = "ui\\button";
+			temp.var["id"] = std::to_string(i);
+			temp.parent = ikeys[id + "_content"];
+			gui.push_back(temp);
 
-			temp2.mousehover_ev = Potrait_Hover;
-			temp2.avail_mousehover_ev = true;
-			temp2.mousedown_ev = Potrait_Mousedown;
-			temp2.avail_mousedown_ev = true;
-			temp2.parent = ikeys[id + "_content[" + std::to_string(i) + "]"];
-			gui.push_back(temp2);
-		}
-		if (false)
-		{
-			Widget temp2(0, 0, 90, 90, wd_image, id + "_content[" + std::to_string(i) + "]_owner_case");
+			if (false)
+			{
+				Widget temp2(0, 0, 90, 90, wd_image, id + "_content[" + std::to_string(i) + "]_owner");
 
-			//temp2.var["img"] = get_case(I->work);
-			temp2.parent = ikeys[id + "_content[" + std::to_string(i) + "]_owner"];
-			gui.push_back(temp2);
-		}
-		if (false)
-		{
-			Widget temp2(192, 20, 0, 0, wd_label, id + "_content[" + std::to_string(i) + "]_name");
+				//temp2.var["img"] = I->potrait;
+				//temp2.var["id"] = std::to_string(I->id);
 
-			temp2.parent = ikeys[id + "_content[" + std::to_string(i) + "]"];
-			//temp2.var["text"] = I->name;
-			temp2.var["opt"] = std::to_string(middle_align + center_align);
-			temp2.var["ind"] = "2";
-			temp2.var["color"] = "c_white";
-			temp2.var["size"] = "20";
-			temp2.var["ratio"] = "0.8";
-			gui.push_back(temp2);
-		}
-		//if (false)
-		{
-			Widget temp2(60, 45, 0, 0, wd_label, id + "_content[" + std::to_string(i) + "]_name");
+				temp2.mousehover_ev = Potrait_Hover;
+				temp2.avail_mousehover_ev = true;
+				temp2.mousedown_ev = Potrait_Mousedown;
+				temp2.avail_mousedown_ev = true;
+				temp2.parent = ikeys[id + "_content[" + std::to_string(i) + "]"];
+				gui.push_back(temp2);
+			}
+			if (false)
+			{
+				Widget temp2(0, 0, 90, 90, wd_image, id + "_content[" + std::to_string(i) + "]_owner_case");
 
-			temp2.parent = ikeys[id + "_content[" + std::to_string(i) + "]"];
-			temp2.var["text"] = prv[i].name;
-			temp2.var["opt"] = std::to_string(middle_align + center_align);
-			temp2.var["ind"] = "2";
-			temp2.var["color"] = "c_white";
-			temp2.var["size"] = "40";
-			temp2.var["ratio"] = "0.8";
-			gui.push_back(temp2);
+				//temp2.var["img"] = get_case(I->work);
+				temp2.parent = ikeys[id + "_content[" + std::to_string(i) + "]_owner"];
+				gui.push_back(temp2);
+			}
+			if (false)
+			{
+				Widget temp2(192, 20, 0, 0, wd_label, id + "_content[" + std::to_string(ii) + "]_name");
+
+				temp2.parent = ikeys[id + "_content[" + std::to_string(ii) + "]"];
+				//temp2.var["text"] = I->name;
+				temp2.var["opt"] = std::to_string(middle_align + center_align);
+				temp2.var["ind"] = "2";
+				temp2.var["color"] = "c_white";
+				temp2.var["size"] = "20";
+				temp2.var["ratio"] = "0.8";
+				gui.push_back(temp2);
+			}
+			//if (false)
+			{
+				Widget temp2(60, 20, 0, 0, wd_label, id + "_content[" + std::to_string(ii) + "]_name");
+
+				temp2.parent = ikeys[id + "_content[" + std::to_string(ii) + "]"];
+				temp2.var["text"] = prv[i].name;
+				temp2.var["opt"] = std::to_string(middle_align + center_align);
+				temp2.var["ind"] = "2";
+				temp2.var["color"] = "c_white";
+				temp2.var["size"] = "40";
+				temp2.var["ratio"] = "0.8";
+				gui.push_back(temp2);
+			}
+			ii++;
 		}
 	}
+
+	gui[ikeys[id + "_content"]].var["items"] = std::to_string(ii);
 }
 
 void safe_start()
@@ -1913,13 +2061,30 @@ void safe_start()
 		gui.push_back(temp);
 	}
 	{
-		Widget temp(0, 0, 40, 40, wd_image, "@ui\\heard_open_back");
+		Widget temp(20, 20, 204, 136, wd_text, "@ui\\heard_label");
+		temp.var["text"] = "여기에 최근 행동이 표시됩니다.";
+
+		temp.avail_step_ev = true;
+		temp.step_ev = Heard_Step;
+
+		temp.var["img"] = "ui\\right_heard_body";
+		temp.var["opt"] = std::to_string(top_align + left_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "15";
+		temp.var["ratio"] = "0.6";
+		temp.var["line"] = "21";
+		temp.parent = ikeys["@ui\\heard"];
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(-30, 0, 40, 40, wd_image, "@ui\\heard_open_back");
 		temp.var["img"] = "ui\\right_heard_body";
 		temp.parent = ikeys["@ui\\heard"];
 		gui.push_back(temp);
 	}
 	{
-		Widget temp(0, 136, 40, 40, wd_image, "@ui\\heard_close_back");
+		Widget temp(-30, 136, 40, 40, wd_image, "@ui\\heard_close_back");
 		temp.var["img"] = "ui\\right_heard_body";
 		temp.parent = ikeys["@ui\\heard"];
 		gui.push_back(temp);
@@ -1928,12 +2093,20 @@ void safe_start()
 		Widget temp(8, 8, 24, 24, wd_image, "heard_menu_open");
 		temp.var["img"] = "ui\\heard_menu_open";
 		temp.parent = ikeys["@ui\\heard_open_back"];
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Heardopen_mousedown;
+
 		gui.push_back(temp);
 	}
 	{
 		Widget temp(8, 8, 24, 24, wd_image, "heard_menu_close");
 		temp.var["img"] = "ui\\heard_menu_close";
 		temp.parent = ikeys["@ui\\heard_close_back"];
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Heardclose_mousedown;
+
 		gui.push_back(temp);
 	}
 	{
