@@ -1757,6 +1757,75 @@ void pop_quit(int x, int y)
 	}
 }
 
+void pop_msg(int x, int y, std::string s)
+{
+	std::string id = empty_gui_slot("@ui\\msg");
+	{
+		Widget temp(x, y, 400, 200, wd_image, id);
+		temp.var["img"] = "ui\\body";
+
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = Drag_start;
+
+		temp.avail_mouseup_ev = true;
+		temp.mouseup_ev = Drag_end;
+
+		temp.avail_mousestep_ev = true;
+		temp.mousestep_ev = Drag_step;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(350, 10, 40, 40, wd_image, id + "_cancel");
+		temp.var["img"] = "ui\\left_menu_button";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(358, 18, 24, 24, wd_image, id + "_cancel_button");
+		temp.var["img"] = "ui\\heard_menu_close";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(200, 85, 0, 0, wd_text, id + "_title");
+
+		temp.parent = ikeys[id];
+		temp.var["text"] = s;
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "20";
+		temp.var["line"] = "30";
+		temp.var["ratio"] = "0.8";
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(150, 140, 100, 40, wd_image, id + "_quit_button");
+		temp.var["img"] = "ui\\button";
+		temp.parent = ikeys[id];
+		temp.avail_mousedown_ev = true;
+		temp.mousedown_ev = parent_remove;
+		gui.push_back(temp);
+	}
+	{
+		Widget temp(50, 20, 0, 0, wd_label, id + "_title_");
+
+		temp.parent = ikeys[id + "_quit_button"];
+		temp.var["text"] = "»Æ¿Œ";
+		temp.var["opt"] = std::to_string(middle_align + center_align);
+		temp.var["ind"] = "2";
+		temp.var["color"] = "c_white";
+		temp.var["size"] = "16";
+		temp.var["ratio"] = "0.8";
+		gui.push_back(temp);
+	}
+}
+
+
 void pop_speech(int x, int y, int aprv, int pop)
 {
 	std::string id = empty_gui_slot("@ui\\speech");

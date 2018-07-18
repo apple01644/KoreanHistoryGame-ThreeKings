@@ -455,6 +455,7 @@ void Scroll_Mousedown(int id, int x, int y)
 	}
 }
 
+
 void ScrollPOP_Mousedown(int id, int x, int y)
 {
 	y -= gui[id].ry;
@@ -507,6 +508,13 @@ void ScrollPOP_Mousedown(int id, int x, int y)
 		}
 	}
 }
+
+
+void Scrollpopideology_Step(int id)
+{
+	gui[id].var["text"] = get_ideology(prv[std::stoi(gui[id].var["a"])].pop[std::stoi(gui[id].var["i"])].fascist, prv[std::stoi(gui[id].var["a"])].pop[std::stoi(gui[id].var["i"])].liberty);
+}
+
 void Scrollpop_Mousedown(int id, int x, int y)
 {
 	y -= gui[id].ry;
@@ -551,7 +559,7 @@ void Scrollpop_Mousedown(int id, int x, int y)
 					{
 						Widget temp(160, 270, 720, 410, wd_image, gui[mother(id)].var["name"] + "_pop");
 						temp.var["img"] = "ui\\body";
-						temp.var["items"] = std::to_string(prv[a].pop.size());
+						temp.var["items"] = std::to_string(prv[std::stoi(gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"])].pop.size());
 						temp.var["scroll"] = "0";
 						temp.var["def_h"] = "40";
 						temp.var["select"] = "-1";
@@ -577,13 +585,13 @@ void Scrollpop_Mousedown(int id, int x, int y)
 						temp.var["img"] = "potrait\\who";
 
 						{
-							auto I = man.begin();
 
 							for (int i = 0; i < std::stoi(keys["prov_id_miner"]); i++)
 							{
 								if (std::stoi((keys["prov_id_miner[" + std::to_string(i) + "]"])) - 1 ==
 									std::stoi(gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"]))
 								{
+									auto I = man.begin();
 									for (; I != man.end();)
 									{
 										if (std::to_string(I->id) == keys["miner[" + std::to_string(i) + "]"])
@@ -599,12 +607,12 @@ void Scrollpop_Mousedown(int id, int x, int y)
 							}
 						}
 						{
-							auto I = man.begin();
 							for (int i = 0; i < std::stoi(keys["prov_id_major"]); i++)
 							{
 								if (std::stoi(keys["prov_id_major[" + std::to_string(i) + "]"]) - 1 ==
 									std::stoi(gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"]))
 								{
+									auto I = man.begin();
 									for (; I != man.end();)
 									{
 										if (std::to_string(I->id) == keys["major[" + std::to_string(i) + "]"])
@@ -647,9 +655,14 @@ void Scrollpop_Mousedown(int id, int x, int y)
 								Widget temp2(360, 20, 0, 0, wd_label, id + "_pop[" + std::to_string(i) + "]_name");
 
 								temp2.parent = ikeys[gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]"];
-								temp2.var["a"] = std::to_string(a);
+								temp2.var["a"] = gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"];
 								temp2.var["i"] = std::to_string(i);
-								temp2.var["text"] = get_ideology(prv[a].pop[i].fascist, prv[a].pop[i].liberty);
+								
+								//temp2.var["text"] = get_ideology(prv[std::stoi(temp2.var["a"])].pop[std::stoi(temp2.var["i"])].fascist, prv[std::stoi(temp2.var["a"])].pop[std::stoi(temp2.var["i"])].liberty);
+
+								temp2.step_ev = Scrollpopideology_Step;
+								temp2.avail_step_ev = true;
+
 								temp2.var["opt"] = std::to_string(middle_align + center_align);
 								temp2.var["ind"] = "2";
 								temp2.var["color"] = "c_white";

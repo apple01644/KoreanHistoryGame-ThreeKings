@@ -872,7 +872,6 @@ void start()
 		SDL_Delay(3000);
 		num = (num + 1) % std::stoi(keys["loading"]);
 	} while (tmp[0] == 1);
-
 	trd_step.join();
 
 	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
@@ -1153,6 +1152,18 @@ void normal_start()
 		}
 	}
 
+	{
+		auto I = man.begin();
+		int rr = rand() % (man.size());
+		for (int r = 0; r < rr; r++)
+		{
+			if (I->live && I->work == "None")
+			{
+				play_id = I->id;
+			}
+			I++;
+		}
+	}
 
 	//pop_prov(200, 200);
 }
@@ -1167,6 +1178,7 @@ void step()
 			t = day_over();
 			delay = 0;
 
+			//Vote President
 			if (year % 5 == 2)
 			{
 				if (day == 19 && mon == 12)
@@ -1230,7 +1242,15 @@ void step()
 
 
 						president_id = J->id;
-						msg_push(J->id, "저 " + J->name + "을 대통령으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+
+						if (J->id == play_id)
+						{
+							pop_msg(scr_w / 2 - 200, scr_h / 2 - 100, "대통령에 당선 된것을 축하드립니다!\n" + J->name + "에게");
+						}
+						else
+						{
+							msg_push(J->id, "저 " + J->name + "을 대통령으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+						}
 						J->work = "대통령";
 					}
 				}
@@ -1240,7 +1260,7 @@ void step()
 			{
 				if (day == 13 && mon == 6)
 				{
-
+					//Vote Miner
 					for (int a = 0; a < std::stoi(keys["prov_id_miner"]); a++)
 					{
 						{
@@ -1302,11 +1322,18 @@ void step()
 
 
 							keys["miner[" + std::to_string(a) + "]"] = std::to_string(J->id);
-
-							msg_push(J->id, "저 " + J->name + "을 " + prv[std::stoi(keys["prov_id_miner[" + std::to_string(a) + "]"]) - 1].name + " 도지사으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+							if (J->id == play_id)
+							{
+								pop_msg(scr_w / 2 - 200, scr_h / 2 - 100, prv[std::stoi(keys["prov_id_miner[" + std::to_string(a) + "]"]) - 1].name + "도지사에 당선 된것을 축하드립니다!\n" + J->name + "에게");
+							}
+							else
+							{
+								msg_push(J->id, "저 " + J->name + "을 " + prv[std::stoi(keys["prov_id_miner[" + std::to_string(a) + "]"]) - 1].name + " 도지사으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+							}
 							J->work = "도지사";
 						}
 					}
+					//Vote Major
 					for (int a = 0; a < std::stoi(keys["prov_id_major"]); a++)
 					{
 						{
@@ -1368,7 +1395,15 @@ void step()
 
 
 							keys["major[" + std::to_string(a) + "]"] = std::to_string(J->id);
-							msg_push(J->id, "저 " + J->name + "을 " + prv[std::stoi(keys["prov_id_major[" + std::to_string(a) + "]"]) - 1].name + " 시장으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+
+							if (J->id == play_id)
+							{
+								pop_msg(scr_w / 2 - 200, scr_h / 2 - 100, prv[std::stoi(keys["prov_id_major[" + std::to_string(a) + "]"]) - 1].name + "도지사에 당선 된것을 축하드립니다!\n" + J->name + "에게");
+							}
+							else
+							{
+								msg_push(J->id, "저 " + J->name + "을 " + prv[std::stoi(keys["prov_id_major[" + std::to_string(a) + "]"]) - 1].name + " 시장으로 뽑아주신\n국민여러분께 감사 인사를 드립니다!\n5년간 대한민국을 잘 이끌어 가겠습니다!");
+							}
 							J->work = "시장";
 						}
 					}
