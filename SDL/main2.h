@@ -2069,6 +2069,10 @@ void safe_start()
 			}
 			I++;
 		}
+
+		temp.step_ev = ProfileOwner_Step;
+		temp.avail_step_ev = true;
+
 		temp.mousehover_ev = Potrait_Hover;
 		temp.avail_mousehover_ev = true;
 		temp.mousedown_ev = Potrait_Mousedown;
@@ -2269,6 +2273,16 @@ void safe_start()
 			gui.push_back(temp);
 		}
 	}
+	gui[ikeys["minimap_header_item[0]"]].avail_mousedown_ev = true;
+	gui[ikeys["minimap_header_item[0]"]].mousedown_ev = Mapmode0_Mousedown;
+	gui[ikeys["minimap_header_item[1]"]].avail_mousedown_ev = true;
+	gui[ikeys["minimap_header_item[1]"]].mousedown_ev = Mapmode1_Mousedown;
+	gui[ikeys["minimap_header_item[2]"]].avail_mousedown_ev = true;
+	gui[ikeys["minimap_header_item[2]"]].mousedown_ev = Mapmode2_Mousedown;
+	gui[ikeys["minimap_header_item[3]"]].avail_mousedown_ev = true;
+	gui[ikeys["minimap_header_item[3]"]].mousedown_ev = Mapmode3_Mousedown;
+	gui[ikeys["minimap_header_item[4]"]].avail_mousedown_ev = true;
+	gui[ikeys["minimap_header_item[4]"]].mousedown_ev = Mapmode4_Mousedown;
 
 	{
 		Widget temp(0, 144, 48, 48 * left_menu_items, wd_image, "@ui\\left_menu");

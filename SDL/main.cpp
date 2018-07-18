@@ -874,7 +874,7 @@ void start()
 	} while (tmp[0] == 1);
 	trd_step.join();
 
-	Mix_PlayMusic(sfx["music\\Touching_Moment"],-1);	
+	Mix_PlayMusic(sfx["music\\Hangin_with_the_Worms"],-1);	
 	safe_start();
 }
 
@@ -1411,6 +1411,7 @@ void step()
 			}
 			if (t >= 1)
 			{
+				mon_on = true;
 			}
 			else
 			{
@@ -1426,7 +1427,7 @@ void step()
 							}
 							else
 							{
-								I->charge += 1;
+								I->charge += 3;
 							}
 						}
 						I++;
@@ -1475,11 +1476,11 @@ void step()
 										J = K;
 									}
 								}
-								if (p < sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
+								if (p < 50 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
 								{
 									if (I->charge >= 40)
 									{
-										p = sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
+										p = 50 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
 										p += rand() % 20;
 										t = 2;
 										J = K;
@@ -1504,9 +1505,9 @@ void step()
 							{
 								if (I->charge >= 60)
 								{
-									if (p < 200 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2)) )
+									if (p < 100 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2)) )
 									{
-										p = 200 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2));
+										p = 100 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2));
 										t = 3;
 										aprv = i;
 										apop = z;
@@ -1580,6 +1581,29 @@ void draw()
 	int max = 0;
 	int min = -(~max);
 
+	if (mon_on)
+	{
+		for (int i = 0; i < MAX_PROV; i++)
+		{
+			if (prv[i].enable)
+			{
+				float f = 0;
+				float l = 0;
+				for (int z = 0; z < prv[i].pop.size(); z++)
+				{
+					f += prv[i].pop[z].fascist;
+					l += prv[i].pop[z].liberty;
+				}
+				f /= (float)prv[i].pop.size();
+				l /= (float)prv[i].pop.size();
+				stats["prv[" + std::to_string(i) + "]_f"] = f;
+				stats["prv[" + std::to_string(i) + "]_l"] = l;
+			}
+		}
+		mon_on = false;
+	}
+
+
 	if (map_mode == 1)
 	{
 		for (int i = 0; i < MAX_PROV; i++)
@@ -1596,13 +1620,24 @@ void draw()
 	}
 	double D = 0;
 	
+	auto I = man.begin();
+	for (; I != man.end() && I->id != play_id; I++) {}
+
 	for (int i = 0; i < MAX_PROV; i++)
 	{
 		set_rect(&r, prv[i].x1 * wper + 840 * wper, prv[i].y1 * hper, (prv[i].x2 - prv[i].x1 + 1) * wper, (prv[i].y2 - prv[i].y1 + 1) * hper);
 
 		if (map_mode == 0)
 		{
-			SDL_SetTextureColorMod(prv[i].t, prv[i].c / 65536, (prv[i].c / 256) % 256, prv[i].c % 256);
+			
+			int dif = (std::abs(stats["prv[" + std::to_string(i) + "]_f"] - I->fascist) + std::abs(stats["prv[" + std::to_string(i) + "]_l"] - I->liberty)) * 2;
+			if (dif > 255)
+			{
+				dif = 255;
+			}
+			
+
+			SDL_SetTextureColorMod(prv[i].t, 255 - dif, 255 - dif, 255 - dif);
 		}
 		else if (map_mode == 1)
 		{

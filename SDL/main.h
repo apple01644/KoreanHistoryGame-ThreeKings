@@ -564,3 +564,4 @@ std::string now_time() {
 }
 std::string empty_gui_slot(std::string);
 std::locale loc;
+bool mon_on = true;

@@ -512,7 +512,16 @@ void ScrollPOP_Mousedown(int id, int x, int y)
 
 void Scrollpopideology_Step(int id)
 {
+	auto I = man.begin();
+	for (; I != man.end(); I++)
+	{
+		if (I->id == play_id)
+		{
+			break;
+		}
+	}
 	gui[id].var["text"] = get_ideology(prv[std::stoi(gui[id].var["a"])].pop[std::stoi(gui[id].var["i"])].fascist, prv[std::stoi(gui[id].var["a"])].pop[std::stoi(gui[id].var["i"])].liberty);
+	gui[ikeys[gui[id].var["name"] + "_power"]].var["text"] = std::to_string((int)sqrt(pow(prv[std::stoi(gui[id].var["a"])].pop[std::stoi(gui[id].var["i"])].fascist - I->fascist, 2) + pow(prv[std::stoi(gui[id].var["a"])].pop[std::stoi(gui[id].var["i"])].liberty - I->liberty, 2)));
 }
 
 void Scrollpop_Mousedown(int id, int x, int y)
@@ -652,7 +661,7 @@ void Scrollpop_Mousedown(int id, int x, int y)
 							gui.push_back(temp);
 							//if (false)
 							{
-								Widget temp2(360, 20, 0, 0, wd_label, id + "_pop[" + std::to_string(i) + "]_name");
+								Widget temp2(210, 20, 0, 0, wd_label, gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]_name");
 
 								temp2.parent = ikeys[gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]"];
 								temp2.var["a"] = gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["id"];
@@ -666,9 +675,20 @@ void Scrollpop_Mousedown(int id, int x, int y)
 								temp2.var["opt"] = std::to_string(middle_align + center_align);
 								temp2.var["ind"] = "2";
 								temp2.var["color"] = "c_white";
-								temp2.var["size"] = "30";
-								temp2.var["ratio"] = "0.8";
+								temp2.var["size"] = "24";
+								temp2.var["ratio"] = "0.77";
 								gui.push_back(temp2);
+							}
+							{
+								Widget temp3(410, 0, 0, 0, wd_label, gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]_name_power");
+
+								temp3.parent = ikeys[gui[mother(id)].var["name"] + "_pop[" + std::to_string(i) + "]_name"];
+								temp3.var["opt"] = std::to_string(middle_align + center_align);
+								temp3.var["ind"] = "2";
+								temp3.var["color"] = "c_white";
+								temp3.var["size"] = "24";
+								temp3.var["ratio"] = "0.65";
+								gui.push_back(temp3);
 							}
 						}
 					}
@@ -903,3 +923,28 @@ void Speech_Mousedown(int id, int x, int y)
 	gui[mother(id)].removing = true;
 }
 
+void Mapmode0_Mousedown(int id, int x, int y)
+{
+	map_mode = 0;
+}
+void Mapmode1_Mousedown(int id, int x, int y)
+{
+	map_mode = 1;
+}
+void Mapmode2_Mousedown(int id, int x, int y)
+{
+	map_mode = 2;
+}
+void Mapmode3_Mousedown(int id, int x, int y)
+{
+	map_mode = 3;
+}
+void Mapmode4_Mousedown(int id, int x, int y)
+{
+	map_mode = 4;
+}
+
+void  ProfileOwner_Step(int id)
+{
+	gui[id].var["id"] = std::to_string(play_id);
+}
