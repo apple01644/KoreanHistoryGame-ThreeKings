@@ -1178,8 +1178,10 @@ void normal_start()
 void step()
 {
 	int t = 0;
-	while(!quit)
+	while (!quit)
 	{
+		if (false)
+		{}
 		if (delay > 5 / game_speed)
 		{
 			t = day_over();
@@ -1188,6 +1190,10 @@ void step()
 			//Vote President
 			if (year % 5 == 2)
 			{
+				if (day == 5 && mon == 12)
+				{
+					msg_push(play_id, "대통령 선거 2주전입니다.");
+				}
 				if (day == 19 && mon == 12)
 				{
 					{
@@ -1265,6 +1271,10 @@ void step()
 
 			if (year % 4 == 2)
 			{
+				if (day == 4 && mon == 30)
+				{
+					msg_push(play_id, "지방 선거 2주전입니다.");
+				}
 				if (day == 13 && mon == 6)
 				{
 					//Vote Miner
@@ -1483,11 +1493,11 @@ void step()
 										J = K;
 									}
 								}
-								if (p < 80 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
+								if (p < 30 + sqrt(I->prestige) / 2 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
 								{
 									if (I->charge >= 40)
 									{
-										p = 80 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
+										p = 30 + sqrt(I->prestige) / 2 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
 										p += rand() % 20;
 										t = 2;
 										J = K;
@@ -1522,45 +1532,38 @@ void step()
 								}
 							}
 						}
-
-
-						if (t == 0)
+						
+						
 						{
-
-						}
-						else if (t == 1)
-						{
-							I->charge -= 40;
-
-							good_word(I->id, J->id);
-							if (J->id == play_id)
+							if (t == 0)
 							{
-								msg_push(I->id,"안녕 하십니까? "+J->name+"씨\n저는 당신의 행동에 감명 받았습니다.\n언제 차 한잔 이라도 합시다.\n\n"+I->name+"올림" + "\n" + now_time());
-							}
 
-						}
-						else if (t == 2)
-						{
-							bad_word(I->id, J->id);
-							I->charge -= 40;
-							if (J->id == play_id)
+							}
+							else if (t == 1)
 							{
-								msg_push(I->id, "당신의 행동은 매우 쓸모 없는 짓이다.\n" + J->name + "! 당신에게는 정치인이라는 자리는 과분하다.\n\n국민의 대변자이자 " + I->work + "인 " + I->name + "\n" + now_time());
+								I->charge -= 40;
+
+								good_word(I->id, J->id);
+								if (J->id == play_id)
+								{
+									msg_push(I->id, "안녕 하십니까? " + J->name + "씨\n저는 당신의 행동에 감명 받았습니다.\n언제 차 한잔 이라도 합시다.\n\n" + I->name + "올림" + "\n" + now_time());
+								}
+
+							}
+							else if (t == 2)
+							{
+								bad_word(I->id, J->id);
+								I->charge -= 40;
+								if (J->id == play_id)
+								{
+									msg_push(I->id, "당신의 행동은 매우 쓸모 없는 짓이다.\n" + J->name + "! 당신에게는 정치인이라는 자리는 과분하다.\n\n국민의 대변자이자 " + I->work + "인 " + I->name + "\n" + now_time());
+								}
+							}
+							else if (t == 3)
+							{
+								speech(I->id, aprv, apop);
 							}
 						}
-						else if (t == 3)
-						{
-
-
-
-
-
-
-
-
-							speech(I->id, aprv, apop);
-						}
-
 					}
 					I++;
 				}

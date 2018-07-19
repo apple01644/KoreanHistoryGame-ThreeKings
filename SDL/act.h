@@ -5,7 +5,7 @@ void bad_word(int i, int j)
 {
 	agr(j,i, -2);
 	auto I = man.begin();
-	for (; I != man.end();)
+	for (; I != man.end(); I++)
 	{
 		if (I->id == i)
 		{
@@ -17,7 +17,7 @@ void bad_word(int i, int j)
 					J->prestige -= I->prestige / 100;
 					I->prestige -= J->prestige / 100;
 
-					if (I->traits["Во¶уЅГ"])
+					if (I->traits["Во¶уЅГ"] && false)
 					{
 						auto K = man.begin();
 						for (; K != man.end(); K++)
@@ -37,15 +37,16 @@ void bad_word(int i, int j)
 				}
 				J++;
 			}
+			break;
 		}
 	}
 	agr(i, j, -10);
 }
 void good_word(int i, int j)
 {
-	agr(j, i, 2);
+	//agr(j, i, 2);
 	auto I = man.begin();
-	for (; I != man.end();)
+	for (; I != man.end();I++)
 	{
 		if (I->id == i)
 		{
@@ -60,9 +61,10 @@ void good_word(int i, int j)
 				}
 				J++;
 			}
+			break;
 		}
 	}
-	agr(i, j, 10);
+	//agr(i, j, 10);
 }
 
 
