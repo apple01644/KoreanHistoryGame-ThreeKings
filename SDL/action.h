@@ -1,5 +1,5 @@
 #pragma once
-#include "main.h"
+#include "act.h"
 
 void parent_front(int id)
 {
@@ -138,6 +138,13 @@ void Tooltip_Step(int id, int x, int y) {
 		{
 			(gui.begin() + id)->x = x + 10;
 			(gui.begin() + id)->y = y + 10;
+
+			if (x + 10 + 280 > scr_w)
+			{
+				(gui.begin() + id)->x = x - 290;
+			}
+
+
 			parent_front(id);
 			gui[ikeys["@ui\\tooltip"]].var["life"] = std::to_string(std::stoi(gui[ikeys["@ui\\tooltip"]].var["life"]) - 1);
 			if (gui[ikeys["@ui\\tooltip"]].var["life"] == "0")
@@ -370,7 +377,7 @@ void Scroll_Step(int id)
 	{
 		if (std::to_string(a) == gui[id].var["select"])
 		{
-			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["img"] = "ui\\body";
+			gui[ikeys[gui[id].var["name"] + "[" + std::to_string(a) + "]"]].var["img"] = "ui\\button_push";
 		}
 		else
 		{
@@ -802,7 +809,6 @@ void Partytoolbar_Mousedown(int id, int x, int y)
 
 void Char_Real_up(int id, int x, int y)
 {
-	LOG_H("HOHO mery chrismas");
 	auto I = man.begin();
 	for (; I != man.end();)
 	{
@@ -811,19 +817,13 @@ void Char_Real_up(int id, int x, int y)
 			if (I->charge >= 40)
 			{
 				I->charge -= 40;
-				relation[gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"] + "<" + std::to_string(play_id)] += 2;
-				auto J = man.begin();
-				for (; J != man.end();)
-				{
-					if (std::to_string(J->id) == gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"])
-					{
-						J->prestige += I->prestige / 10000;
-						I->prestige += J->prestige / 10000;
-						break;
-					}
-					J++;
-				}
-				relation[std::to_string(play_id) + "<" + gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"]] += 10;
+				good_word(I->id,std::stoi(gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"]));
+			}
+			else
+			{
+				gui[ikeys["@ui\\tooltip"]].enable = true;
+				gui[ikeys["@ui\\tooltip"]].var["life"] = "20";
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] = "행동력 40이 필요합니다.";
 			}
 			break;
 		}
@@ -839,20 +839,14 @@ void Char_Real_down(int id, int x, int y)
 		{
 			if (I->charge >= 40)
 			{
+				bad_word(I->id, std::stoi(gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"]));
 				I->charge -= 40;
-				relation[gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"] + "<" + std::to_string(play_id)] -= 2;
-				auto J = man.begin();
-				for (; J != man.end();)
-				{
-					if (std::to_string(J->id) == gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"])
-					{
-						J->prestige -= I->prestige / 100;
-						I->prestige -= J->prestige / 100;
-						break;
-					}
-					J++;
-				}
-				relation[std::to_string(play_id) + "<" + gui[ikeys[gui[mother(id)].var["name"] + "_owner"]].var["id"]] -= 10;
+			}
+			else
+			{
+				gui[ikeys["@ui\\tooltip"]].enable = true;
+				gui[ikeys["@ui\\tooltip"]].var["life"] = "40";
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] = "행동력 40이 필요합니다.";
 			}
 			break;
 		}
@@ -865,6 +859,22 @@ void Heard_Step(int id)
 	if (msg.begin() != msg.end())
 	{
 		gui[id].var["text"] = msg.begin()->s;
+		gui[ikeys["@ui\\heard_potrait"]].enable = true;
+		auto I = man.begin();
+		for (int a = 0; I != man.end(); a++)
+		{
+			if (I->id == msg.begin()->sender)
+			{
+				gui[ikeys["@ui\\heard_potrait"]].var["id"] = std::to_string(I->id);
+				gui[ikeys["@ui\\heard_potrait"]].var["img"] = I->potrait;
+				break;
+			}
+			I++;
+		}
+	}
+	else
+	{
+		gui[ikeys["@ui\\heard_potrait"]].enable = false;
 	}
 }
 void Heardclose_mousedown(int id, int x, int y)
@@ -872,7 +882,7 @@ void Heardclose_mousedown(int id, int x, int y)
 	if (msg.begin() != msg.end())
 	{
 		msg.pop_front();
-	}
+	} 
 	else
 	{
 		gui[ikeys["@ui\\heard_label"]].var["text"] = "";
@@ -891,37 +901,7 @@ void Heardopen_mousedown(int id, int x, int y)
 	}
 }
 
-void speech(int id, int Prv, int pop)
-{
-	auto I = man.begin();
-	for (; I != man.end(); I++)
-	{
-		if (I->live && I->id == play_id)
-		{
-			prv[Prv].pop[pop].fascist = ((int)prv[Prv].pop[pop].fascist * 4 + I->fascist) / 5;
-			prv[Prv].pop[pop].liberty = ((int)prv[Prv].pop[pop].liberty * 4 + I->liberty) / 5;
-		}
-	}
-}
 
-void Speech_Mousedown(int id, int x, int y)
-{
-
-	auto I = man.begin();
-	for (; I != man.end(); I++)
-	{
-		if (I->live && I->id == play_id)
-		{
-			if (I->charge >= 60)
-			{
-				speech(play_id, std::stoi(gui[id].var["prv"]), std::stoi(gui[id].var["pop"]));
-				I->charge -= 60;
-			}
-		}
-	}
-
-	gui[mother(id)].removing = true;
-}
 
 void Mapmode0_Mousedown(int id, int x, int y)
 {
@@ -947,4 +927,152 @@ void Mapmode4_Mousedown(int id, int x, int y)
 void  ProfileOwner_Step(int id)
 {
 	gui[id].var["id"] = std::to_string(play_id);
+}
+
+void Company0_Mousedown(int id, int x, int y)
+{
+	int j = 0;
+	for (;j < company.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			bribe(play_id, j);
+			break;
+		}
+		j++;
+	}
+}
+
+void Company1_Mousedown(int id, int x, int y)
+{
+	int j = 0;
+	for (; j < company.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			loby(play_id, j);
+			break;
+		}
+		j++;
+	}
+}
+
+void Force0_Mousedown(int id, int x, int y){
+	auto J = force.begin();
+	int j = 0;
+	for (; j < force.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			lobi(play_id, J->owner);
+			break;
+		}
+		j++;
+		J++;
+	}
+}
+void Force1_Mousedown(int id, int x, int y) {
+	int j = 0;
+	for (; j < force.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			mafia(play_id, j);
+			break;
+		}
+		j++;
+	}
+}
+
+void Media0_Mousedown(int id, int x, int y) {
+	auto J = media.begin();
+
+	int j = 0;
+	for (; j < media.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			lobi(play_id, J->owner);
+			break;
+		}
+		j++;
+		J++;
+	}
+}
+void Media1_Mousedown(int id, int x, int y) {
+	int j = 0;
+	for (; j < media.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			impress(play_id, j);
+			break;
+		}
+		j++;
+	}
+}
+void Media2_Mousedown(int id, int x, int y) {
+	int j = 0;
+	for (; j < media.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			jirassi(play_id, j);
+			break;
+		}
+		j++;
+	}
+}
+
+void Education0_Mousedown(int id, int x, int y) {
+	int j = 0;
+	auto J = education.begin();
+	for (; j < education.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			lobi(play_id, J->owner);
+			break;
+		}
+		J++;
+		j++;
+	}
+}
+void Education1_Mousedown(int id, int x, int y) {
+	int j = 0;
+	for (; j < education.size();)
+	{
+		if (std::to_string(j) == gui[ikeys[gui[mother(id)].var["name"] + "_content"]].var["select"])
+		{
+			booking(play_id, j);
+			break;
+		}
+		j++;
+	}
+}
+
+void Speech_Mousedown(int id, int x, int y)
+{
+
+	auto I = man.begin();
+	for (; I != man.end(); I++)
+	{
+		if (I->live && I->id == play_id)
+		{
+			if (I->charge >= 60 && I->money > 50)
+			{
+				speech(play_id, std::stoi(gui[id].var["prv"]), std::stoi(gui[id].var["pop"]));
+				gui[mother(id)].removing = true;
+				return;
+			}
+			else
+			{
+				gui[ikeys["@ui\\tooltip"]].enable = true;
+				gui[ikeys["@ui\\tooltip"]].var["life"] = "40";
+				gui[ikeys["@ui\\tooltip_text"]].var["text"] = "행동력 60이 필요합니다.\n자금 50이 필요합니다.";
+			}
+		}
+	}
+	gui[id].var["text"] = "Hi";
+	
 }

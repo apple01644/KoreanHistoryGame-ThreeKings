@@ -615,14 +615,14 @@ void data_read(std::string path)
 
 			for (int j = 0; j < line.length(); j++)
 			{
-				if (line.at(j) == ' ' || line.at(j) == '\t' || line.at(j) == '\r')
+
+				if (line.at(j) == '~')
 				{
-					line.erase(line.begin() + j);
+					line.at(j) = ' ';
 				}
-				else if (line.at(j) == '"')
+				else if ((line.at(j) == ' ' || line.at(j) == '\t' || line.at(j) == '\r' || line.at(j) == '\n'))
 				{
 					line.erase(line.begin() + j);
-					break;
 				}
 			}
 
@@ -643,13 +643,20 @@ void data_read(std::string path)
 			{
 				if (line == "}" || line == "]" || line == ">")
 				{
-					if (line != (scope.end() - 1)->substr(0, 1)) 
+					LOG_W("Hmm", line);
+					if (scope.end() != scope.begin())
 					{
-						LOG_W("Syntax Error of ", path);
-						used = true;
-						quit = true;
+						LOG_W("What? really?");
 					}
-					scope.pop_back();
+					{
+
+						if (line != (scope.end() - 1)->substr(0, 1))
+						{
+							LOG_W("Syntax Error of ", path);
+							used = true;
+							quit = true;
+						}
+						scope.pop_back(); }
 				}
 			}
 			if (!used && scope.size() > 0)
@@ -1476,11 +1483,11 @@ void step()
 										J = K;
 									}
 								}
-								if (p < 50 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
+								if (p < 80 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20)
 								{
 									if (I->charge >= 40)
 									{
-										p = 50 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
+										p = 80 + sqrt(pow(K->fascist - I->fascist, 2) + pow(I->liberty - K->liberty, 2)) * 0.2 - sqrt(pow(relation[std::to_string(J->id) + "<" + std::to_string(I->id)], 2)) / 20;
 										p += rand() % 20;
 										t = 2;
 										J = K;
@@ -1503,7 +1510,7 @@ void step()
 						{
 							for (int z = 0; z < prv[i].pop.size(); z++)
 							{
-								if (I->charge >= 60)
+								if (I->charge >= 60 && I->money > 10)
 								{
 									if (p < 100 + sqrt(pow(prv[i].pop[z].fascist - I->fascist, 2) + pow(prv[i].pop[z].liberty - I->liberty, 2)) )
 									{
@@ -1524,13 +1531,8 @@ void step()
 						else if (t == 1)
 						{
 							I->charge -= 40;
-							relation[std::to_string(J->id) + "<" + std::to_string(I->id)] += 2;
 
-							J->prestige += I->prestige / 10000;
-							I->prestige += J->prestige / 10000;
-
-							relation[std::to_string(I->id) + "<" + std::to_string(J->id)] += 10;
-
+							good_word(I->id, J->id);
 							if (J->id == play_id)
 							{
 								msg_push(I->id,"안녕 하십니까? "+J->name+"씨\n저는 당신의 행동에 감명 받았습니다.\n언제 차 한잔 이라도 합시다.\n\n"+I->name+"올림" + "\n" + now_time());
@@ -1539,18 +1541,23 @@ void step()
 						}
 						else if (t == 2)
 						{
+							bad_word(I->id, J->id);
 							I->charge -= 40;
-							relation[std::to_string(J->id) + "<" + std::to_string(I->id)] -= 2;
-
-							J->prestige -= I->prestige / 100;
-							I->prestige -= J->prestige / 100;
-
-							relation[std::to_string(I->id) + "<" + std::to_string(J->id)] -= 10;
-							msg_push(I->id, "당신의 행동은 매우 쓸모 없는 짓이다.\n" + J->name + "! 당신에게는 정치인이라는 자리는 과분하다.\n\n국민의 대변자이자 "+ I->work +"인 " + I->name + "\n" + now_time());
+							if (J->id == play_id)
+							{
+								msg_push(I->id, "당신의 행동은 매우 쓸모 없는 짓이다.\n" + J->name + "! 당신에게는 정치인이라는 자리는 과분하다.\n\n국민의 대변자이자 " + I->work + "인 " + I->name + "\n" + now_time());
+							}
 						}
 						else if (t == 3)
 						{
-							I->charge -= 60;
+
+
+
+
+
+
+
+
 							speech(I->id, aprv, apop);
 						}
 

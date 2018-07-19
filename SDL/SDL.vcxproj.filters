@@ -29,5 +29,8 @@
     <ClInclude Include="action.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="act.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

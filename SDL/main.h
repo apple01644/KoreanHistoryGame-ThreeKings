@@ -562,6 +562,14 @@ void msg_push(unsigned long id, std::string s)
 std::string now_time() {
 	return std::to_string(year)+"³â "+std::to_string(mon)+"¿ù " +std::to_string(day) + "ÀÏ";
 }
+signed long gr(unsigned long i, unsigned long j)
+{
+	return relation[std::to_string(i) + "<" + std::to_string(j)];
+}
+signed long agr(unsigned long i, unsigned long j, int k)
+{
+	return relation[std::to_string(i) + "<" + std::to_string(j)] += k;
+}
 std::string empty_gui_slot(std::string);
 std::locale loc;
 bool mon_on = true;

@@ -1,0 +1,19 @@
+#Setences
+
+comapany_act = [
+	뇌물~받기
+	제도~개선
+]
+media_act = [
+	뇌물~주기
+	선행~부각
+	찌라시~유포
+]
+force_act = [
+	뇌물~주기
+	지역~활동~요청
+]
+education_act = [
+	뇌물~주기
+	성향~변경
+]

@@ -145,6 +145,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="act.h" />
     <ClInclude Include="action.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="main2.h" />
