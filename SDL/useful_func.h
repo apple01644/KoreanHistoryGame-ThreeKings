@@ -1,7 +1,6 @@
 #pragma once
 #include"action.h"
 
-
 int get_lines(std::string s, int max_line)
 {
 	int lines = 0;
@@ -178,7 +177,274 @@ Uint32 color(int r, int g, int b)
 	return r * 65536 + g * 256 + b;
 }
 
+void gui_remove(int id)
+{
+	for (int a = 0; a < gui.size(); a++)
+	{
+		if (a != id && gui[a].parent == id)
+		{
+			gui[a].removing = true;
+		}
+	}
+	gui[id].remove();
+	for (int a = id; a < gui.size(); a++)
+	{
+		for (int b = 0; b < gui.size(); b++)
+		{
+			if (gui[b].parent == gui[a].id)
+			{
+				gui[b].parent -= 1;
+			}
+		}
+		gui[a].id -= 1;
+		gui_key[gui[a].var["name"]] -= 1;
+	}
+}
 
+void incode_define(std::string s)
+{
+	bool str = false;
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (*I == '"')
+		{
+			str = !str;
+			*I = '\a';
+			continue;
+		}
+		if (!str && (*I == '\n' || *I == '\t' || *I == '\v' || *I == '\b' || *I == '\r' || *I == '\f' || *I == '\a' || *I == ' '))
+		{
+			*I = '\a';
+			continue;
+		}
+	}
+	s.erase(std::remove(s.begin(), s.end(), '\a'), s.end());
+
+	std::string s1 = "";
+	std::string s2 = "";
+	std::string S = "";
+	bool used = false;
+	std::vector <std::string> scope;
+	std::string name = "";
+	unsigned int begin = 0;
+
+	for (int i = 0; i < s.size(); ++i)
+	{
+		if (s[i] == '{')
+		{
+			scope.push_back(s.substr(begin, i - begin));
+			begin = i + 1;
+			continue;
+		}
+		if (s[i] == '}')
+		{
+			S = s.substr(begin, i - begin);
+			for (int a = 0; a < S.size(); ++a)
+			{
+				if (S[a] == '=')
+				{
+					LOG_V("script["+ name + "." + S.substr(0, a) +"]", S.substr(a + 1));
+					script[name + "." + S.substr(0, a)] = S.substr(a + 1);
+					break;
+				}
+			}
+			begin = i + 1;
+			scope.pop_back();
+			continue;
+		}
+		name = "";
+		for (int a = 0; a < scope.size(); ++a)
+		{
+			name += "." + scope[a];
+		}
+
+		if (s[i] == '[')
+		{
+			s1 = s.substr(begin, i - begin - 1);
+			begin = i + 1;
+			++i;
+			int index = 0;
+			for (; s[i] != ']'; ++i)
+			{
+				if (s[i] == ',')
+				{
+					LOG_V("script["+ name + s1 + "[" + Str(index) + "]" +"]", s2);
+					script[name + s1 + "[" + Str(index) + "]"] = s2;
+					index++;
+					s2 = "";
+				}
+				else if (s[i + 1] == ']')
+				{
+					s2 += s[i];
+					LOG_V("script[" + name + s1 + "[" + Str(index) + "]" + "]", s2);
+					script[name + s1 + "[" + Str(index) + "]"] = s2;
+					index++;
+					s2 = "";
+				}
+				else
+				{
+					s2 += s[i];
+				}
+			}
+			continue;
+		}
+
+		if (s[i] == ',')
+		{
+			S = s.substr(begin, i - begin);
+			
+			for (int a = 0; a < S.size(); ++a)
+			{
+				if (S[a] == '=')
+				{
+					LOG_V("script[" + name + "." + S.substr(0, a) +"]", S.substr(a + 1));
+					script[name + "." + S.substr(0, a)] = S.substr(a + 1);
+					break;
+				}
+			}
+			
+			begin = i + 1;
+			continue;
+		}
+		if (s[i] == '=' && name.empty())
+		{
+			LOG_V("script[" + s.substr(0, i) + "]", s.substr(i + 1));
+			script[s.substr(0, i)] = s.substr(i + 1);
+			continue;
+		}
+	}
+}
+void read_as_define(std::wstring ws)
+{
+	std::string s;
+	s.assign(ws.begin(), ws.end());
+	std::string s2;
+	auto J = s.begin();
+	bool ignore = false;
+	bool comment = false;
+
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (ignore)
+		{
+			ignore = false;
+		}
+		else
+		{
+			if (comment)
+			{
+				if (*I == '\n')
+				{
+					comment = false;
+					J = I + 1;
+				}
+			}
+			else if (*I == ';')
+			{
+				incode_define(s2.assign(J, I));
+				ignore = true;
+				J = I + 1;
+				continue;
+			}
+			else if (*I == '#')
+			{
+				comment = true;				
+			}
+		}
+	}
+}
+
+void read_ui(std::string path)
+{
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = "ui\\" + path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		gfx[name].s = IMG_Load(path.c_str());
+		SDL_SetColorKey(gfx[name].s, SDL_TRUE, color(255,0,255));
+		if (gfx[name].s == NULL)
+		{
+			LOG_W("FILE TO SURFACE", path);
+		}
+		else
+		{
+			gfx[name].t = SDL_CreateTextureFromSurface(REND, gfx[name].s);
+			if (gfx[name].t == NULL)
+			{
+				LOG_W("SURFACE TO TEXTURE", path);
+			}
+			else
+			{
+				LOG_O("SUCCESS READ IMAGE FILE(" + name + ")", path);
+			}
+		}
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+void read_music(std::string path)
+{
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		sfx[name] = Mix_LoadMUS(path.c_str());
+		if (sfx[name] == NULL)
+		{
+			LOG_W("FILE TO SOUND", path);
+			quit = true;
+		}
+		else
+		{
+			LOG_O("SUCCESS READ SOUND FILE", path);
+		}
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+void read_define(std::string path)
+{
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+
+		std::wifstream wif(path);
+		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t>));
+		std::wstringstream wss;
+		wss << wif.rdbuf();
+		read_as_define(wss.str());
+		LOG_O("SUCCESS READ DEFINE FILE", path);
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+
+void read_folder(std::string path, fn_str fn)
+{
+	for (auto p : std::experimental::filesystem::directory_iterator(path))
+	{
+		if (std::experimental::filesystem::is_directory(p))
+		{
+			read_folder(p.path().generic_u8string(), fn);
+			continue;
+		}
+
+		char* pStr;
+		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
+		pStr = new char[strSize];
+		
+		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
+		fn(pStr);
+	}
+
+}
 
 /*
 void gui_remove(int id)

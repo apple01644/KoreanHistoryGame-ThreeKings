@@ -20,15 +20,21 @@
 #include <list>
 #include <unordered_map>
 #include <map>
+#include <functional>
 
 #include <windows.h>
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <codecvt>
 #include <filesystem>
 #include <direct.h>
 
 #define DEBUG
+#define Str std::to_string
+#define Num std::stoi
+#define Dmc std::stof
 
 #pragma execution_character_set("utf-8")
 
@@ -94,13 +100,14 @@ struct Gfx
 struct Tfx
 {
 	TTF_Font* t;
-	unsigned int s;
 };
 
 std::unordered_map<std::string, SDL_Color> Color;
 std::unordered_map<std::string, Gfx> gfx;
 std::unordered_map<std::string, Tfx> tfx;
 std::unordered_map<std::string, Mix_Music*> sfx;
+std::unordered_map<std::string, unsigned int> gui_key;
+std::unordered_map<std::string, std::string> script;
 
 enum {
 	wd_none,
@@ -145,9 +152,32 @@ void Widget::init(int X, int Y, unsigned int W, unsigned int H, unsigned char Ty
 	type = Type;
 	id = gui.size();
 	parent = id;
+	gui_key[s] = id;
 	var["name"] = s;
 }
 void Widget::remove()
 {
 	gui.erase(gui.begin() + id);
 };
+
+struct Province {
+	unsigned int x1 = 256;
+	unsigned int y1 = 256;
+	unsigned int x2 = 0;
+	unsigned int y2 = 0;
+	unsigned int c = 0;
+
+	std::string name = "";
+
+	bool enable = true;
+
+	SDL_Texture* t;
+};
+std::vector<Province> prv;
+
+///////////////////////////
+//       FUCNTIONAL      //
+///////////////////////////
+
+
+typedef std::function<void(std::string)> fn_str;

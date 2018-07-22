@@ -87,12 +87,18 @@ void start()
 {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 	srand(time(NULL));
-}
 
-void normal_start()
-{
-}
+	{
+		Widget wd0(30,30,50,80, wd_image, "@ui\\nope");
+		wd0.enable = true;
+		wd0.var["img"] = script["nanana"];
+		wd0.id = gui.size();
+		wd0.parent = wd0.id;
+		gui.push_back(wd0);
+	}
 
+	//Mix_PlayMusic(sfx["sample"], -1);
+}
 void step()
 {
 }
@@ -100,9 +106,20 @@ void draw()
 {
 	SDL_SetRenderDrawColor(REND, 0x09, 0x23, 0x66, 0xFF);
 	SDL_RenderClear(REND);
-
 	SDL_Rect r;
 	SDL_Point p;
+
+	/*for (auto i : prv)
+	{
+		set_rect(&r, prv.x1 + 840, prv.y1, (prv.x2 - prv.x1 + 1), (prv.y2 - prv.y1 + 1));
+
+		{
+			SDL_SetTextureColorMod(prv[i].t, prv.c / 65536, (prv.c / 256) % 256, prv.c % 256);
+		}
+
+		SDL_RenderCopy(REND, prv.t, NULL, &r);
+	}*/
+
 }
 
 void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned char type)
@@ -171,24 +188,94 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 		}
 	}
 }
-
 void ui(SDL_Event *e)
 {
 	SDL_Rect r;
 	int x, y;
 	draw();
 
-	SDL_RenderPresent(REND);
-}
+	while (SDL_PollEvent(e) != 0)
+	{
+		switch (e->type)
+		{
+		case SDL_QUIT: {
+			quit = true;
+			return;
+		}
+		case SDL_KEYDOWN: {
+			switch (e->key.keysym.sym)
+			{
+			case SDLK_ESCAPE: {
+				quit = true;
+				break;
+			}
+			}
+		}
+		}
 
-void read_code(std::string path)
-{
-	//std::filesystem a;
-	
-	//std::filesystem::path p(name);
-	//std::filesystem::directory_iterator start(p);
-	//std::filesystem::directory_iterator end;
-	//std::transform(start, end, std::back_inserter(v), path_leaf_string());
+		SDL_GetMouseState(&x, &y);
+
+		for (auto i = 0; i < gui.size(); i++)
+		{
+			auto I = *(gui.begin() + i);
+			if (I.enable)
+			{
+				if (I.rx <= x &&
+					I.ry <= y &&
+					I.rx + I.w >= x &&
+					I.ry + I.h >= y)
+				{
+				}
+			}
+		}
+		
+		for (bool go = true; go;)
+		{
+			go = false;
+			for (auto i = 0; i < gui.size(); i++)
+			{
+				auto I = (gui.begin() + i);
+				if (I->removing)
+				{
+					gui_remove(i);
+					go = true;
+				}
+
+			}
+		}
+
+	}
+
+	for (unsigned int i = 0; i < gui.size(); ++i)
+	{
+		auto I = (gui.begin() + i);
+		if (I->id == I->parent && I->enable)
+		{
+			I->rx = I->x;
+			I->ry = I->y;
+			set_rect(&r, I->rx, I->ry, I->w, I->h);
+			draw_item(I, r, I->type);
+			child_ui(i, I, r);
+		}
+
+	}
+
+	for (bool go = true; go;)
+	{
+		go = false;
+		for (unsigned i = 0; i < gui.size(); ++i)
+		{
+			auto I = (gui.begin() + i);
+			if (I->removing)
+			{
+				gui_remove(i);
+				go = true;
+			}
+
+		}
+	}
+
+	SDL_RenderPresent(REND);
 }
 
 bool init()
@@ -227,45 +314,39 @@ bool init()
 		LOG_W("TTF_INIT Failed : ", TTF_GetError());
 		return false;
 	}
-
-	read_code("./common");
-
-
-
-
-
 	return true;
 }
 bool loadMedia()
 {
-	SDL_Surface* Logo = IMG_Load((executeDir + "\\gfx\\ui\\logo.bmp").c_str());
-	SDL_Surface* Back = IMG_Load((executeDir + "\\gfx\\ui\\right_heard_body.bmp").c_str());
-	SDL_SetColorKey(Logo, SDL_TRUE, color(255, 0, 255));
-	SDL_Texture* Logo_t = SDL_CreateTextureFromSurface(REND,Logo);
-	SDL_Texture* Back_t = SDL_CreateTextureFromSurface(REND, Back);
-
-	SDL_Rect r;
-	set_rect(&r, scr_w / 2 - 512, scr_h / 2 - 512, 1024, 1024);
-
-	SDL_RenderCopy(REND, Back_t, NULL, NULL);
-	SDL_RenderCopy(REND, Logo_t, NULL, &r);
-
-	SDL_RenderPresent(REND);
-	SDL_FreeSurface(Logo);
-	SDL_FreeSurface(Back);
-	SDL_DestroyTexture(Logo_t);
-	SDL_DestroyTexture(Back_t);
-
-
 	bool success = true;
-	
-	int num = 0;
-	std::string path , tag;
+
+	read_folder(executeDir + "\\gfx\\ui", read_ui);
+	read_folder(executeDir + "\\sfx\\music", read_music);
+	read_folder(executeDir + "\\define", read_define);
 
 	return success;
 }
 void close()
 {
+	for (auto i : gfx)
+	{
+		SDL_DestroyTexture(i.second.t);
+		SDL_FreeSurface(i.second.s);
+		i.second.t = NULL;
+		i.second.s = NULL;
+	}
+	for (auto i : sfx)
+	{
+		Mix_FreeMusic(i.second);
+		i.second = NULL;
+	}
+	for (auto i : tfx)
+	{
+		TTF_CloseFont(i.second.t);
+		i.second.t = NULL;
+	}
+
+
 	Mix_CloseAudio();
 	SDL_DestroyRenderer(REND);
 	SDL_DestroyWindow(WNDW);
