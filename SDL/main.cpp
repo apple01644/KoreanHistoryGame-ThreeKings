@@ -89,9 +89,9 @@ void start()
 	srand(time(NULL));
 
 	{
-		Widget wd0(30,30,50,80, wd_image, "@ui\\nope");
+		Widget wd0(300,30,50,80, wd_image, "@ui\\nope");
 		wd0.enable = true;
-		wd0.var["img"] = script["nanana"];
+		wd0.var["source"] = script["nanana"];
 		wd0.id = gui.size();
 		wd0.parent = wd0.id;
 		gui.push_back(wd0);
@@ -124,49 +124,49 @@ void draw()
 
 void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned char type)
 {
+	SDL_Point p;
 
-	if (type == wd_none)
+	while (true)
 	{
+		if (type == wd_image)
+		{
+			//I->x++;
+			if (I->var["source"] != "" && gfx[I->var["source"]].t != NULL)
+			{
+				SDL_RenderCopy(REND, gfx[I->var["source"]].t, NULL, &r);
+			}
+			else if (I->var["source"] != "None")
+			{
+				SDL_RenderCopy(REND, gfx["ui\\fuchsia-black"].t, NULL, &r);
+			}
+			break;
+		}
+		if (type == wd_label)
+		{
+			p.x = I->rx;
+			p.y = I->ry;
+			draw_string(std::stoi(I->var["ind"]), I->var["text"], Color[I->var["color"]], &p, std::stoi(I->var["size"]), std::stof(I->var["ratio"]), std::stoi(I->var["opt"]));
+			break;
+		}
+		if (type == wd_text)
+		{
+			p.x = I->rx;
+			p.y = I->ry;
+
+			switch (std::stoi(I->var["opt"]) / 3)
+			{
+			case bottom_align / 3:
+				p.y -= std::stoi(I->var["size"]) * (get_lines(I->var["text"], std::stoi(I->var["line"])) - 1);
+				break;
+			case middle_align / 3:
+				p.y -= std::stoi(I->var["size"]) * (get_lines(I->var["text"], std::stoi(I->var["line"])) - 1) / 2;
+				break;
+			}
+			draw_line(std::stoi(I->var["ind"]), I->var["text"], std::stoi(I->var["line"]), Color[I->var["color"]], &p, std::stoi(I->var["size"]), std::stof(I->var["ratio"]), std::stoi(I->var["opt"]));
+			break;
+		}
 		SDL_RenderCopy(REND, gfx["ui\\black-white"].t, NULL, &r);
-		return;
-	}
-	if (type == wd_image)
-	{
-		if (I->var["img"] != "" && gfx[I->var["img"]].t != NULL)
-		{
-			SDL_RenderCopy(REND, gfx[I->var["img"]].t, NULL, &r);
-		}
-		else if (I->var["img"] != "None")
-		{
-			SDL_RenderCopy(REND, gfx["ui\\fuchsia-black"].t, NULL, &r);
-		}
-		return;
-	}
-	if (type == wd_label)
-	{
-		SDL_Point p;
-		p.x = I->rx;
-		p.y = I->ry;
-		draw_string(std::stoi(I->var["ind"]), I->var["text"], Color[I->var["color"]], &p, std::stoi(I->var["size"]), std::stof(I->var["ratio"]), std::stoi(I->var["opt"]));
-		return;
-	}
-	if (type == wd_text)
-	{
-		SDL_Point p;
-		p.x = I->rx;
-		p.y = I->ry;
-
-		switch (std::stoi(I->var["opt"]) / 3)
-		{
-		case bottom_align / 3:
-			p.y -= std::stoi(I->var["size"]) * (get_lines(I->var["text"], std::stoi(I->var["line"])) - 1);
-			break;
-		case middle_align / 3:
-			p.y -= std::stoi(I->var["size"]) * (get_lines(I->var["text"], std::stoi(I->var["line"])) - 1) / 2;
-			break;
-		}
-		draw_line(std::stoi(I->var["ind"]), I->var["text"], std::stoi(I->var["line"]), Color[I->var["color"]], &p, std::stoi(I->var["size"]), std::stof(I->var["ratio"]), std::stoi(I->var["opt"]));
-		return;
+		break;
 	}
 }
 void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
@@ -246,9 +246,9 @@ void ui(SDL_Event *e)
 
 	}
 
-	for (unsigned int i = 0; i < gui.size(); ++i)
+	auto I = gui.begin();
+	for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
 	{
-		auto I = (gui.begin() + i);
 		if (I->id == I->parent && I->enable)
 		{
 			I->rx = I->x;
@@ -259,7 +259,6 @@ void ui(SDL_Event *e)
 		}
 
 	}
-
 	for (bool go = true; go;)
 	{
 		go = false;
@@ -320,9 +319,10 @@ bool loadMedia()
 {
 	bool success = true;
 
-	read_folder(executeDir + "\\gfx\\ui", read_ui);
-	read_folder(executeDir + "\\sfx\\music", read_music);
-	read_folder(executeDir + "\\define", read_define);
+	read_folder(executeDir + "\\gfx","", read_gfx);
+	read_folder(executeDir + "\\ui", "", read_ui);
+	read_folder(executeDir + "\\sfx\\music", "", read_sfx);
+	read_folder(executeDir + "\\define", "", read_define);
 
 	return success;
 }

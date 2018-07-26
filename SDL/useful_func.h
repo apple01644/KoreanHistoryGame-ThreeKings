@@ -201,6 +201,14 @@ void gui_remove(int id)
 	}
 }
 
+std::string Var(std::string s) {
+	if (*s.begin() == '"' && *(s.end() - 1) == '"')
+	{
+		return s.substr(1, s.size() - 2);
+	}
+	return "";
+}
+
 void incode_define(std::string s)
 {
 	bool str = false;
@@ -354,11 +362,173 @@ void read_as_define(std::wstring ws)
 	}
 }
 
-void read_ui(std::string path)
+void incode_ui(Widget* wd_p, std::string s1, std::string s2)
+{
+	if (s1 == "x")
+	{
+		wd_p->x = Num(Var(s2));
+		return;
+	}
+	if (s1 == "y")
+	{
+		wd_p->y = Num(Var(s2));
+		return;
+	}
+	if (s1 == "w")
+	{
+		wd_p->w = Num(Var(s2));
+		return;
+	}
+	if (s1 == "h")
+	{
+		wd_p->h = Num(Var(s2));
+		return;
+	}
+	wd_p->var[s1] = Var(s2);
+}
+void read_as_ui(std::wstring ws)
+{
+	std::string s;
+	s.assign(ws.begin(), ws.end());
+	std::string s2;
+	std::string s3;
+	unsigned int begin = 0;
+	bool comment = false;
+
+	auto I = s.begin();
+	for (unsigned int i = 0; i < s.size(); ++i)
+	{
+		if (comment)
+		{
+			if (s.at(i) == '"')
+			{
+				comment = false;
+			}
+		}
+		else if (s.at(i) == '"')
+		{
+			comment = true;
+			continue;
+		}
+		if (s.at(i) == '<')
+		{
+			begin = i + 1;
+			for (;; i++)
+			{
+				if (comment)
+				{
+					if (s.at(i) == '"')
+					{
+						comment = false;
+					}
+					continue;
+				}
+				if (s.at(i) == '"')
+				{
+					comment = true;
+					continue;
+				}
+				if (s.at(i) == '>')
+				{
+					s2 = s.substr(begin, i - begin);
+					if (*(s2.begin()) == '/')
+					{
+						s2.erase(s2.begin());
+					}
+					else
+					{
+						Widget wd(0,0,20,20,wd_none,Str(gui.size()));
+						
+						for (unsigned int j = 0, begin = 0; j < s2.size(); ++j)
+						{
+							if (comment)
+							{
+								if (s2.at(j) == '"')
+								{
+									comment = false;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else if (s2.at(j) == '"')
+							{
+								comment = true;
+								continue;
+							}
+							if (s2.at(j) == ' ' || j + 1 == s2.size())
+							{
+								if (j + 1 == s2.size())
+								{
+									j++;
+								}
+								s3 = s2.substr(begin, j - begin);
+								if (begin == 0)
+								{
+									do {
+										if (s3 == "image")
+										{
+											wd.type = wd_image;
+											break;
+										}
+										if (s3 == "label")
+										{
+											wd.type = wd_label;
+											break;
+										}
+										if (s3 == "text")
+										{
+											wd.type = wd_text;
+											break;
+										}
+									} while (false);
+									LOG_H(s3);
+								}
+								else
+								{
+									for (int k = 0; k < s3.size(); ++k)
+									{
+										if (s3.at(k) == '=')
+										{
+											incode_ui(&wd, s3.substr(0, k), s3.substr(k + 1, s3.size() - 1));
+											break;
+										}
+									}
+								}
+								begin = j + 1;
+								continue;
+							}
+						}
+
+						if (*(s2.end() - 1) == '/')
+						{
+							gui.push_back(wd);
+						}
+					}
+
+					break;
+				}
+				if (i == s.size())
+				{
+					LOG_W("UI SYNTAX ERROR","Can't find Closed Bracket");
+					quit = true;
+					break;
+				}
+			}
+		}
+	}
+	if (comment)
+	{
+		LOG_W("UI Syntax Error","Cant Find EOF");
+		quit = true;
+	}
+}
+void read_gfx(const std::string path, const std::string tag)
 {
 	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
 	{
-		std::string name = "ui\\" + path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = tag + path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
 		gfx[name].s = IMG_Load(path.c_str());
 		SDL_SetColorKey(gfx[name].s, SDL_TRUE, color(255,0,255));
 		if (gfx[name].s == NULL)
@@ -384,7 +554,7 @@ void read_ui(std::string path)
 		quit = true;
 	}
 }
-void read_music(std::string path)
+void read_sfx(const std::string path, const std::string tag)
 {
 	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
 	{
@@ -406,7 +576,27 @@ void read_music(std::string path)
 		quit = true;
 	}
 }
-void read_define(std::string path)
+
+void read_ui(const std::string path,const std::string tag)
+{
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+
+		std::wifstream wif(path);
+		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t>));
+		std::wstringstream wss;
+		wss << wif.rdbuf();
+		read_as_ui(wss.str());
+		LOG_O("SUCCESS READ DEFINE FILE", path);
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+void read_define(const std::string path, const std::string tag)
 {
 	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
 	{
@@ -426,13 +616,13 @@ void read_define(std::string path)
 	}
 }
 
-void read_folder(std::string path, fn_str fn)
+void read_folder(const std::string path, const std::string tag, const fn_str2 fn)
 {
 	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
 		if (std::experimental::filesystem::is_directory(p))
 		{
-			read_folder(p.path().generic_u8string(), fn);
+			read_folder(p.path().generic_u8string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
 			continue;
 		}
 
@@ -441,7 +631,7 @@ void read_folder(std::string path, fn_str fn)
 		pStr = new char[strSize];
 		
 		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
-		fn(pStr);
+		fn(pStr, tag);
 	}
 
 }

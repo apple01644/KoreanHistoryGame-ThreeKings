@@ -180,4 +180,4 @@ std::vector<Province> prv;
 ///////////////////////////
 
 
-typedef std::function<void(std::string)> fn_str;
+typedef std::function<void(std::string, std::string)> fn_str2;
