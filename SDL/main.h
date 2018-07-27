@@ -134,6 +134,7 @@ public:
 	std::unordered_map<std::string, std::string> var;
 
 	void remove();
+	void change_key(std::string s);
 	void init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s);
 	Widget(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s) {
 		init(X, Y, W, H, Type, s);
@@ -155,6 +156,11 @@ void Widget::init(int X, int Y, unsigned int W, unsigned int H, unsigned char Ty
 	gui_key[s] = id;
 	var["name"] = s;
 }
+void Widget::change_key(std::string s) {
+	gui_key.erase(var["name"]);
+	var["name"] = s;
+	gui_key[s] = id;
+};
 void Widget::remove()
 {
 	gui.erase(gui.begin() + id);

@@ -202,7 +202,7 @@ void gui_remove(int id)
 }
 
 std::string Var(std::string s) {
-	if (*s.begin() == '"' && *(s.end() - 1) == '"')
+	if (*s.begin() == '"' && *(s.cbegin()) == '"')
 	{
 		return s.substr(1, s.size() - 2);
 	}
@@ -364,6 +364,7 @@ void read_as_define(std::wstring ws)
 
 void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 {
+	LOG_W(s1,Var(s2));
 	if (s1 == "x")
 	{
 		wd_p->x = Num(Var(s2));
@@ -384,6 +385,11 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 		wd_p->h = Num(Var(s2));
 		return;
 	}
+	if (s1 == "id")
+	{
+		wd_p->change_key(s2);
+		return;
+	}
 	wd_p->var[s1] = Var(s2);
 }
 void read_as_ui(std::wstring ws)
@@ -392,6 +398,7 @@ void read_as_ui(std::wstring ws)
 	s.assign(ws.begin(), ws.end());
 	std::string s2;
 	std::string s3;
+	std::vector<std::string> scope;
 	unsigned int begin = 0;
 	bool comment = false;
 
@@ -433,7 +440,15 @@ void read_as_ui(std::wstring ws)
 					s2 = s.substr(begin, i - begin);
 					if (*(s2.begin()) == '/')
 					{
-						s2.erase(s2.begin());
+						if (scope.begin() != scope.end())
+						{
+							scope.pop_back();
+						}
+						else
+						{
+							LOG_W("UI PARENT ERROR!");
+							quit = true;
+						}
 					}
 					else
 					{
@@ -501,10 +516,20 @@ void read_as_ui(std::wstring ws)
 							}
 						}
 
-						if (*(s2.end() - 1) == '/')
+						if (scope.cbegin() != scope.cend())
 						{
-							gui.push_back(wd);
+							wd.parent = gui[gui_key[*scope.cbegin()]].id;
+							LOG_W("parent!",gui[gui_key[*scope.cbegin()]].var["name"]);
 						}
+
+						if (s2.at(s2.size() - 1) != '/')
+						{
+							scope.push_back(wd.var["name"]);
+							
+						}
+						LOG_W(wd.var["name"]);
+						gui.push_back(wd);
+
 					}
 
 					break;
