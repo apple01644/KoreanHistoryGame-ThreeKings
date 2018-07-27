@@ -116,7 +116,6 @@ void draw(SDL_Rect* r, SDL_Point* p)
 	{
 		set_rect(r, I->x1 * w_r, I->y1 * h_r, (I->x2 - I->x1 + 1) * w_r, (I->y2 - I->y1 + 1) * h_r);
 
-		if (false)
 		{
 			SDL_SetTextureColorMod(I->t, (Uint8)(I->c / 65536), (Uint8)((I->c / 256) % 256), (Uint8)(I->c % 256));
 		}
