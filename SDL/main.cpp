@@ -89,9 +89,8 @@ void start()
 	srand(time(NULL));
 
 	{
-		Widget wd0(300,30,50,80, wd_image, "@ui\\nope");
-		wd0.enable = true;
-		wd0.var["source"] = script["nanana"];
+		Widget wd0(404,404,404,404, wd_image, "Error!");
+		wd0.enable = false;
 		wd0.id = gui.size();
 		wd0.parent = wd0.id;
 		gui.push_back(wd0);

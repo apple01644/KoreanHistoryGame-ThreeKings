@@ -202,7 +202,7 @@ void gui_remove(int id)
 }
 
 std::string Var(std::string s) {
-	if (*s.begin() == '"' && *(s.cbegin()) == '"')
+	if (*s.begin() == '"' && *s.rbegin() == '"')
 	{
 		return s.substr(1, s.size() - 2);
 	}
@@ -364,7 +364,6 @@ void read_as_define(std::wstring ws)
 
 void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 {
-	LOG_W(s1,Var(s2));
 	if (s1 == "x")
 	{
 		wd_p->x = Num(Var(s2));
@@ -498,7 +497,6 @@ void read_as_ui(std::wstring ws)
 											break;
 										}
 									} while (false);
-									LOG_H(s3);
 								}
 								else
 								{
@@ -515,19 +513,17 @@ void read_as_ui(std::wstring ws)
 								continue;
 							}
 						}
-
-						if (scope.cbegin() != scope.cend())
+							
+						if (scope.rbegin() != scope.rend())
 						{
-							wd.parent = gui[gui_key[*scope.cbegin()]].id;
-							LOG_W("parent!",gui[gui_key[*scope.cbegin()]].var["name"]);
+							wd.parent = gui[gui_key[*scope.rbegin()]].id;
 						}
 
-						if (s2.at(s2.size() - 1) != '/')
+						if (*s2.rbegin() != '/')
 						{
 							scope.push_back(wd.var["name"]);
 							
 						}
-						LOG_W(wd.var["name"]);
 						gui.push_back(wd);
 
 					}
