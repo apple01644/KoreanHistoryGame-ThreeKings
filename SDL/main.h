@@ -41,8 +41,10 @@
 ///////////////////////////
 //       VARIABLE        //
 ///////////////////////////
-extern const int scr_w = 1920;
-extern const int scr_h = 1080;
+extern const unsigned  int scr_w = 1920;
+extern const unsigned  int scr_h = 1080;
+unsigned int map_w = 1;
+unsigned int map_h = 1;
 float scr_r = scr_h / 1080.0;
 extern const char ESCAPE = 0x1b;
 extern bool quit = false;
@@ -151,7 +153,7 @@ void Widget::init(int X, int Y, unsigned int W, unsigned int H, unsigned char Ty
 	w = W;
 	h = H;
 	type = Type;
-	id = gui.size();
+	id = (unsigned int)gui.size();
 	parent = id;
 	gui_key[s] = id;
 	var["name"] = s;
@@ -184,6 +186,5 @@ std::vector<Province> prv;
 ///////////////////////////
 //       FUCNTIONAL      //
 ///////////////////////////
-
 
 typedef std::function<void(std::string, std::string)> fn_str2;

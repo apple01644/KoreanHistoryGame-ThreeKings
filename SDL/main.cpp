@@ -2,9 +2,14 @@
 
 int main(int argc, char* args[])
 {
-	srand(time(NULL));
+	srand((unsigned int)time(NULL));
 	system("color 01");
-	
+
+	for (int i = 0; i < argc; i++)
+	{
+		LOG_H("ARG-" + Str(i), args[i]);
+	}
+
 	if (!init())
 	{
 		LOG_W("System Initialize Failed");
@@ -86,12 +91,11 @@ int day_over()
 void start()
 {
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
-	srand(time(NULL));
 
 	{
 		Widget wd0(404,404,404,404, wd_image, "Error!");
 		wd0.enable = false;
-		wd0.id = gui.size();
+		wd0.id = (unsigned int)gui.size();
 		wd0.parent = wd0.id;
 		gui.push_back(wd0);
 	}
@@ -101,23 +105,25 @@ void start()
 void step()
 {
 }
-void draw()
+void draw(SDL_Rect* r, SDL_Point* p)
 {
 	SDL_SetRenderDrawColor(REND, 0x09, 0x23, 0x66, 0xFF);
 	SDL_RenderClear(REND);
-	SDL_Rect r;
-	SDL_Point p;
+	float w_r = 1.0f / map_w * scr_w;
+	float h_r = 1.0f / map_h * scr_h;
 
-	/*for (auto i : prv)
+	for (auto I = prv.begin(); I != prv.end(); ++I)
 	{
-		set_rect(&r, prv.x1 + 840, prv.y1, (prv.x2 - prv.x1 + 1), (prv.y2 - prv.y1 + 1));
+		set_rect(r, I->x1 * w_r, I->y1 * h_r, (I->x2 - I->x1 + 1) * w_r, (I->y2 - I->y1 + 1) * h_r);
 
+		if (false)
 		{
-			SDL_SetTextureColorMod(prv[i].t, prv.c / 65536, (prv.c / 256) % 256, prv.c % 256);
+			SDL_SetTextureColorMod(I->t, (Uint8)(I->c / 65536), (Uint8)((I->c / 256) % 256), (Uint8)(I->c % 256));
 		}
 
-		SDL_RenderCopy(REND, prv.t, NULL, &r);
-	}*/
+		SDL_RenderCopy(REND, I->t, NULL, r);
+		continue;
+	}
 
 }
 
@@ -170,14 +176,14 @@ void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned
 }
 void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 {
-	for (int j = 0; j < gui.size(); j++)
+	for (unsigned int j = 0; j < gui.size(); j++)
 	{
 		if (j != i)
 		{
 			auto J = (gui.begin() + j);
 			if (J->parent == I->id && J->enable)
 			{
-				set_rect(&r, I->rx, I->ry);
+				set_point(&r, I->rx, I->ry);
 				J->rx = r.x + J->x;
 				J->ry = r.y + J->y;
 				set_rect(&r, J->rx, J->ry, J->w, J->h);
@@ -190,8 +196,11 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 void ui(SDL_Event *e)
 {
 	SDL_Rect r;
+	SDL_Point p;
 	int x, y;
-	draw();
+	r.x = 0;
+	p.y = 0;
+	draw(&r, &p);
 
 	while (SDL_PollEvent(e) != 0)
 	{
@@ -214,15 +223,14 @@ void ui(SDL_Event *e)
 
 		SDL_GetMouseState(&x, &y);
 
-		for (auto i = 0; i < gui.size(); i++)
+		for (auto I = gui.begin(); I != gui.end(); ++I)
 		{
-			auto I = *(gui.begin() + i);
-			if (I.enable)
+			if (I->enable)
 			{
-				if (I.rx <= x &&
-					I.ry <= y &&
-					I.rx + I.w >= x &&
-					I.ry + I.h >= y)
+				if (I->rx <= x &&
+					I->ry <= y &&
+					I->rx + (int)I->w >= x &&
+					I->ry + (int)I->h >= y)
 				{
 				}
 			}
@@ -245,19 +253,23 @@ void ui(SDL_Event *e)
 
 	}
 
-	auto I = gui.begin();
-	for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
+	
 	{
-		if (I->id == I->parent && I->enable)
+		auto I = gui.begin();
+		for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
 		{
-			I->rx = I->x;
-			I->ry = I->y;
-			set_rect(&r, I->rx, I->ry, I->w, I->h);
-			draw_item(I, r, I->type);
-			child_ui(i, I, r);
-		}
+			if (I->id == I->parent && I->enable)
+			{
+				I->rx = I->x;
+				I->ry = I->y;
+				set_rect(&r, I->rx, I->ry, I->w, I->h);
+				draw_item(I, r, I->type);
+				child_ui(i, I, r);
+			}
 
+		}
 	}
+
 	for (bool go = true; go;)
 	{
 		go = false;
@@ -322,6 +334,7 @@ bool loadMedia()
 	read_folder(executeDir + "\\ui", "", read_ui);
 	read_folder(executeDir + "\\sfx\\music", "", read_sfx);
 	read_folder(executeDir + "\\define", "", read_define);
+	read_prov();
 
 	return success;
 }

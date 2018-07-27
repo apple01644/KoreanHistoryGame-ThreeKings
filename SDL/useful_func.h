@@ -4,9 +4,9 @@
 int get_lines(std::string s, int max_line)
 {
 	int lines = 0;
-	unsigned int chr_len = s.length();
+	const size_t chr_len = s.length();
 	const char* chr = s.c_str();
-	int beg = 0, chrs = 0, bias = 0, all_line = 0;
+	int chrs = 0, bias = 0;
 	for (int i = 0; i < chr_len;)
 	{
 		if (chr[i] >= 0)
@@ -47,9 +47,9 @@ int get_lines(std::string s, int max_line)
 }
 int get_chrs(std::string s)
 {
-	unsigned int chr_len = s.length();
+	const size_t chr_len = s.length();
 	const char* chr = s.c_str();
-	int beg = 0, chrs = 0, bias = 0, all_line = 0;
+	int chrs = 0, bias = 0;
 	for (int i = 0; i < chr_len;)
 	{
 		if (chr[i] >= 0)
@@ -86,7 +86,7 @@ void draw_string(int ind, std::string s, SDL_Color color, SDL_Point* p, int size
 	SDL_Rect r;
 	r.x = p->x;
 	r.y = p->y;
-	r.w = get_chrs(s) * size * ratio;
+	r.w = (unsigned int)(get_chrs(s) * size * ratio);
 	r.h = size;
 	switch (opt % 3)
 	{
@@ -111,9 +111,9 @@ void draw_string(int ind, std::string s, SDL_Color color, SDL_Point* p, int size
 void draw_line(int ind, std::string s, int max_line, SDL_Color color, SDL_Point* p, int size, float ratio, int opt)
 {
 	int lines = 0;
-	const unsigned int chr_len = s.length();
+	const size_t chr_len = s.length();
 	const char* chr = s.c_str();
-	int i, beg = 0, chrs = 0, bias = 0, st = 0;
+	int i, chrs = 0, bias = 0, st = 0;
 	for (i = 0; i < chr_len;)
 	{
 		bias = 1;
@@ -159,17 +159,28 @@ void draw_line(int ind, std::string s, int max_line, SDL_Color color, SDL_Point*
 	}
 }
 
-void set_rect(SDL_Rect *r, int x, int y, int w, int h)
+template<typename T, typename T2>
+void set_rect(SDL_Rect *r, T x, T y, T2 w, T2 h)
 {
-	r->x = x;
-	r->y = y;
-	r->w = w;
-	r->h = h;
+	r->x = (int)x;
+	r->y = (int)y;
+	r->w = (unsigned int)w;
+	r->h = (unsigned int)h;
 }
-void set_rect(SDL_Rect *r, int x, int y)
+
+template<typename T>
+void set_point(SDL_Rect *r, T x, T y)
 {
-	r->x = x;
-	r->y = y;
+	r->x = (int)x;
+	r->y = (int)y;
+}
+
+
+template<typename T>
+void set_point(SDL_Point *p, T x, T y)
+{
+	p->x = (int)x;
+	p->y = (int)y;
 }
 
 Uint32 color(int r, int g, int b)
@@ -177,9 +188,9 @@ Uint32 color(int r, int g, int b)
 	return r * 65536 + g * 256 + b;
 }
 
-void gui_remove(int id)
+void gui_remove(const unsigned int id)
 {
-	for (int a = 0; a < gui.size(); a++)
+	for (unsigned int a = 0; a < gui.size(); a++)
 	{
 		if (a != id && gui[a].parent == id)
 		{
@@ -187,7 +198,7 @@ void gui_remove(int id)
 		}
 	}
 	gui[id].remove();
-	for (int a = id; a < gui.size(); a++)
+	for (unsigned int a = id; a < gui.size(); a++)
 	{
 		for (int b = 0; b < gui.size(); b++)
 		{
@@ -231,7 +242,6 @@ void incode_define(std::string s)
 	std::string s1 = "";
 	std::string s2 = "";
 	std::string S = "";
-	bool used = false;
 	std::vector <std::string> scope;
 	std::string name = "";
 	unsigned int begin = 0;
@@ -453,7 +463,8 @@ void read_as_ui(std::wstring ws)
 					{
 						Widget wd(0,0,20,20,wd_none,Str(gui.size()));
 						
-						for (unsigned int j = 0, begin = 0; j < s2.size(); ++j)
+						begin = 0;
+						for (unsigned int j = 0; j < s2.size(); ++j)
 						{
 							if (comment)
 							{
@@ -655,6 +666,115 @@ void read_folder(const std::string path, const std::string tag, const fn_str2 fn
 		fn(pStr, tag);
 	}
 
+}
+
+void read_prov()
+{
+	SDL_Surface* map = IMG_Load((executeDir + "\\" + "map\\prv.bmp").c_str());
+	
+	{
+		Province prov;
+		prov.c = color(237, 28, 36);
+		prv.push_back(prov);
+	}
+	{
+		Province prov;
+		prov.c = color(255, 127, 39);
+		prv.push_back(prov);
+	}
+	{
+		Province prov;
+		prov.c = color(255, 242, 0);
+		prv.push_back(prov);
+	}
+
+	map_w = map->w;
+	map_h = map->h;
+	unsigned char* pixels = (unsigned char*)map->pixels;
+
+	for (unsigned int a = 0; a < map_w; a++)
+	{
+		for (unsigned int b = 0; b < map_h; b++)
+		{
+			for (auto I = prv.begin(); I != prv.end(); ++I)
+			{
+				if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
+				{
+					if (a < I->x1)
+					{
+						I->x1 = a;
+					}
+					if (a > I->x2)
+					{
+						I->x2 = a;
+					}
+					if (b < I->y1)
+					{
+						I->y1 = b;
+					}
+					if (b > I->y2)
+					{
+						I->y2 = b;
+					}
+				}
+			}
+		}
+	}
+
+
+
+	for (auto I = prv.begin(); I != prv.end(); ++I)
+	{
+		if (I->x1 <= I->x2 &&  I->y1 <= I->y2)
+		{
+			SDL_Surface* prov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
+			unsigned int w_t, h_t;
+
+			w_t = prov->w;
+			h_t = prov->h;
+			unsigned char* pixels_t = (unsigned char*)prov->pixels;
+
+
+			int c, d;
+			for (unsigned int a = 0; a <= w_t; a++)
+			{
+				for (unsigned int b = 0; b <= h_t; b++)
+				{
+					c = a + I->x1;
+					d = b + I->y1;
+					if (color(pixels[3 * (d * map_w + c) + 2], pixels[3 * (d * map_w + c) + 1], pixels[3 * (d * map_w + c)]) == I->c)
+					{
+						pixels_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
+						pixels_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
+						pixels_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+					}
+				}
+			}
+
+			for (unsigned int a = I->x1; a <= I->x2; a++)
+			{
+				break;
+
+				for (unsigned int b = I->y1; b <= I->y2; b++)
+				{
+					if (color(pixels[4 * (b * map_w + a) + 2], pixels[4 * (b * map_w + a) + 1], pixels[4 * (b * map_w + a)]) == I->c)
+					{
+						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 0] = 255;
+						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 1] = 255;
+						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 2] = 255;
+					}
+					else
+					{
+						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 0] = 0;
+						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 1] = 0;
+						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 2] = 0;
+					}
+				}
+			}
+			SDL_SetColorKey(prov, SDL_TRUE, 0);
+			I->t = SDL_CreateTextureFromSurface(REND, prov);
+		}
+	}
 }
 
 /*

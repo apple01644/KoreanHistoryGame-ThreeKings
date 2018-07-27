@@ -34,7 +34,7 @@ void parent_front(int id)
 	//	std::iter_swap(gui[mom], gui[mom + 1]);
 	//}
 }
-void parent_remove(int id, int x, int y)
+void parent_remove(unsigned int id)
 {
 	gui[gui[id].parent].removing = true;
 }
