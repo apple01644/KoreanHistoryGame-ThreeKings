@@ -1,0 +1,4 @@
+select = 5;#강주
+name = "강주";
+CON = Silla;
+OWN = Silla;

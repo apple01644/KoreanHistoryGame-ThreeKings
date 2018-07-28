@@ -1,0 +1,4 @@
+select = 26;#동주
+name = "동주";
+CON = Balhae;
+OWN = Balhae;

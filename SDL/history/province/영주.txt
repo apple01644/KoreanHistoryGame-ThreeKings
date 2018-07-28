@@ -1,0 +1,4 @@
+select = 32;#영주
+name = "영주";
+CON = Balhae;
+OWN = Balhae;

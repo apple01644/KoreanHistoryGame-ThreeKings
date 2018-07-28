@@ -1,0 +1,2 @@
+name = "Tamra";
+color = color & 171, 204, 166;

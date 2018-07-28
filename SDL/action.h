@@ -3,13 +3,13 @@
 
 int mother(const int i)
 {
-	if (gui[i].id == gui[i].parent)
+	if (gui.at(i).id == gui.at(i).parent)
 	{
-		return gui[i].id;
+		return gui.at(i).id;
 	}
 	else
 	{
-		return mother(gui[i].parent);
+		return mother(gui.at(i).parent);
 	}
 }
 void parent_front(int id)
@@ -18,23 +18,23 @@ void parent_front(int id)
 	//{
 	//	for (int a = 0; a < gui.size(); a++)
 	//	{
-	//		if (gui[a].parent == mom)
+	//		if (gui.at(a).parent == mom)
 	//		{
-	//			gui[a].parent = mom + 1;
+	//			gui.at(a).parent = mom + 1;
 	//		}
-	//		else if (gui[a].parent == mom + 1)
+	//		else if (gui.at(a).parent == mom + 1)
 	//		{
-	//			gui[a].parent = mom;
+	//			gui.at(a].parent = mom;
 	//		}
 	//	}
-	//	gui[mom].id = mom + 1;
-	//	gui_key[gui[mom].var["name"]] = mom + 1;
-	//	gui[mom + 1].id = mom;
-	//	gui_key[gui[mom].var["name"]] = mom;
-	//	std::iter_swap(gui[mom], gui[mom + 1]);
+	//	gui.at(mom).id = mom + 1;
+	//	gui_key[gui.at(mom).var["name"]] = mom + 1;
+	//	gui.at(mom + 1).id = mom;
+	//	gui_key[gui.at(mom).var["name"]] = mom;
+	//	std::iter_swap(gui.at(mom), gui.at(mom + 1));
 	//}
 }
 void parent_remove(unsigned int id)
 {
-	gui[gui[id].parent].removing = true;
+	gui.at(gui.at(id).parent).removing = true;
 }

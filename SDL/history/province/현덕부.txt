@@ -1,0 +1,4 @@
+select = 25;#현덕부
+name = "현덕부";
+CON = Balhae;
+OWN = Balhae;

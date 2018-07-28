@@ -1,0 +1,5 @@
+select = 8;#탐라
+name = "탐라";
+
+CON = Tamra;
+OWN = Tamra;

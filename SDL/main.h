@@ -6,6 +6,7 @@
 #include <SDL_ttf.h>
 
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include <cmath>
 #include <ctime>
@@ -29,7 +30,9 @@
 #include <sstream>
 #include <codecvt>
 #include <filesystem>
+
 #include <direct.h>
+
 
 #define DEBUG
 #define Str std::to_string
@@ -43,8 +46,14 @@
 ///////////////////////////
 extern const unsigned  int scr_w = 1920;
 extern const unsigned  int scr_h = 1080;
+
+float map_x = 0;
+float map_y = 0;
+float map_p = 1;
+
 unsigned int map_w = 1;
 unsigned int map_h = 1;
+
 float scr_r = scr_h / 1080.0;
 extern const char ESCAPE = 0x1b;
 extern bool quit = false;
@@ -110,6 +119,7 @@ std::unordered_map<std::string, Tfx> tfx;
 std::unordered_map<std::string, Mix_Music*> sfx;
 std::unordered_map<std::string, unsigned int> gui_key;
 std::unordered_map<std::string, std::string> script;
+std::unordered_map<std::string, std::string> key;
 
 enum {
 	wd_none,
@@ -175,13 +185,27 @@ struct Province {
 	unsigned int y2 = 0;
 	unsigned int c = 0;
 
-	std::string name = "";
-
-	bool enable = true;
+	bool enable = false;
+	bool waste_land = false;
 
 	SDL_Texture* t;
+	SDL_Texture* gt;
+	SDL_Texture* lt;
+
+	std::unordered_map<std::string, std::string> var;
+	Province(){
+		var["CON"] = "NAV";
+		var["OWN"] = "NAV";
+	};
 };
 std::vector<Province> prv;
+
+struct Nation {
+	unsigned int c = 0;
+	std::unordered_map<std::string, std::string> var;
+};
+
+std::unordered_map<std::string, Nation> nat;
 
 ///////////////////////////
 //       FUCNTIONAL      //

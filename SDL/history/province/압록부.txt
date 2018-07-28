@@ -1,0 +1,4 @@
+select = 16;#압록부
+name = "압록부";
+CON = Balhae;
+OWN = Balhae;

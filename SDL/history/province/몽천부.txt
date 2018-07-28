@@ -1,0 +1,4 @@
+select = 27;#몽천부
+name = "몽천부";
+CON = Balhae;
+OWN = Balhae;

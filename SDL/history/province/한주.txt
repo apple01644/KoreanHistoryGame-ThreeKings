@@ -1,0 +1,4 @@
+select = 13;#한주
+name = "한주";
+CON = Silla;
+OWN = Silla;

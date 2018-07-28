@@ -49,7 +49,7 @@ int get_chrs(std::string s)
 {
 	const size_t chr_len = s.length();
 	const char* chr = s.c_str();
-	int chrs = 0, bias = 0;
+	int chrs = 0, bias = 1;
 	for (int i = 0; i < chr_len;)
 	{
 		if (chr[i] >= 0)
@@ -73,42 +73,52 @@ int get_chrs(std::string s)
 	}
 	return chrs;
 }
-void draw_string_s(int i, std::string s, SDL_Color color, SDL_Rect* r) {
-	/*
-	SDL_Surface* surf = TTF_RenderUTF8_Solid(fonts[i], s.c_str(), color);
+void draw_string_s(std::string i, std::string s, SDL_Color color, SDL_Rect* r) {
+	
+	SDL_Surface* surf = TTF_RenderUTF8_Solid(tfx[i].t, s.c_str(), color);
 	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, surf);
 	SDL_FreeSurface(surf);
 	SDL_RenderCopy(REND, t, NULL, r);
-	SDL_DestroyTexture(t);*/
+	SDL_DestroyTexture(t);
 }
-void draw_string(int ind, std::string s, SDL_Color color, SDL_Point* p, int size, float ratio, int opt)
+void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p, int size, float ratio, int opt)
 {
+	if (s.length() == 0 || size == 0)
+	{
+		return;
+	}
+
 	SDL_Rect r;
 	r.x = p->x;
 	r.y = p->y;
 	r.w = (unsigned int)(get_chrs(s) * size * ratio);
 	r.h = size;
-	switch (opt % 3)
+
+	
 	{
-	case right_align:
-		r.x -= r.w;
-		break;
-	case center_align:
-		r.x -= r.w / 2;
-		break;
+		switch (opt % 3)
+		{
+		case right_align:
+			r.x -= r.w;
+			break;
+		case center_align:
+			r.x -= r.w / 2;
+			break;
+		}
+		switch (opt / 3)
+		{
+		case bottom_align / 3:
+			r.y -= r.h;
+			break;
+		case middle_align / 3:
+			r.y -= r.h / 2;
+			break;
+		}
 	}
-	switch (opt / 3)
-	{
-	case bottom_align / 3:
-		r.y -= r.h;
-		break;
-	case middle_align / 3:
-		r.y -= r.h / 2;
-		break;
-	}
-	draw_string_s(ind, s, color, &r);
+
+	draw_string_s(ind, s, Color[color], &r);
 }
-void draw_line(int ind, std::string s, int max_line, SDL_Color color, SDL_Point* p, int size, float ratio, int opt)
+void draw_line(std::string ind, std::string s, int max_line, std::string color, SDL_Point* p, int size, float ratio, int opt)
 {
 	int lines = 0;
 	const size_t chr_len = s.length();
@@ -167,15 +177,12 @@ void set_rect(SDL_Rect *r, T x, T y, T2 w, T2 h)
 	r->w = (unsigned int)w;
 	r->h = (unsigned int)h;
 }
-
 template<typename T>
 void set_point(SDL_Rect *r, T x, T y)
 {
 	r->x = (int)x;
 	r->y = (int)y;
 }
-
-
 template<typename T>
 void set_point(SDL_Point *p, T x, T y)
 {
@@ -192,23 +199,23 @@ void gui_remove(const unsigned int id)
 {
 	for (unsigned int a = 0; a < gui.size(); a++)
 	{
-		if (a != id && gui[a].parent == id)
+		if (a != id && gui.at(a).parent == id)
 		{
-			gui[a].removing = true;
+			gui.at(a).removing = true;
 		}
 	}
-	gui[id].remove();
+	gui.at(id).remove();
 	for (unsigned int a = id; a < gui.size(); a++)
 	{
 		for (int b = 0; b < gui.size(); b++)
 		{
-			if (gui[b].parent == gui[a].id)
+			if (gui.at(b).parent == gui.at(a).id)
 			{
-				gui[b].parent -= 1;
+				gui.at(b).parent -= 1;
 			}
 		}
-		gui[a].id -= 1;
-		gui_key[gui[a].var["name"]] -= 1;
+		gui.at(a).id -= 1;
+		gui_key[gui.at(a).var["name"]] -= 1;
 	}
 }
 
@@ -273,7 +280,7 @@ void incode_define(std::string s)
 		name = "";
 		for (int a = 0; a < scope.size(); ++a)
 		{
-			name += "." + scope[a];
+			name += "." + scope.at(a);
 		}
 
 		if (s[i] == '[')
@@ -332,46 +339,189 @@ void incode_define(std::string s)
 		}
 	}
 }
-void read_as_define(std::wstring ws)
-{
-	std::string s;
-	s.assign(ws.begin(), ws.end());
-	std::string s2;
-	auto J = s.begin();
-	bool ignore = false;
-	bool comment = false;
 
+void incode_prov(std::string s)
+{
+	std::string s1 = "";
+	std::string s2 = "";
+	bool str = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
-		if (ignore)
+		if (*I == '"')
 		{
-			ignore = false;
+			str = !str;
+			*I = '\a';
+			continue;
 		}
-		else
+		if (!str && (*I == '\n' || *I == '\t' || *I == '\v' || *I == '\b' || *I == '\r' || *I == '\f' || *I == '\a' || *I == ' '))
 		{
-			if (comment)
+			*I = '\a';
+			continue;
+		}
+	}
+	s.erase(std::remove(s.begin(), s.end(), '\a'), s.end());
+	for (unsigned int i = 0; i < s.size(); ++i)
+	{
+		if (s.at(i) == '=')
+		{
+			s2 = s.substr(0, i);
+			s1 = s.substr(i + 1);
+			int k = 0;
+			key["argc"] = "0";
+			key["func"] == "";
+			for (unsigned int j = 0; j < s1.size(); j++)
 			{
-				if (*I == '\n')
+				if (s1.at(j) == '&')
 				{
-					comment = false;
-					J = I + 1;
+					key["func"] = s1.substr(k, j - k);
+					k = j + 1;
+				}
+				if (s1.at(j) == ',' || j == s1.size() - 1)
+				{
+					if (j == s1.size() - 1)
+					{
+						key["argv[" + key["argc"] + "]"] = s1.substr(k);
+					}
+					else
+					{
+						key["argv[" + key["argc"] + "]"] = s1.substr(k, j - k);
+						k = j + 1;
+					}
+					key["argc"] = Str(Num(key["argc"]) + 1);
 				}
 			}
-			else if (*I == ';')
+			while (Num(s2) + 1 > prv.size())
 			{
-				incode_define(s2.assign(J, I));
-				ignore = true;
-				J = I + 1;
-				continue;
+				Province prov;
+				prv.push_back(prov);
 			}
-			else if (*I == '#')
+			LOG_O("Province Color Defined", s2);
+			if (key["func"] == "color")
 			{
-				comment = true;				
+				prv.at(Num(s2)).c = color(Num(key["argv[0]"]), Num(key["argv[1]"]), Num(key["argv[2]"]));
 			}
 		}
 	}
 }
+void incode_prv(unsigned int *sec, std::string s)
+{
+	std::string s1 = "";
+	std::string s2 = "";
+	bool str = false;
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (*I == '"')
+		{
+			str = !str;
+			*I = '\a';
+			continue;
+		}
+		if (!str && (*I == '\n' || *I == '\t' || *I == '\v' || *I == '\b' || *I == '\r' || *I == '\f' || *I == '\a' || *I == ' '))
+		{
+			*I = '\a';
+			continue;
+		}
+	}
+	s.erase(std::remove(s.begin(), s.end(), '\a'), s.end());
+	for (unsigned int i = 0; i < s.size(); ++i)
+	{
+		if (s.at(i) == '=')
+		{
+			s2 = s.substr(0, i);
+			s1 = s.substr(i + 1);
+			if (s2 == "select")
+			{
+				*sec = Num(s1);
+				continue;
+			}
+			if (s2 == "waste_land")
+			{
+				if (s1 == "false")
+				{
+					prv.at(*sec).waste_land = false;
+				}
+				else if (s1 == "true")
+				{
+					prv.at(*sec).waste_land = true;
+				}
+				continue;
+			}
+			prv.at(*sec).var[s2] = s1;
+		}
+	}
+}
+void incode_nat(std::string *sec, std::string s)
+{
+	std::string s1 = "";
+	std::string s2 = "";
+	bool str = false;
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (*I == '"')
+		{
+			str = !str;
+			*I = '\a';
+			continue;
+		}
+		if (!str && (*I == '\n' || *I == '\t' || *I == '\v' || *I == '\b' || *I == '\r' || *I == '\f' || *I == '\a' || *I == ' '))
+		{
+			*I = '\a';
+			continue;
+		}
+	}
+	s.erase(std::remove(s.begin(), s.end(), '\a'), s.end());
+	for (unsigned int i = 0; i < s.size(); ++i)
+	{
+		if (s.at(i) == '=')
+		{
+			s2 = s.substr(0, i);
+			s1 = s.substr(i + 1);
+			
+			
+			key["argc"] = "0";
+			key["func"] = "";
+			unsigned int k = 0;
+			for (unsigned int j = 0; j < s1.size(); j++)
+			{
+				if (s1.at(j) == '&')
+				{
+					key["func"] = s1.substr(k, j - k);
+					k = j + 1;
+				}
+				if (s1.at(j) == ',' || j == s1.size() - 1)
+				{
+					if (j == s1.size() - 1)
+					{
+						key["argv[" + key["argc"] + "]"] = s1.substr(k);
+					}
+					else
+					{
+						key["argv[" + key["argc"] + "]"] = s1.substr(k, j - k);
+						k = j + 1;
+					}
+					key["argc"] = Str(Num(key["argc"]) + 1);
+				}
+			}
+			if (key["func"] == "color")
+			{
+				s1 = Str(color(Num(key["argv[0]"]), Num(key["argv[1]"]), Num(key["argv[2]"])));
+			}
 
+			if (s2 == "name")
+			{
+				Nation natn;
+				nat[s1] = natn;
+				*sec = s1;
+				break;
+			}
+			if (s2 == "color")
+			{
+				nat[*sec].c = Num(s1);
+				break;
+			}
+		}
+	}
+}
 void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 {
 	if (s1 == "x")
@@ -401,10 +551,132 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 	}
 	wd_p->var[s1] = Var(s2);
 }
-void read_as_ui(std::wstring ws)
+
+void read_as_define(std::string s)
 {
-	std::string s;
-	s.assign(ws.begin(), ws.end());
+	std::cout << s;
+	std::string s2;
+	auto J = s.begin();
+	bool comment = false;
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (comment)
+		{
+			if (*I == '\n')
+			{
+				comment = false;
+				J = I + 1;
+			}
+		}
+		else if (*I == ';')
+		{
+			incode_define(s2.assign(J, I));
+			J = I + 1;
+			continue;
+		}
+		else if (*I == '#')
+		{
+			comment = true;
+		}
+	}
+}
+void read_as_prov(std::string s)
+{
+	std::string s2;
+	auto J = s.begin();
+	bool comment = false;
+
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (comment )
+		{
+			if (*I == '\n')
+			{
+				comment = false;
+				J = I + 1;
+			}
+			continue;
+		}
+		if (*I == ';')
+		{
+			incode_prov(s2.assign(J, I));
+			J = I + 1;
+			continue;
+		}
+		if (*I == 35)
+		{
+			comment = true;
+			continue;
+		}
+		
+	}
+}
+void read_as_prv(std::string s)
+{
+	std::string s2;
+	auto J = s.begin();
+	bool comment = false;
+	auto P = prv.end();
+	unsigned int sec = prv.size();
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (comment)
+		{
+			if (*I == '\n')
+			{
+				comment = false;
+				J = I + 1;
+			}
+			continue;
+		}
+		if (*I == ';')
+		{
+			incode_prv(&sec, s2.assign(J, I));
+			J = I + 1;
+			continue;
+		}
+		if (*I == 35)
+		{
+			comment = true;
+			continue;
+		}
+
+	}
+}
+void read_as_nat(std::string s)
+{
+	std::string s2;
+	auto J = s.begin();
+	bool comment = false;
+	auto P = prv.end();
+	std::string sec = "NAV";
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (comment)
+		{
+			if (*I == '\n')
+			{
+				comment = false;
+				J = I + 1;
+			}
+			continue;
+		}
+		if (*I == ';')
+		{
+			incode_nat(&sec, s2.assign(J, I));
+			J = I + 1;
+			continue;
+		}
+		if (*I == 35)
+		{
+			comment = true;
+			continue;
+		}
+
+	}
+}
+void read_as_ui(std::string s)
+{
 	std::string s2;
 	std::string s3;
 	std::vector<std::string> scope;
@@ -527,7 +799,7 @@ void read_as_ui(std::wstring ws)
 							
 						if (scope.rbegin() != scope.rend())
 						{
-							wd.parent = gui[gui_key[*scope.rbegin()]].id;
+							wd.parent = gui.at(gui_key[*scope.rbegin()]).id;
 						}
 
 						if (*s2.rbegin() != '/')
@@ -556,6 +828,7 @@ void read_as_ui(std::wstring ws)
 		quit = true;
 	}
 }
+
 void read_gfx(const std::string path, const std::string tag)
 {
 	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
@@ -565,7 +838,7 @@ void read_gfx(const std::string path, const std::string tag)
 		SDL_SetColorKey(gfx[name].s, SDL_TRUE, color(255,0,255));
 		if (gfx[name].s == NULL)
 		{
-			LOG_W("FILE TO SURFACE", path);
+			LOG_W("FAIL TO SURFACE", path);
 		}
 		else
 		{
@@ -594,12 +867,35 @@ void read_sfx(const std::string path, const std::string tag)
 		sfx[name] = Mix_LoadMUS(path.c_str());
 		if (sfx[name] == NULL)
 		{
-			LOG_W("FILE TO SOUND", path);
+			LOG_W("FAIL TO SOUND", path);
 			quit = true;
 		}
 		else
 		{
 			LOG_O("SUCCESS READ SOUND FILE", path);
+		}
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+void read_tfx(const std::string path, const std::string tag)
+{
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = tag + path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+
+		tfx[name].t = TTF_OpenFont(path.c_str(), 144);
+
+		if (tfx[name].t == NULL)
+		{
+			LOG_W("FAIL TO FONT", path);
+		}
+		else
+		{
+			LOG_O("SUCCESS READ FONT FILE(" + name + ")", path);
 		}
 	}
 	else
@@ -615,11 +911,10 @@ void read_ui(const std::string path,const std::string tag)
 	{
 		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
 
-		std::wifstream wif(path);
-		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t>));
-		std::wstringstream wss;
+		std::ifstream wif(path);
+		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
+		std::stringstream wss;
 		wss << wif.rdbuf();
-		read_as_ui(wss.str());
 		LOG_O("SUCCESS READ DEFINE FILE", path);
 	}
 	else
@@ -634,11 +929,12 @@ void read_define(const std::string path, const std::string tag)
 	{
 		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
 
-		std::wifstream wif(path);
-		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<wchar_t>));
-		std::wstringstream wss;
+		std::ifstream wif(path);
+		wif.imbue(std::locale(std::locale::empty()));
+		std::stringstream wss;
 		wss << wif.rdbuf();
 		read_as_define(wss.str());
+		
 		LOG_O("SUCCESS READ DEFINE FILE", path);
 	}
 	else
@@ -668,33 +964,45 @@ void read_folder(const std::string path, const std::string tag, const fn_str2 fn
 
 }
 
-void read_prov()
+void read_map()
 {
-	SDL_Surface* map = IMG_Load((executeDir + "\\" + "map\\prv.bmp").c_str());
-	
 	{
-		Province prov;
-		prov.c = color(237, 28, 36);
-		prv.push_back(prov);
-	}
-	{
-		Province prov;
-		prov.c = color(255, 127, 39);
-		prv.push_back(prov);
-	}
-	{
-		Province prov;
-		prov.c = color(255, 242, 0);
-		prv.push_back(prov);
+		std::string path = executeDir + "\\map\\prov.txt";
+		if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+		{
+			std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+
+			std::ifstream wif(path);
+			wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
+			std::stringstream wss;
+			wss << wif.rdbuf();
+			read_as_prov(wss.str());
+			LOG_O("SUCCESS READ MAP FILE", path);
+		}
+		else
+		{
+			LOG_W("FILE NAME ERROR", path);
+			quit = true;
+		}
 	}
 
+	SDL_Surface* map = IMG_Load((executeDir + "\\" + "map\\prv.bmp").c_str());
+	SDL_Surface* geo = IMG_Load((executeDir + "\\" + "map\\geo.bmp").c_str());
+	
 	map_w = map->w;
 	map_h = map->h;
 	unsigned char* pixels = (unsigned char*)map->pixels;
+	unsigned char* geo_pixels = (unsigned char*)geo->pixels;
 
-	for (unsigned int a = 0; a < map_w; a++)
+	for (auto I = prv.begin(); I != prv.end(); ++I)
 	{
-		for (unsigned int b = 0; b < map_h; b++)
+		I->x1 = map_w;
+		I->y1 = map_h;
+	}
+
+	for (unsigned int a = 0; a < map_w; ++a)
+	{
+		for (unsigned int b = 0; b < map_h; ++b)
 		{
 			for (auto I = prv.begin(); I != prv.end(); ++I)
 			{
@@ -721,24 +1029,27 @@ void read_prov()
 		}
 	}
 
-
-
 	for (auto I = prv.begin(); I != prv.end(); ++I)
 	{
 		if (I->x1 <= I->x2 &&  I->y1 <= I->y2)
 		{
+			I->enable = true;
 			SDL_Surface* prov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
+			SDL_Surface* geogrp = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
+			SDL_Surface* lineprov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
 			unsigned int w_t, h_t;
 
 			w_t = prov->w;
 			h_t = prov->h;
 			unsigned char* pixels_t = (unsigned char*)prov->pixels;
+			unsigned char* pixels_geo_t = (unsigned char*)geogrp->pixels;
+			unsigned char* pixels_line_t = (unsigned char*)lineprov->pixels;
 
 
 			int c, d;
-			for (unsigned int a = 0; a <= w_t; a++)
+			for (unsigned int a = 0; a <= w_t; ++a)
 			{
-				for (unsigned int b = 0; b <= h_t; b++)
+				for (unsigned int b = 0; b <= h_t; ++b)
 				{
 					c = a + I->x1;
 					d = b + I->y1;
@@ -747,35 +1058,72 @@ void read_prov()
 						pixels_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
 						pixels_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
 						pixels_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+						if ((a + b) % 6 < 2)
+						{
+							pixels_line_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
+							pixels_line_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
+							pixels_line_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+						}
+
+						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 0] = geo_pixels[3 * (d * map_w + c) + 2];
+						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 1] = geo_pixels[3 * (d * map_w + c) + 1];
+						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 2] = geo_pixels[3 * (d * map_w + c)];
 					}
 				}
 			}
 
-			for (unsigned int a = I->x1; a <= I->x2; a++)
-			{
-				break;
-
-				for (unsigned int b = I->y1; b <= I->y2; b++)
-				{
-					if (color(pixels[4 * (b * map_w + a) + 2], pixels[4 * (b * map_w + a) + 1], pixels[4 * (b * map_w + a)]) == I->c)
-					{
-						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 0] = 255;
-						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 1] = 255;
-						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 2] = 255;
-					}
-					else
-					{
-						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 0] = 0;
-						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 1] = 0;
-						pixels_t[((a - I->x1) + (w_t) * (b - I->y1)) * 4 + 2] = 0;
-					}
-				}
-			}
 			SDL_SetColorKey(prov, SDL_TRUE, 0);
+			SDL_SetColorKey(geogrp, SDL_TRUE, 0);
+			SDL_SetColorKey(lineprov, SDL_TRUE, 0);
 			I->t = SDL_CreateTextureFromSurface(REND, prov);
+			I->gt = SDL_CreateTextureFromSurface(REND, geogrp);
+			I->lt = SDL_CreateTextureFromSurface(REND, lineprov);
 		}
 	}
 }
+
+void read_prv(const std::string path, const std::string tag) {
+
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		
+		std::ifstream wif(path);
+		wif.imbue(std::locale(std::locale::empty()));
+		std::stringstream wss;
+		wss << wif.rdbuf();
+		read_as_prv(wss.str());
+
+
+		LOG_O("SUCCESS READ PROVINCE FILE", path);
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+
+void read_nat(const std::string path, const std::string tag) {
+
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	{
+		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+
+		std::ifstream wif(path);
+		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
+		std::stringstream wss;
+		wss << wif.rdbuf();
+		read_as_nat(wss.str());
+		LOG_O("SUCCESS READ NATION FILE", path);
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+
 
 /*
 void gui_remove(int id)

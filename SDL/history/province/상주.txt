@@ -1,0 +1,4 @@
+select = 10;#상주
+name = "상주";
+CON = REB;
+OWN = Silla;

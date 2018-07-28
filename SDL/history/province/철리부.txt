@@ -1,0 +1,4 @@
+select = 29;#철리부
+name = "철리부";
+CON = Balhae;
+OWN = Balhae;

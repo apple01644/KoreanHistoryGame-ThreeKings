@@ -1,4 +1,4 @@
-한국어 = 좋아요;
+hab = 가각나낙;
 
 
 array=[13,51];
@@ -8,6 +8,6 @@ object{
 	nice{
 		good = ok
 	}
-	what = 3,
+	what = 3, 
 	let = 8
 };
