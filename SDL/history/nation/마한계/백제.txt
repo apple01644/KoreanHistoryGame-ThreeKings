@@ -1,0 +1,3 @@
+name = "Backjae";
+title = "백제";
+color = color & 104, 232, 225;

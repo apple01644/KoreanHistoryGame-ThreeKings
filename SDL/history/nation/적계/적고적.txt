@@ -1,0 +1,3 @@
+name = "적고적";
+title = "적고적";
+color = color & 211, 46, 31;

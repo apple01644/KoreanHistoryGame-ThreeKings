@@ -1,0 +1,3 @@
+name = "Tang";
+title = "당";
+color = color & 91, 82, 11;

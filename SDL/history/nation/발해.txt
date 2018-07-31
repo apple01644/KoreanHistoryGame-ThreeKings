@@ -1,2 +1,0 @@
-name = "Balhae";
-color = color & 169, 133, 237;

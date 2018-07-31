@@ -73,26 +73,23 @@ int get_chrs(std::string s)
 	}
 	return chrs;
 }
-void draw_string_s(std::string i, std::string s, SDL_Color color, SDL_Rect* r) {
-	
-	SDL_Surface* surf = TTF_RenderUTF8_Solid(tfx[i].t, s.c_str(), color);
-	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, surf);
-	SDL_FreeSurface(surf);
-	SDL_RenderCopy(REND, t, NULL, r);
-	SDL_DestroyTexture(t);
-}
-void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p, int size, float ratio, int opt)
+
+void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p, unsigned int size, unsigned int opt)
 {
 	if (s.length() == 0 || size == 0)
 	{
 		return;
 	}
+	
+	SDL_Surface* surf = TTF_RenderUTF8_Solid(tfx[ind].t, s.c_str(), Color[color]);
+	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, surf);
+
 
 	SDL_Rect r;
 	r.x = p->x;
 	r.y = p->y;
-	r.w = (unsigned int)(get_chrs(s) * size * ratio);
-	r.h = size;
+	r.w = surf->w * size / 72;
+	r.h = surf->h * size / 72;
 
 	
 	{
@@ -116,14 +113,17 @@ void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p
 		}
 	}
 
-	draw_string_s(ind, s, Color[color], &r);
+	SDL_FreeSurface(surf);
+	SDL_RenderCopy(REND, t, NULL, &r);
+	SDL_DestroyTexture(t);
+
 }
-void draw_line(std::string ind, std::string s, int max_line, std::string color, SDL_Point* p, int size, float ratio, int opt)
+void draw_line(std::string ind, std::string s, unsigned int max_line, std::string color, SDL_Point* p, unsigned int size, unsigned int opt)
 {
-	int lines = 0;
+	unsigned int lines = 0;
 	const size_t chr_len = s.length();
 	const char* chr = s.c_str();
-	int i, chrs = 0, bias = 0, st = 0;
+	unsigned int i, chrs = 0, bias = 0, st = 0;
 	for (i = 0; i < chr_len;)
 	{
 		bias = 1;
@@ -151,7 +151,7 @@ void draw_line(std::string ind, std::string s, int max_line, std::string color, 
 		{
 			lines++;
 
-			draw_string(ind, s.substr(st, i - st), color, p, size, ratio, opt);
+			draw_string(ind, s.substr(st, i - st), color, p, size, opt);
 			p->y += size;
 			st = i;
 			chrs = 0;
@@ -165,7 +165,7 @@ void draw_line(std::string ind, std::string s, int max_line, std::string color, 
 	if (chrs > 0)
 	{
 		lines++;
-		draw_string(ind, s.substr(st, i - st), color, p, size, ratio, opt);
+		draw_string(ind, s.substr(st, i - st), color, p, size, opt);
 	}
 }
 
@@ -519,6 +519,7 @@ void incode_nat(std::string *sec, std::string s)
 				nat[*sec].c = Num(s1);
 				break;
 			}
+			nat[*sec].var[s2] = s1;
 		}
 	}
 }
@@ -610,14 +611,14 @@ void read_as_prov(std::string s)
 		}
 		
 	}
-}
+}	
 void read_as_prv(std::string s)
 {
 	std::string s2;
 	auto J = s.begin();
 	bool comment = false;
 	auto P = prv.end();
-	unsigned int sec = prv.size();
+	unsigned int sec = (unsigned int)prv.size();
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
 		if (comment)
@@ -944,13 +945,13 @@ void read_define(const std::string path, const std::string tag)
 	}
 }
 
-void read_folder(const std::string path, const std::string tag, const fn_str2 fn)
+ void read_folder(const std::string path, const std::string tag, const fn_str2 fn)
 {
 	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
 		if (std::experimental::filesystem::is_directory(p))
 		{
-			read_folder(p.path().generic_u8string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
+			read_folder(p.path().generic_string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
 			continue;
 		}
 
@@ -999,11 +1000,12 @@ void read_map()
 		I->x1 = map_w;
 		I->y1 = map_h;
 	}
-
+#pragma loop(hint_parallel(0))  
 	for (unsigned int a = 0; a < map_w; ++a)
 	{
 		for (unsigned int b = 0; b < map_h; ++b)
 		{
+			map_reg[Str(a) + ":" + Str(b)] = 0;
 			for (auto I = prv.begin(); I != prv.end(); ++I)
 			{
 				if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
@@ -1029,11 +1031,29 @@ void read_map()
 		}
 	}
 
-	for (auto I = prv.begin(); I != prv.end(); ++I)
+	unsigned int i = 0;
+	for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 	{
 		if (I->x1 <= I->x2 &&  I->y1 <= I->y2)
 		{
 			I->enable = true;
+			for (unsigned int a = I->x1; a <= I->x2 + 1; ++a)
+			{
+				for (unsigned int b = I->y1; b <= I->y2 + 1; ++b)
+				{
+					if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
+					{
+						map_reg[Str(a) + ":" + Str(b)] = i;
+					}
+				}
+			}
+		}
+	}
+	i = 0;
+	for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
+	{
+		if (I->x1 <= I->x2 &&  I->y1 <= I->y2 && I->enable)
+		{
 			SDL_Surface* prov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
 			SDL_Surface* geogrp = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
 			SDL_Surface* lineprov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
@@ -1047,22 +1067,42 @@ void read_map()
 
 
 			int c, d;
+#pragma loop(hint_parallel(0))
 			for (unsigned int a = 0; a <= w_t; ++a)
 			{
 				for (unsigned int b = 0; b <= h_t; ++b)
 				{
 					c = a + I->x1;
 					d = b + I->y1;
-					if (color(pixels[3 * (d * map_w + c) + 2], pixels[3 * (d * map_w + c) + 1], pixels[3 * (d * map_w + c)]) == I->c)
+					if (map_reg[Str(c) + ":" + Str(d)] == i)
 					{
-						pixels_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
-						pixels_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
-						pixels_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
-						if ((a + b) % 6 < 2)
+						I->px = (float)((1.0 * I->px * I->pnum + a) / (I->pnum + 1));
+						I->py = (float)((1.0 * I->py * I->pnum + b) / (I->pnum + 1));
+						I->pnum++;
+					}
+				}
+			}
+#pragma loop(hint_parallel(0))
+			for (unsigned int a = 0; a <= w_t; ++a)
+			{
+				for (unsigned int b = 0; b <= h_t; ++b)
+				{
+					c = a + I->x1;
+					d = b + I->y1;
+					if (map_reg[Str(c) + ":" + Str(d)] == i)
+					{						
+						//if (map_reg[Str(c) + ":" + Str(d) + "b"] == 0)
+						//if (sqrt(pow(I->px - a, 2) + pow(I->py - b, 2)) - (w_t + h_t) / 2 + map_reg[Str(c) + ":" + Str(d) + "r"] * 6 + 20 > 0 || map_reg[Str(c) + ":" + Str(d) + "r"] == 0)
 						{
-							pixels_line_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
-							pixels_line_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
-							pixels_line_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+							pixels_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
+							pixels_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
+							pixels_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+							if ((a + b + I->x1 + I->y1) % 6 < 2)
+							{
+								pixels_line_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
+								pixels_line_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
+								pixels_line_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+							}
 						}
 
 						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 0] = geo_pixels[3 * (d * map_w + c) + 2];
@@ -1111,7 +1151,7 @@ void read_nat(const std::string path, const std::string tag) {
 		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
 
 		std::ifstream wif(path);
-		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
+		wif.imbue(std::locale(std::locale::empty()));
 		std::stringstream wss;
 		wss << wif.rdbuf();
 		read_as_nat(wss.str());

@@ -5,6 +5,9 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 
+#include <SDL_opengl.h>
+#include <GL\GLU.h>
+
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -99,6 +102,7 @@ enum {
 SDL_Window* WNDW = NULL;
 SDL_Surface* SURF;
 SDL_Renderer* REND;
+SDL_GLContext GLCN;
 
 ///////////////////////////
 //         LIST          //
@@ -120,6 +124,7 @@ std::unordered_map<std::string, Mix_Music*> sfx;
 std::unordered_map<std::string, unsigned int> gui_key;
 std::unordered_map<std::string, std::string> script;
 std::unordered_map<std::string, std::string> key;
+std::unordered_map<std::string, unsigned int> map_reg;
 
 enum {
 	wd_none,
@@ -185,6 +190,10 @@ struct Province {
 	unsigned int y2 = 0;
 	unsigned int c = 0;
 
+	float px = 0;
+	float py = 0;
+	unsigned int pnum = 0;
+
 	bool enable = false;
 	bool waste_land = false;
 
@@ -202,13 +211,21 @@ std::vector<Province> prv;
 
 struct Nation {
 	unsigned int c = 0;
+	float px = 0;
+	float py = 0;
+	unsigned int pnum = 0;
 	std::unordered_map<std::string, std::string> var;
 };
 
 std::unordered_map<std::string, Nation> nat;
+
+
 
 ///////////////////////////
 //       FUCNTIONAL      //
 ///////////////////////////
 
 typedef std::function<void(std::string, std::string)> fn_str2;
+
+std::ofstream logging("log.log");
+

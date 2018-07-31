@@ -1,0 +1,3 @@
+name = "Tamra";
+title = "탐라";
+color = color & 171, 204, 166;

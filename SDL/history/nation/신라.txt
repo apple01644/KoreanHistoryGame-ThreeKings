@@ -1,2 +1,0 @@
-name = "Silla";
-color = color & 248, 226, 035;

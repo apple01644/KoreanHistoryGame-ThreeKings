@@ -1,0 +1,3 @@
+name = "DongBuYeo";
+title = "동부여";
+color = color & 144, 209, 154;

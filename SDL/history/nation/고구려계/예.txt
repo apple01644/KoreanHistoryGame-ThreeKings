@@ -1,0 +1,3 @@
+name = "Ye";
+title = "예";
+color = color & 92, 62, 102;

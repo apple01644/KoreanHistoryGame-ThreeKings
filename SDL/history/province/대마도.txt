@@ -1,0 +1,4 @@
+select = 33;#대마도
+name = "대마도";
+CON = Whe;
+OWN = Whe;

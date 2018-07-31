@@ -1,0 +1,3 @@
+name = "Gaya";
+title = 가야";
+color = color & 70, 85, 107;

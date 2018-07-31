@@ -1,0 +1,3 @@
+name = "Sipjae";
+title = "십제";
+color = color & 128, 159, 178;

@@ -1,0 +1,3 @@
+name = "장안";
+title = "장안";
+color = color & 173, 169, 93;

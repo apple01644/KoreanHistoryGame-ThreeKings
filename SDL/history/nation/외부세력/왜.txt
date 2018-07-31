@@ -1,0 +1,3 @@
+name = "Whe";
+title = "왜";
+color = color & 173, 98, 98;

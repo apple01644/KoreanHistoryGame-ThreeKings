@@ -1,0 +1,3 @@
+name = "Yugu";
+title = "유구";
+color = color & 137, 136, 153;

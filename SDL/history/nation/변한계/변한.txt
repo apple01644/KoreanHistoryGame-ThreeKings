@@ -1,0 +1,3 @@
+name = "Byeonhan";
+title = "변한";
+color = color & 75, 150, 95;

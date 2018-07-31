@@ -1,0 +1,3 @@
+name = "조선";
+title = "조선";
+color = color & 7, 36, 109;

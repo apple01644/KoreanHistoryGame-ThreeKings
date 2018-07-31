@@ -1,0 +1,3 @@
+name = "Nackrang";
+title = "낙랑";
+color = color & 86, 55, 61;
