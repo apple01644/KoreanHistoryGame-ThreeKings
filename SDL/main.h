@@ -17,8 +17,10 @@
 #include <limits>
 #include <locale>
 #include <thread>
+#include <mutex>
 #include <algorithm>
 #include <iterator>
+#include <atomic>
 
 #include <vector>
 #include <list>
@@ -36,7 +38,6 @@
 
 #include <direct.h>
 
-
 #define DEBUG
 #define Str std::to_string
 #define Num std::stoi
@@ -50,26 +51,30 @@
 extern const unsigned  int scr_w = 1920;
 extern const unsigned  int scr_h = 1080;
 
-float map_x = 0;
-float map_y = 0;
-float map_p = 1;
+std::atomic<float> map_x = 0;
+std::atomic<float> map_y = 0;
+std::atomic<float> map_p = 1;
 
 unsigned int map_w = 1;
 unsigned int map_h = 1;
 
 float scr_r = scr_h / 1080.0;
-extern const char ESCAPE = 0x1b;
-extern bool quit = false;
+
+extern const WCHAR ESCAPE = 0x1b;
+extern std::atomic<bool> quit = false;
 std::string executeDir;
+
+Uint64 NOW = SDL_GetPerformanceCounter();
+Uint64 LAST = 0;
 
 
 ///////////////////////////
 //     MAJOR CIRCLE      //
 ///////////////////////////
 void start();
-void step();
+void step(SDL_Event*);
 void draw();
-void ui(SDL_Event*);
+void ui();
 
 bool init();
 bool loadMedia();

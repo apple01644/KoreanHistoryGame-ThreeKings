@@ -26,13 +26,14 @@ int main(int argc, char* args[])
 			LOG_O("GAME ON");
 			SDL_Event e;
 			SDL_StartTextInput();
-			std::thread trd_step(step);
+
+			std::thread trd_ui(ui);
 
 			while (!quit)
 			{
-				ui(&e);
+				step(&e);
 			}
-			trd_step.join();
+			trd_ui.join();
 			SDL_StopTextInput();
 			LOG_O("GAME OFF");
 		}
@@ -93,9 +94,6 @@ int day_over()
 
 void start()
 {
-
-
-
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
 	//glEnable(GL_MULTISAMPLE);
@@ -139,16 +137,10 @@ void start()
 
 		Color["white"] = clr;
 	}
-	script["SEC"] = "CON";
 	script["CON"] = "REB";
+	gui.at(gui_key["nation_flag"]).var["source"] = "flag\\REB";
 
-	//Mix_PlayMusic(sfx["sample"], -1);
-}
-void step()
-{
-}
-void draw(SDL_Rect* r, SDL_Point* p)
-{
+
 	if (map_p * map_w < scr_w)
 	{
 		map_p = 1.0f * scr_w / map_w;
@@ -157,7 +149,6 @@ void draw(SDL_Rect* r, SDL_Point* p)
 	{
 		map_p = 1.0f * scr_h / map_h;
 	}
-
 	if (scr_w / 2.0 * (1 / map_p - 1) > map_x)
 	{
 		map_x = (float)(scr_w / 2.0 * (1 / map_p - 1));
@@ -174,97 +165,284 @@ void draw(SDL_Rect* r, SDL_Point* p)
 	{
 		map_y = (float)(map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p));
 	}
+	//Mix_PlayMusic(sfx["sample"], -1);
+}
+void step(SDL_Event *e)
+{
+	LAST = NOW;
+	NOW = SDL_GetPerformanceCounter();
 
-	for (auto I = nat.begin(); I != nat.end(); ++I)
+	double TimeDelta = (double)((NOW - LAST) * 1000 / SDL_GetPerformanceFrequency());
+
+
+	int x, y;
+	SDL_GetMouseState(&x, &y);
+	while (SDL_PollEvent(e) != 0)
 	{
-		I->second.pnum = 0;
-		I->second.px = 0;
-		I->second.py = 0;
+		switch (e->type)
+		{
+		case SDL_TEXTINPUT: {
+			script["buf"] += e->text.text;
+			break;
+		}
+		case SDL_QUIT: {
+			quit = true;
+			return;
+		}
+		case SDL_MOUSEBUTTONDOWN: {
+			int sec = map_reg[Str((unsigned int)((x + (scr_w / 2.0 + map_x) * map_p - scr_w / 2.0) / map_p)) + ":" + Str((unsigned int)((y + (scr_h / 2.0 + map_y) * map_p - scr_h / 2.0) / map_p))];
+			if (prv[sec].enable)
+			{
+				if (e->button.button == SDL_BUTTON_LEFT)
+				{
+					script["SEC"] = "CON";
+					if (prv.at(sec).var["CON"] == script["CON"])
+					{
+						if (script["CON"] == "REB")
+						{
+							auto I = nat.cbegin();
+							script["TEMP"] = I->first;
+							int i = 0;
+							do
+							{
+								I = nat.cbegin();
+								for (i = rand() % nat.size(); i > 0; --i)
+								{
+									++I;
+								}
+								++i;
+								script["TEMP"] = I->first;
+							} while ((I->second.pnum != 0 || I->first == "REB" || I->first == "NAV") && i < 300);
+							if (i < 300)
+							{
+								prv.at(sec).var["OWN"] = script["TEMP"];
+								prv.at(sec).var["CON"] = script["TEMP"];
+							}
+						}
+						else
+						{
+							prv.at(sec).var["OWN"] = script["CON"];
+						}
+					}
+					else
+					{
+						prv.at(sec).var["CON"] = script["CON"];
+					}
+				}
+				if (e->button.button == SDL_BUTTON_MIDDLE)
+				{
+					script["CON"] = prv.at(sec).var["OWN"];
+					gui.at(gui_key["nation_flag"]).var["source"] = "flag\\" + script["CON"];
+				}
+			}
+			// ( - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0
+			// (I->x1 - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0
+			//x 
+			//y
+			//
+			//
+			break;
+		}
+		case SDL_KEYDOWN: {
+			switch (e->key.keysym.sym)
+			{
+			case SDLK_ESCAPE: {
+				quit = true;
+				break;
+			}
+			case SDLK_BACKSPACE: {
+				while (script["buf"].size() > 0)
+				{
+					if (*script["buf"].crbegin() >= -64)
+					{
+						script["buf"].pop_back();
+						break;
+					}
+					script["buf"].pop_back();
+				}
+				break;
+			}
+			case SDLK_1: {
+				script["CON"] = "REB";
+				gui.at(gui_key["nation_flag"]).var["source"] = "flag\\REB";
+				break;
+			}
+			case SDLK_2: {
+				script["CON"] = "NAV";
+				gui.at(gui_key["nation_flag"]).var["source"] = "flag\\NAV";
+				break;
+			}
+			}
+			break;
+		}
+		case SDL_MOUSEWHEEL:
+		{
+			map_p = map_p * (float)pow(0.9, -e->wheel.y);
+			if (map_p * map_w < scr_w)
+			{
+				map_p = 1.0f * scr_w / map_w;
+			}
+			if (map_p * map_h < scr_h)
+			{
+				map_p = 1.0f * scr_h / map_h;
+			}
+			break;
+		}
+		}
+
 	}
 
-
-	SDL_SetRenderDrawColor(REND, 0x09, 0x23, 0x66, 0xFF);
-	SDL_RenderClear(REND);
-
-	int i = 0;
-
-	for (unsigned int dep = 0; dep < 2; ++dep)
+		
 	{
-		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
+		float DRAG_SENSITIVE = 0.00015;// / sqrt(map_p);
+		if (x <= 20)
 		{
-			set_rect(r, (I->x1 - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0, (I->y1 - scr_h / 2.0 - map_y) * map_p + scr_h / 2.0, (I->x2 - I->x1 + 1.0) * map_p, (I->y2 - I->y1 + 1.0) * map_p);
+			map_x = map_x - (float)(DRAG_SENSITIVE / map_p);
+			map_y = map_y + (float)(DRAG_SENSITIVE * (y * 2.0 / scr_h - 1) / map_p);
+		}
+		else if (y <= 20)
+		{
+			map_x = map_x + (float)(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
+			map_y = map_y - (float)(DRAG_SENSITIVE / map_p);
+		}
+		else if (x >= scr_w - 20)
+		{
+			map_x = map_x + (float)(DRAG_SENSITIVE / map_p);
+			map_y = map_y + (float)(DRAG_SENSITIVE  * (y * 2.0 / scr_h - 1) / map_p);
+		}
+		else if (y >= scr_h - 20)
+		{
+			map_x = map_x + (float)(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
+			map_y = map_y + (float)(DRAG_SENSITIVE / map_p);
+		}
 
-			if (I->enable && (r->x + r->w > 0 || r->y + r->h > 0 || r->x < scr_w || r->y < scr_h))
+		if (scr_w / 2.0 * (1 / map_p - 1) > map_x)
+		{
+			map_x = (float)(scr_w / 2.0 * (1 / map_p - 1));
+		}
+		if (scr_h / 2.0 * (1 / map_p - 1) > map_y)
+		{
+			map_y = (float)(scr_h / 2.0 * (1 / map_p - 1));
+		}
+		if (map_w + 1.0 - scr_w / 2.0 *(1 + 1 / map_p) < map_x)
+		{
+			map_x = (float)(map_w + 1.0 - scr_w / 2.0 *(1 + 1 / map_p));
+		}
+		if (map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p) < map_y)
+		{
+			map_y = (float)(map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p));
+		}
+
+	}
+
+	//GUI EVENT
+	for (auto I = gui.begin(); I != gui.end(); ++I)
+	{
+		if (I->enable)
+		{
+			if (I->rx <= x &&
+				I->ry <= y &&
+				I->rx + (int)I->w >= x &&
+				I->ry + (int)I->h >= y)
 			{
-				if (dep == 0)
-				{
-					SDL_RenderCopy(REND, I->gt, NULL, r);
-				}
-				if (!I->waste_land && I->var["OWN"] != "NAV")
+
+			}
+		}
+	}
+}
+void draw(SDL_Rect* r, SDL_Point* p)
+{
+		for (auto I = nat.begin(); I != nat.end(); ++I)
+		{
+			I->second.pnum = 0;
+			I->second.px = 0;
+			I->second.py = 0;
+		}
+
+
+		SDL_SetRenderDrawColor(REND, 0x09, 0x23, 0x66, 0xFF);
+		SDL_RenderClear(REND);
+
+		int i = 0;
+		float f = 0;
+
+		float _map_x = map_x;
+		float _map_y = map_y;
+		float _map_p = map_p;
+
+		for (unsigned int dep = 0; dep < 2; ++dep)
+		{
+			for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
+			{
+				set_rect(r, (I->x1 - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0, (I->y1 - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0, (I->x2 - I->x1 + 1.0) * _map_p, (I->y2 - I->y1 + 1.0) * _map_p);
+
+				if (I->enable && (r->x + r->w > 0 || r->y + r->h > 0 || r->x < scr_w || r->y < scr_h))
 				{
 					if (dep == 0)
 					{
-						SDL_SetTextureColorMod(I->t, (Uint8)(nat.at(I->var["OWN"]).c / 65536), (Uint8)((nat.at(I->var["OWN"]).c / 256) % 256), (Uint8)(nat.at(I->var["OWN"]).c % 256));
-						SDL_RenderCopy(REND, I->t, NULL, r);
-						if (I->var["OWN"] != I->var["CON"])
-						{
-							SDL_SetTextureColorMod(I->lt, (Uint8)(nat.at(I->var["CON"]).c / 65536), (Uint8)((nat.at(I->var["CON"]).c / 256) % 256), (Uint8)(nat.at(I->var["CON"]).c % 256));
-							SDL_RenderCopy(REND, I->lt, NULL, r);
-						}
+						SDL_RenderCopy(REND, I->gt, NULL, r);
 					}
+					if (dep == 0)
+					{
+						if (!I->waste_land && I->var["OWN"] != "NAV")
+						{
+							SDL_SetTextureColorMod(I->t, (Uint8)(nat.at(I->var["OWN"]).c / 65536), (Uint8)((nat.at(I->var["OWN"]).c / 256) % 256), (Uint8)(nat.at(I->var["OWN"]).c % 256));
+							SDL_RenderCopy(REND, I->t, NULL, r);
+							if (I->var["OWN"] != I->var["CON"])
+							{
+								SDL_SetTextureColorMod(I->lt, (Uint8)(nat.at(I->var["CON"]).c / 65536), (Uint8)((nat.at(I->var["CON"]).c / 256) % 256), (Uint8)(nat.at(I->var["CON"]).c % 256));
+								SDL_RenderCopy(REND, I->lt, NULL, r);
+							}
+						}
 
+					}
 					if (dep == 1)
 					{
-						p->x = (int)(r->x + I->px * map_p);
-						p->y = (int)(r->y + I->py * map_p);
+						p->x = (int)(r->x + I->px * _map_p);
+						p->y = (int)(r->y + I->py * _map_p);
 						auto J = nat.at(I->var["OWN"]);
 						nat.at(I->var["OWN"]).px = (float)((1.0 * J.px * J.pnum + p->x) / (J.pnum + 1));
 						nat.at(I->var["OWN"]).py = (float)((1.0 * J.py * J.pnum + p->y) / (J.pnum + 1));
 						nat.at(I->var["OWN"]).pnum++;
-
-			/*			r->x = p->x - 5;
-						r->y = p->y - 5;
-						r->w = 10;
-						r->h = 10;
-						SDL_SetRenderDrawColor(REND, 255, 0, 0, 255);
-						SDL_RenderFillRect(REND,r);*/
-
-						//if (map_p > 2)
-						//..{
-						//	TTF_SetFontOutline(tfx["batang"].t, 2);
-						//	draw_string("batang", I->var["name"], "white", p, (unsigned int)(8.0 * map_p), middle_align + center_align);
-//
-						//	TTF_SetFontOutline(tfx["batang"].t, 0);
-						//}
-						//draw_string("batang", I->var["name"], "black", p, (unsigned int)(8.0 * map_p), middle_align + center_align);
+						f = (0.3f / get_chrs(I->var["name"]) * _map_p * sqrtf((float)I->pnum));
+						if (_map_p >= 4.6)
+						{
+							TTF_SetFontOutline(tfx["batang"].t, 2);
+							draw_string("batang", I->var["name"], "white", p, (unsigned int)f, middle_align + center_align);
+							TTF_SetFontOutline(tfx["batang"].t, 0);
+							draw_string("batang", I->var["name"], "black", p, (unsigned int)f, middle_align + center_align);
+						}
 					}
 				}
 			}
 		}
-	}
 
-	for (auto I = nat.begin(); I != nat.end(); ++I)
-	{
-
-		if (I->second.pnum > 0 && I->first != "REB" && I->first != "NAV")
+		if (_map_p < 4.6)
 		{
-			set_point(p, I->second.px, I->second.py);
-			//r->x = p->x - 5;
-			//r->y = p->y - 5;
-			//r->w = 10;
-			//r->h = 10;
-			//SDL_SetRenderDrawColor(REND, 0, 0, 255, 255);
-			//SDL_RenderFillRect(REND, r);
-			if (map_p > 1.7)
+			for (auto I = nat.begin(); I != nat.end(); ++I)
 			{
-				TTF_SetFontOutline(tfx["batang"].t, 2);
-				draw_string("batang", I->second.var["title"], "white", p, (unsigned int)(10.0f * map_p * sqrtf((float)I->second.pnum)), middle_align + center_align);
-				TTF_SetFontOutline(tfx["batang"].t, 0);
-			}
 
-			draw_string("batang", I->second.var["title"], "black", p, (unsigned int)(10.0f * map_p * sqrtf((float)I->second.pnum)), middle_align + center_align);
+				if (I->second.pnum > 0 && I->first != "REB" && I->first != "NAV")
+				{
+					set_point(p, I->second.px, I->second.py);
+					//r->x = p->x - 5;
+					//r->y = p->y - 5;
+					//r->w = 10;
+					//r->h = 10;
+					//SDL_SetRenderDrawColor(REND, 0, 0, 255, 255);
+					//SDL_RenderFillRect(REND, r);
+					f = (6.0f / get_chrs(I->second.var["title"]) * _map_p * sqrtf((float)I->second.pnum));
+					if (_map_p > 1.7)
+					{
+						TTF_SetFontOutline(tfx["batang"].t, 2);
+						draw_string("batang", I->second.var["title"], "white", p, (unsigned int)f, middle_align + center_align);
+						TTF_SetFontOutline(tfx["batang"].t, 0);
+					}
+
+					draw_string("batang", I->second.var["title"], "black", p, (unsigned int)f, middle_align + center_align);
+				}
+			}
 		}
-	}
 }
 
 void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned char type)
@@ -333,222 +511,68 @@ void child_ui(unsigned int i, std::vector<Widget>::iterator I, SDL_Rect r)
 		}
 	}
 }
-void ui(SDL_Event *e)
+void ui()
 {
 	SDL_Rect r;
 	SDL_Point p;
-	int x, y;
 	r.x = 0;
 	p.y = 0;
-	//draw(&r, &p);
-
-	SDL_GetMouseState(&x, &y);
-
-	while (SDL_PollEvent(e) != 0)
+	while (!quit)
 	{
-		switch (e->type)
+		draw(&r, &p);
+
+		//GUI REMOVE
+		for (bool go = true; go;)
 		{
-		case SDL_TEXTINPUT: {
-			script["buf"] += e->text.text;
-			break;
-		}
-		case SDL_QUIT: {
-			quit = true;
-			return;
-		}
-		case SDL_MOUSEBUTTONDOWN: {
-			int sec = map_reg[Str((unsigned int)((x + (scr_w / 2.0 + map_x) * map_p - scr_w / 2.0) / map_p)) + ":" + Str((unsigned int)((y + (scr_h / 2.0 + map_y) * map_p - scr_h / 2.0) / map_p))];
-			if (prv[sec].enable)
+			go = false;
+			for (auto i = 0; i < gui.size(); i++)
 			{
-				if (e->button.button == SDL_BUTTON_LEFT)
+				auto I = (gui.begin() + i);
+				if (I->removing)
 				{
-					script["SEC"] = "CON";
-					if (prv.at(sec).var["CON"] == script["CON"])
-					{
-						if (script["CON"] == "REB")
-						{
-							auto I = nat.cbegin();
-							script["TEMP"] = I->first;
-							int i = 0;
-							do
-							{
-								I = nat.cbegin();
-								for (i = rand() % nat.size(); i > 0; --i)
-								{
-									++I;
-								}
-								++i;
-								script["TEMP"] = I->first;
-							} while ((I->second.pnum != 0 || I->first == "REB" || I->first == "NAV") && i < 300);
-							if (i < 300)
-							{
-								prv.at(sec).var["OWN"] = script["TEMP"];
-								prv.at(sec).var["CON"] = script["TEMP"];
-							}
-						}
-						else
-						{
-							prv.at(sec).var["OWN"] = script["CON"];
-						}
-					}
-					else
-					{
-						prv.at(sec).var["CON"] = script["CON"];
-					}
+					gui_remove(i);
+					go = true;
 				}
-				if (e->button.button == SDL_BUTTON_MIDDLE)
+
+			}
+		}
+
+
+
+		//GUI DRAWING
+		{
+			auto I = gui.begin();
+			for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
+			{
+				if (I->id == I->parent && I->enable)
 				{
-					script["CON"] = prv.at(sec).var["OWN"];
+					I->rx = I->x;
+					I->ry = I->y;
+					set_rect(&r, I->rx, I->ry, I->w, I->h);
+					draw_item(I, r, I->type);
+					child_ui(i, I, r);
 				}
+
 			}
-			// ( - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0
-			// (I->x1 - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0
-			//x 
-			//y
-			//
-			//
-			break;
-		}
-		case SDL_KEYDOWN: {
-			switch (e->key.keysym.sym)
-			{
-			case SDLK_ESCAPE: {
-				quit = true;
-				break;
-			}
-			case SDLK_BACKSPACE: {
-				while (script["buf"].size() > 0)
-				{
-					if (*script["buf"].crbegin() >= -64)
-					{
-						script["buf"].pop_back();
-						break;
-					}
-					script["buf"].pop_back();
-				}
-				break;
-			}
-			case SDLK_1: {
-				script["CON"] = "REB";
-				break;
-			}
-			case SDLK_2: {
-				script["CON"] = "NAV";
-				break;
-			}
-			case SDLK_PAGEUP: {
-				map_p *= 0.9;
-				break;
-			}
-			case SDLK_PAGEDOWN: {
-				map_p *= 1.1;
-				break;
-			}
-			}
-			break;
-		}
-		case SDL_MOUSEWHEEL:
-		{
-			map_p *= (float)pow(0.9, -e->wheel.y);			
-			break;
-		}
 		}
 
+		//for (bool go = true; go;)
+		//{
+		//	go = false;
+		//	for (unsigned i = 0; i < gui.size(); ++i)
+		//	{
+		//		auto I = (gui.begin() + i);
+		//		if (I->removing)
+		//		{
+		//			gui_remove(i);
+		//			go = true;
+		//		}
+
+		//	}
+		//}
+
+		SDL_RenderPresent(REND);
 	}
-
-
-	{
-		float DRAG_SENSITIVE = 100 / map_p
-			;
-		if (x <= 20)
-		{
-			map_x -= (float)(DRAG_SENSITIVE / map_p);
-			map_y += (float)(DRAG_SENSITIVE * (y * 2.0 / scr_h - 1) / map_p);
-		}
-		else if (y <= 20)
-		{
-			map_x += (float)(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
-			map_y -= (float)(DRAG_SENSITIVE / map_p);
-		}
-		else if (x >= scr_w - 20)
-		{
-			map_x += (float)(DRAG_SENSITIVE / map_p);
-			map_y += (float)(DRAG_SENSITIVE  * (y * 2.0 / scr_h - 1) / map_p);
-		}
-		else if (y >= scr_h - 20)
-		{
-			map_x += (float)(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
-			map_y += (float)(DRAG_SENSITIVE / map_p);
-		}
-	}
-
-	//GUI EVENT
-	for (auto I = gui.begin(); I != gui.end(); ++I)
-	{
-		if (I->enable)
-		{
-			if (I->rx <= x &&
-				I->ry <= y &&
-				I->rx + (int)I->w >= x &&
-				I->ry + (int)I->h >= y)
-			{
-
-			}
-		}
-	}
-		
-	//GUI REMOVE
-	for (bool go = true; go;)
-	{
-		go = false;
-		for (auto i = 0; i < gui.size(); i++)
-		{
-			auto I = (gui.begin() + i);
-			if (I->removing)
-			{
-				gui_remove(i);
-				go = true;
-			}
-
-		}
-	}
-
-	
-
-	//GUI DRAWING
-	{
-		auto I = gui.begin();
-		for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
-		{
-			if (I->id == I->parent && I->enable)
-			{
-				I->rx = I->x;
-				I->ry = I->y;
-				set_rect(&r, I->rx, I->ry, I->w, I->h);
-				draw_item(I, r, I->type);
-				child_ui(i, I, r);
-			}
-
-		}
-	}
-
-	//for (bool go = true; go;)
-	//{
-	//	go = false;
-	//	for (unsigned i = 0; i < gui.size(); ++i)
-	//	{
-	//		auto I = (gui.begin() + i);
-	//		if (I->removing)
-	//		{
-	//			gui_remove(i);
-	//			go = true;
-	//		}
-
-	//	}
-	//}
-
-	SDL_RenderPresent(REND);
-	
 }
 
 bool init()
@@ -658,49 +682,48 @@ void close()
 
 void LOG_A(std::string s)
 {
-	std::cout << ESCAPE << "[1;33m[Attention]" << ESCAPE << "[1;37m " << s << "\n";
+	std::wcout << ESCAPE << L"[1;33m[Attention]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
 }
 void LOG_W(std::string s)
 {
-	std::cout << ESCAPE << "[1;31m[Warning]" << ESCAPE << "[1;37m " << s << "\n";
+	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
 }
 void LOG_H(std::string s)
 {
-	std::cout << ESCAPE << "[1;34m[Info]" << ESCAPE << "[1;37m " << s << "\n";
+	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
 }
 void LOG_O(std::string s)
 {
-	std::cout << ESCAPE << "[1;32m[OK]" << ESCAPE << "[1;37m " << s << "\n";
+	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
 }
 void LOG_V(std::string s)
 {
-	std::cout << ESCAPE << "[1;37m[OK]" << ESCAPE << "[1;37m " << s << "\n";
+	std::wcout << ESCAPE << L"[1;37m[OK]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
 }
 void LOG_A(std::string s, std::string s2)
 {
-	std::cout << ESCAPE << "[1;33m[Info]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
+	std::wcout << ESCAPE << L"[1;33m[Info]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
 }
 void LOG_W(std::string s, std::string s2)
 {
-	std::cout << ESCAPE << "[1;31m[Warning]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
+	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
 }
 void LOG_H(std::string s, std::string s2)
 {
-	std::cout << ESCAPE << "[1;34m[Info]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
+	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
 }
 void LOG_O(std::string s, std::string s2)
 {
-	std::cout << ESCAPE << "[1;32m[OK]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
+	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
 }
 void LOG_V(std::string s, std::string s2)
 {
-	std::cout << ESCAPE << "[1;37m[VAR]" << ESCAPE << "[1;37m " << s << " : " << s2 << "\n";
+	std::wcout << ESCAPE << L"[1;37m[VAR]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl; 
 }
 void LOG_Stop()
 {
-	std::string a;
-	std::cout << "PRESS ANY KEY...";
-	std::cin.ignore();
+	std::wcout << L"PRESS ANY KEY...";
+	std::wcin.ignore();
 	return;
 }
 #else

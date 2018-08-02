@@ -1,3 +1,3 @@
-name = "Dongye";
+name = "동예";
 title = "동예";
 color = color & 115, 87, 191;

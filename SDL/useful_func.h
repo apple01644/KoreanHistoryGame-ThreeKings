@@ -1,6 +1,72 @@
 #pragma once
 #include"action.h"
 
+#define Utf16 utf8_to_utf16
+std::wstring utf8_to_utf16(const std::string& utf8)
+{
+	std::vector<unsigned long> unicode;
+	size_t i = 0;
+
+	while (i < utf8.size())
+	{
+		unsigned long uni = 0;
+		size_t todo = 0;
+		unsigned char ch = utf8[i++];
+		if (ch <= 0x7F)
+		{
+			uni = ch;
+			todo = 0;
+		}
+		else if (ch <= 0xBF)
+		{
+		}
+		else if (ch <= 0xDF)
+		{
+			uni = ch & 0x1F;
+			todo = 1;
+		}
+		else if (ch <= 0xEF)
+		{
+			uni = ch & 0x0F;
+			todo = 2;
+		}
+		else if (ch <= 0xF7)
+		{
+			uni = ch & 0x07;
+			todo = 3;
+		}
+		else
+		{
+		}
+		for (size_t j = 0; j < todo; ++j)
+		{
+			if (i == utf8.size()) {}
+			ch = utf8[i++];
+			if (ch < 0x80 || ch > 0xBF) {}
+			uni <<= 6;
+			uni += ch & 0x3F;
+		}
+		if (uni >= 0xD800 && uni <= 0xDFFF) {}
+		if (uni > 0x10FFFF) {}
+		unicode.push_back(uni);
+	}
+	std::wstring utf16;
+	for (i = 0; i < unicode.size(); ++i)
+	{
+		unsigned long uni = unicode[i];
+		if (uni <= 0xFFFF)
+		{
+			utf16 += (wchar_t)uni;
+		}
+		else
+		{
+			uni -= 0x10000;
+			utf16 += (wchar_t)((uni >> 10) + 0xD800);
+			utf16 += (wchar_t)((uni & 0x3FF) + 0xDC00);
+		}
+	}
+	return utf16;
+}
 int get_lines(std::string s, int max_line)
 {
 	int lines = 0;
@@ -520,6 +586,7 @@ void incode_nat(std::string *sec, std::string s)
 				break;
 			}
 			nat[*sec].var[s2] = s1;
+			
 		}
 	}
 }
@@ -585,9 +652,21 @@ void read_as_prov(std::string s)
 	std::string s2;
 	auto J = s.begin();
 	bool comment = false;
-
+	bool long_comment = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
+		if (long_comment)
+		{
+			if (*I == '/')
+			{
+				if (*(I - 1) == '*')
+				{
+					long_comment = false;
+					J = I + 1;
+				}
+			}
+			continue;
+		}
 		if (comment )
 		{
 			if (*I == '\n')
@@ -596,6 +675,14 @@ void read_as_prov(std::string s)
 				J = I + 1;
 			}
 			continue;
+		}
+		if (*I == '/')
+		{
+			if (*(I + 1) == '*')
+			{
+				long_comment = true;
+				continue;
+			}
 		}
 		if (*I == ';')
 		{
@@ -616,10 +703,22 @@ void read_as_prv(std::string s)
 	std::string s2;
 	auto J = s.begin();
 	bool comment = false;
+	bool long_comment = false;
 	auto P = prv.end();
 	unsigned int sec = (unsigned int)prv.size();
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
+		if (long_comment)
+		{
+			if (*I == '/')
+			{
+				if (*(I - 1) == '*')
+				{
+					long_comment = false;
+				}
+			}
+			continue;
+		}
 		if (comment)
 		{
 			if (*I == '\n')
@@ -628,6 +727,14 @@ void read_as_prv(std::string s)
 				J = I + 1;
 			}
 			continue;
+		}
+		if (*I == '/')
+		{
+			if (*(I + 1) == '*')
+			{
+				long_comment = true;
+				continue;
+			}
 		}
 		if (*I == ';')
 		{
@@ -913,7 +1020,7 @@ void read_ui(const std::string path,const std::string tag)
 	{
 		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
-		std::ifstream wif(path);
+		std::ifstream wif(Utf16(path));
 		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
 		std::stringstream wss;
 		wss << wif.rdbuf();
@@ -931,8 +1038,8 @@ void read_define(const std::string path, const std::string tag)
 	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
 		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
-
-		std::ifstream wif(path);
+		
+		std::ifstream wif(Utf16(path));
 		wif.imbue(std::locale(std::locale::empty()));
 		std::stringstream wss;
 		wss << wif.rdbuf();
@@ -953,7 +1060,7 @@ void read_define(const std::string path, const std::string tag)
 	{
 		if (std::experimental::filesystem::is_directory(p))
 		{
-			read_folder(p.path().generic_u8string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
+			read_folder(p.path().generic_string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
 			continue;
 		}
 
@@ -1125,10 +1232,11 @@ void read_prv(const std::string path, const std::string tag) {
 	{
 		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 		
-		std::ifstream wif(path);
+		std::ifstream wif(Utf16(path));
 		wif.imbue(std::locale(std::locale::empty()));
 		std::stringstream wss;
 		wss << wif.rdbuf();
+		
 		read_as_prv(wss.str());
 
 
@@ -1147,7 +1255,7 @@ void read_nat(const std::string path, const std::string tag) {
 	{
 		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
-		std::ifstream wif(path);
+		std::ifstream wif(Utf16(path));
 		wif.imbue(std::locale(std::locale::empty()));
 		std::stringstream wss;
 		wss << wif.rdbuf();
@@ -1163,7 +1271,7 @@ void read_nat(const std::string path, const std::string tag) {
 
 
 /*
-void gui_remove(int id)
+void gui_remove(int id)apple
 {
 	for (int a = 0; a < gui.size(); a++)
 	{
