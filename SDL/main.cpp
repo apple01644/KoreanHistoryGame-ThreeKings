@@ -104,6 +104,7 @@ void start()
 		Widget wd0(404,404,404,404, wd_image, "Error!");
 		wd0.enable = false;
 		wd0.id = (unsigned int)gui.size();
+		wd0.var["source"] = "flag\\낙랑";
 		wd0.parent = wd0.id;
 		gui.push_back(wd0);
 	}
@@ -139,7 +140,8 @@ void start()
 		Color["white"] = clr;
 	}
 	script["SEC"] = "CON";
-	script["CON"] = "Silla";
+	script["CON"] = "REB";
+
 	//Mix_PlayMusic(sfx["sample"], -1);
 }
 void step()
@@ -338,7 +340,7 @@ void ui(SDL_Event *e)
 	int x, y;
 	r.x = 0;
 	p.y = 0;
-	draw(&r, &p);
+	//draw(&r, &p);
 
 	SDL_GetMouseState(&x, &y);
 
@@ -454,6 +456,7 @@ void ui(SDL_Event *e)
 
 	}
 
+
 	{
 		float DRAG_SENSITIVE = 100 / map_p
 			;
@@ -479,6 +482,7 @@ void ui(SDL_Event *e)
 		}
 	}
 
+	//GUI EVENT
 	for (auto I = gui.begin(); I != gui.end(); ++I)
 	{
 		if (I->enable)
@@ -488,10 +492,12 @@ void ui(SDL_Event *e)
 				I->rx + (int)I->w >= x &&
 				I->ry + (int)I->h >= y)
 			{
+
 			}
 		}
 	}
 		
+	//GUI REMOVE
 	for (bool go = true; go;)
 	{
 		go = false;
@@ -509,7 +515,7 @@ void ui(SDL_Event *e)
 
 	
 
-	
+	//GUI DRAWING
 	{
 		auto I = gui.begin();
 		for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
@@ -526,20 +532,20 @@ void ui(SDL_Event *e)
 		}
 	}
 
-	for (bool go = true; go;)
-	{
-		go = false;
-		for (unsigned i = 0; i < gui.size(); ++i)
-		{
-			auto I = (gui.begin() + i);
-			if (I->removing)
-			{
-				gui_remove(i);
-				go = true;
-			}
+	//for (bool go = true; go;)
+	//{
+	//	go = false;
+	//	for (unsigned i = 0; i < gui.size(); ++i)
+	//	{
+	//		auto I = (gui.begin() + i);
+	//		if (I->removing)
+	//		{
+	//			gui_remove(i);
+	//			go = true;
+	//		}
 
-		}
-	}
+	//	}
+	//}
 
 	SDL_RenderPresent(REND);
 	

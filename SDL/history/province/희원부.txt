@@ -1,4 +1,4 @@
 select = 30;#희원부
 name = "희원부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

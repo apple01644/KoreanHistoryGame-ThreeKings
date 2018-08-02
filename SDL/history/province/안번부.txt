@@ -1,4 +1,4 @@
 select = 21;#안번부
 name = "안번부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

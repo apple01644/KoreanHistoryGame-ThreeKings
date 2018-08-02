@@ -555,7 +555,6 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 
 void read_as_define(std::string s)
 {
-	std::cout << s;
 	std::string s2;
 	auto J = s.begin();
 	bool comment = false;
@@ -806,8 +805,8 @@ void read_as_ui(std::string s)
 						if (*s2.rbegin() != '/')
 						{
 							scope.push_back(wd.var["name"]);
-							
 						}
+						LOG_O("UI CREATED SUCCESSFULLY", wd.var["name"]);
 						gui.push_back(wd);
 
 					}
@@ -830,16 +829,18 @@ void read_as_ui(std::string s)
 	}
 }
 
+
 void read_gfx(const std::string path, const std::string tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = tag + path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = tag + path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+
 		gfx[name].s = IMG_Load(path.c_str());
 		SDL_SetColorKey(gfx[name].s, SDL_TRUE, color(255,0,255));
 		if (gfx[name].s == NULL)
 		{
-			LOG_W("FAIL TO SURFACE", path);
+			LOG_W("FAIL TO SURFACE", IMG_GetError());
 		}
 		else
 		{
@@ -862,9 +863,9 @@ void read_gfx(const std::string path, const std::string tag)
 }
 void read_sfx(const std::string path, const std::string tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 		sfx[name] = Mix_LoadMUS(path.c_str());
 		if (sfx[name] == NULL)
 		{
@@ -884,9 +885,9 @@ void read_sfx(const std::string path, const std::string tag)
 }
 void read_tfx(const std::string path, const std::string tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = tag + path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = tag + path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
 		tfx[name].t = TTF_OpenFont(path.c_str(), 144);
 
@@ -908,15 +909,16 @@ void read_tfx(const std::string path, const std::string tag)
 
 void read_ui(const std::string path,const std::string tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
 		std::ifstream wif(path);
 		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
 		std::stringstream wss;
 		wss << wif.rdbuf();
-		LOG_O("SUCCESS READ DEFINE FILE", path);
+		read_as_ui(wss.str());
+		LOG_O("SUCCESS READ UI FILE", path);
 	}
 	else
 	{
@@ -926,9 +928,9 @@ void read_ui(const std::string path,const std::string tag)
 }
 void read_define(const std::string path, const std::string tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
 		std::ifstream wif(path);
 		wif.imbue(std::locale(std::locale::empty()));
@@ -951,16 +953,11 @@ void read_define(const std::string path, const std::string tag)
 	{
 		if (std::experimental::filesystem::is_directory(p))
 		{
-			read_folder(p.path().generic_string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
+			read_folder(p.path().generic_u8string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
 			continue;
 		}
 
-		char* pStr;
-		int strSize = WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, NULL, 0, NULL, NULL);
-		pStr = new char[strSize];
-		
-		WideCharToMultiByte(CP_ACP, 0, p.path().c_str(), -1, pStr, strSize, 0, 0);
-		fn(pStr, tag);
+		fn(p.path().generic_u8string(), tag);
 	}
 
 }
@@ -1124,9 +1121,9 @@ void read_map()
 
 void read_prv(const std::string path, const std::string tag) {
 
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 		
 		std::ifstream wif(path);
 		wif.imbue(std::locale(std::locale::empty()));
@@ -1146,9 +1143,9 @@ void read_prv(const std::string path, const std::string tag) {
 
 void read_nat(const std::string path, const std::string tag) {
 
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
 	{
-		std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
 		std::ifstream wif(path);
 		wif.imbue(std::locale(std::locale::empty()));

@@ -1,4 +1,4 @@
 select = 20;#부여부
 name = "부여부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

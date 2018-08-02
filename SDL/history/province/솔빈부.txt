@@ -1,4 +1,4 @@
 select = 22;#솔빈부
 name = "솔빈부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

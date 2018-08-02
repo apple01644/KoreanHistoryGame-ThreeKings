@@ -1,3 +1,3 @@
-name = "Tang";
+name = "당";
 title = "당";
 color = color & 206, 176, 008;

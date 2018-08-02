@@ -1,3 +1,3 @@
-name = "Hangook";
+name = "한국";
 title = "한국";
 color = color & 224, 223, 213;

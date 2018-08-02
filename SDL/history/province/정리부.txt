@@ -1,4 +1,4 @@
 select = 18;#정리부
 name = "정리부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

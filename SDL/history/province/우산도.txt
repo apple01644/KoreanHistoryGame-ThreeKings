@@ -1,4 +1,4 @@
 select = 34;#우산도
 name = "우산도";
-CON = Usan;
-OWN = Usan;
+CON = 우산;
+OWN = 우산;

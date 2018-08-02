@@ -1,4 +1,4 @@
 select = 28;#막힐부
 name = "막힐부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

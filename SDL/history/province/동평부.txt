@@ -1,4 +1,4 @@
 select = 31;#동평부
 name = "동평부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

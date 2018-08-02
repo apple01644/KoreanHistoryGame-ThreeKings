@@ -1,4 +1,4 @@
 select = 19;#장령부
 name = "장령부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

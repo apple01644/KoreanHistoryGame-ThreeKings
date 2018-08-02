@@ -1,4 +1,4 @@
 select = 15;#안서부
 name = "안서부";
-CON = Balhae;
-OWN = Balhae;
+CON = 발해;
+OWN = 발해;

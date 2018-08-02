@@ -1,4 +1,4 @@
 select = 11;#명주
 name = "명주";
-CON = Silla;
-OWN = Silla;
+CON = 신라;
+OWN = 신라;
