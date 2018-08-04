@@ -261,9 +261,9 @@ Uint32 color(int r, int g, int b)
 	return r * 65536 + g * 256 + b;
 }
 
-void gui_remove(const unsigned int id)
+void gui_remove(const size_t id)
 {
-	for (unsigned int a = 0; a < gui.size(); a++)
+	for (size_t a = 0; a < gui.size(); a++)
 	{
 		if (a != id && gui.at(a).parent == id)
 		{
@@ -271,9 +271,9 @@ void gui_remove(const unsigned int id)
 		}
 	}
 	gui.at(id).remove();
-	for (unsigned int a = id; a < gui.size(); a++)
+	for (size_t a = id; a < gui.size(); a++)
 	{
-		for (int b = 0; b < gui.size(); b++)
+		for (size_t b = 0; b < gui.size(); b++)
 		{
 			if (gui.at(b).parent == gui.at(a).id)
 			{
@@ -604,12 +604,12 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 	}
 	if (s1 == "w")
 	{
-		wd_p->w = Num(Var(s2));
+		wd_p->w = (Uint16)Num(Var(s2));
 		return;
 	}
 	if (s1 == "h")
 	{
-		wd_p->h = Num(Var(s2));
+		wd_p->h = (Uint16)Num(Var(s2));
 		return;
 	}
 	if (s1 == "id")
@@ -618,6 +618,42 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 		return;
 	}
 	wd_p->var[s1] = Var(s2);
+}
+void incode_man(unsigned int *sec, std::string s)
+{
+	std::string s1 = "";
+	std::string s2 = "";
+	bool str = false;
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (*I == '"')
+		{
+			str = !str;
+			*I = '\a';
+			continue;
+		}
+		if (!str && (*I == '\n' || *I == '\t' || *I == '\v' || *I == '\b' || *I == '\r' || *I == '\f' || *I == '\a' || *I == ' '))
+		{
+			*I = '\a';
+			continue;
+		}
+	}
+	s.erase(std::remove(s.begin(), s.end(), '\a'), s.end());
+	for (unsigned int i = 0; i < s.size(); ++i)
+	{
+		if (s.at(i) == '=')
+		{
+			s2 = s.substr(0, i);
+			s1 = s.substr(i + 1);
+			if (s2 == "select")
+			{
+				*sec = Num(s1);
+				man[*sec] = Man();
+				continue;
+			}
+			man.at(*sec).var[s2] = s1;
+		}
+	}
 }
 
 void read_as_define(std::string s)
@@ -935,7 +971,58 @@ void read_as_ui(std::string s)
 		quit = true;
 	}
 }
+void read_as_man(std::string s)
+{
+	std::string s2;
+	auto J = s.begin();
+	bool comment = false;
+	bool long_comment = false;
+	auto P = prv.end();
+	unsigned int sec = (unsigned int)man.size();
+	for (auto I = s.begin(); I != s.end(); ++I)
+	{
+		if (long_comment)
+		{
+			if (*I == '/')
+			{
+				if (*(I - 1) == '*')
+				{
+					long_comment = false;
+				}
+			}
+			continue;
+		}
+		if (comment)
+		{
+			if (*I == '\n')
+			{
+				comment = false;
+				J = I + 1;
+			}
+			continue;
+		}
+		if (*I == '/')
+		{
+			if (*(I + 1) == '*')
+			{
+				long_comment = true;
+				continue;
+			}
+		}
+		if (*I == ';')
+		{
+			incode_man(&sec, s2.assign(J, I));
+			J = I + 1;
+			continue;
+		}
+		if (*I == 35)
+		{
+			comment = true;
+			continue;
+		}
 
+	}
+}
 
 void read_gfx(const std::string path, const std::string tag)
 {
@@ -1241,6 +1328,28 @@ void read_prv(const std::string path, const std::string tag) {
 
 
 		LOG_O("SUCCESS READ PROVINCE FILE", path);
+	}
+	else
+	{
+		LOG_W("FILE NAME ERROR", path);
+		quit = true;
+	}
+}
+void read_man(const std::string path, const std::string tag) {
+
+	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	{
+		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+
+		std::ifstream wif(Utf16(path));
+		wif.imbue(std::locale(std::locale::empty()));
+		std::stringstream wss;
+		wss << wif.rdbuf();
+
+		read_as_man(wss.str());
+
+
+		LOG_O("SUCCESS READ CHARACTER FILE", path);
 	}
 	else
 	{

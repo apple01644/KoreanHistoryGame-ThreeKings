@@ -51,9 +51,9 @@
 extern const unsigned  int scr_w = 1920;
 extern const unsigned  int scr_h = 1080;
 
-std::atomic<float> map_x = 0;
-std::atomic<float> map_y = 0;
-std::atomic<float> map_p = 1;
+std::atomic<double> map_x = 0;
+std::atomic<double> map_y = 0;
+std::atomic<double> map_p = 1;
 
 unsigned int map_w = 1;
 unsigned int map_h = 1;
@@ -126,10 +126,21 @@ std::unordered_map<std::string, SDL_Color> Color;
 std::unordered_map<std::string, Gfx> gfx;
 std::unordered_map<std::string, Tfx> tfx;
 std::unordered_map<std::string, Mix_Music*> sfx;
-std::unordered_map<std::string, unsigned int> gui_key;
+std::unordered_map<std::string, size_t> gui_key;
 std::unordered_map<std::string, std::string> script;
 std::unordered_map<std::string, std::string> key;
 std::unordered_map<std::string, unsigned int> map_reg;
+
+struct Arg_Mouse {
+	Sint32 x;
+	Sint32 y;
+	Uint8 button;
+};
+
+struct EventHandler {
+	bool Enable_mousedown = false;
+	void(*Event_mousedown)(size_t, Arg_Mouse);
+};
 
 enum {
 	wd_none,
@@ -138,42 +149,46 @@ enum {
 	wd_text
 };
 
-
 class Widget {
 public:
-	int x = 0;
-	int y = 0;
-	int rx = 0;
-	int ry = 0;
-	unsigned int w = 0;
-	unsigned int h = 0;
-	unsigned int id = 0;
-	unsigned int parent = 0;
+	Sint32 x = 0;
+	Sint32 y = 0;
+	Sint32 rx = 0;
+	Sint32 ry = 0;
+	Uint16 w = 0;
+	Uint16 h = 0;
+	size_t id = 0;
+	size_t parent = 0;
 	bool removing = false;
 	unsigned char type = 0;
 	bool enable = false;
 
 	std::unordered_map<std::string, std::string> var;
+	EventHandler ev;
 
 	void remove();
 	void change_key(std::string s);
-	void init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s);
-	Widget(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s) {
+	void init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s);
+	Widget(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s) {
 		init(X, Y, W, H, Type, s);
 		enable = true;
 	}
+	~Widget()
+	{
+		var.clear();
+	};
 };
 
 std::vector<Widget> gui;
 
-void Widget::init(int X, int Y, unsigned int W, unsigned int H, unsigned char Type, std::string s)
+void Widget::init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s)
 {
 	x = X;
 	y = Y;
 	w = W;
 	h = H;
 	type = Type;
-	id = (unsigned int)gui.size();
+	id = gui.size();
 	parent = id;
 	gui_key[s] = id;
 	var["name"] = s;
@@ -211,20 +226,43 @@ struct Province {
 		var["CON"] = "NAV";
 		var["OWN"] = "NAV";
 	};
+	~Province()
+	{
+		var.clear();
+	};
 };
 std::vector<Province> prv;
 
 struct Nation {
 	unsigned int c = 0;
-	float px = 0;
-	float py = 0;
+	double px = 0;
+	double py = 0;
+	double pw = 0;
 	unsigned int pnum = 0;
 	std::unordered_map<std::string, std::string> var;
+	~Nation()
+	{
+		var.clear();
+	};
 };
 
 std::unordered_map<std::string, Nation> nat;
 
+struct Man {
+	std::unordered_map<std::string, std::string> var;
+	Man()
+	{
+		var["LOC"] = "0";
+		var["CON"] = "NAV";
+		var["live"] = "1";
+	};
+	~Man()
+	{
+		var.clear();
+	};
+};
 
+std::unordered_map<unsigned int, Man> man;
 
 ///////////////////////////
 //       FUCNTIONAL      //

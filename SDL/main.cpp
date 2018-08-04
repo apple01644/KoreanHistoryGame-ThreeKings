@@ -97,13 +97,23 @@ void start()
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 16);
 	//glEnable(GL_MULTISAMPLE);
-	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 	{
 		Widget wd0(404,404,404,404, wd_image, "Error!");
 		wd0.enable = false;
-		wd0.id = (unsigned int)gui.size();
+		wd0.id = gui.size();
 		wd0.var["source"] = "flag\\낙랑";
 		wd0.parent = wd0.id;
+		gui.push_back(wd0);
+	}
+	{
+		Widget wd0(0, 0, scr_w, scr_h, wd_image, "Backmap");
+		wd0.enable = true;
+		wd0.id = gui.size();
+		wd0.var["source"] = "None";
+		wd0.parent = wd0.id;
+		wd0.ev.Enable_mousedown = true;
+		wd0.ev.Event_mousedown = BackMap_mousedown;
 		gui.push_back(wd0);
 	}
 	{
@@ -165,6 +175,14 @@ void start()
 	{
 		map_y = (float)(map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p));
 	}
+
+	for (auto I : prv)
+	{
+		if (!I.enable)
+		{
+			LOG_W(I.var["name"]);
+		}
+	}
 	//Mix_PlayMusic(sfx["sample"], -1);
 }
 void step(SDL_Event *e)
@@ -179,6 +197,9 @@ void step(SDL_Event *e)
 	SDL_GetMouseState(&x, &y);
 	while (SDL_PollEvent(e) != 0)
 	{
+		size_t pass = 0;
+		size_t depth = 0;
+		size_t i = 0;
 		switch (e->type)
 		{
 		case SDL_TEXTINPUT: {
@@ -190,57 +211,33 @@ void step(SDL_Event *e)
 			return;
 		}
 		case SDL_MOUSEBUTTONDOWN: {
-			int sec = map_reg[Str((unsigned int)((x + (scr_w / 2.0 + map_x) * map_p - scr_w / 2.0) / map_p)) + ":" + Str((unsigned int)((y + (scr_h / 2.0 + map_y) * map_p - scr_h / 2.0) / map_p))];
-			if (prv[sec].enable)
+			for (auto I : gui)
 			{
-				if (e->button.button == SDL_BUTTON_LEFT)
+				if (I.enable)
 				{
-					script["SEC"] = "CON";
-					if (prv.at(sec).var["CON"] == script["CON"])
+					if (I.rx < x && I.rx + I.w > x && I.ry < y && I.ry + I.h > y && depth < mother(i))
 					{
-						if (script["CON"] == "REB")
+						if (I.ev.Enable_mousedown)
 						{
-							auto I = nat.cbegin();
-							script["TEMP"] = I->first;
-							int i = 0;
-							do
-							{
-								I = nat.cbegin();
-								for (i = rand() % nat.size(); i > 0; --i)
-								{
-									++I;
-								}
-								++i;
-								script["TEMP"] = I->first;
-							} while ((I->second.pnum != 0 || I->first == "REB" || I->first == "NAV") && i < 300);
-							if (i < 300)
-							{
-								prv.at(sec).var["OWN"] = script["TEMP"];
-								prv.at(sec).var["CON"] = script["TEMP"];
-							}
+							pass = i;
 						}
 						else
 						{
-							prv.at(sec).var["OWN"] = script["CON"];
+							pass = 0;
 						}
-					}
-					else
-					{
-						prv.at(sec).var["CON"] = script["CON"];
+						depth = mother(i);
 					}
 				}
-				if (e->button.button == SDL_BUTTON_MIDDLE)
-				{
-					script["CON"] = prv.at(sec).var["OWN"];
-					gui.at(gui_key["nation_flag"]).var["source"] = "flag\\" + script["CON"];
-				}
+				++i;
 			}
-			// ( - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0
-			// (I->x1 - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0
-			//x 
-			//y
-			//
-			//
+			if (pass > 0)
+			{
+				Arg_Mouse obj;
+				obj.x = e->button.x;
+				obj.y = e->button.y;
+				obj.button = e->button.button;
+				gui.at(pass).ev.Event_mousedown(pass, obj);
+			}
 			break;
 		}
 		case SDL_KEYDOWN: {
@@ -260,16 +257,6 @@ void step(SDL_Event *e)
 					}
 					script["buf"].pop_back();
 				}
-				break;
-			}
-			case SDLK_1: {
-				script["CON"] = "REB";
-				gui.at(gui_key["nation_flag"]).var["source"] = "flag\\REB";
-				break;
-			}
-			case SDLK_2: {
-				script["CON"] = "NAV";
-				gui.at(gui_key["nation_flag"]).var["source"] = "flag\\NAV";
 				break;
 			}
 			}
@@ -294,45 +281,46 @@ void step(SDL_Event *e)
 
 		
 	{
-		float DRAG_SENSITIVE = 0.00015;// / sqrt(map_p);
+		double DRAG_SENSITIVE = 0.00015;// / sqrt(map_p);
 		if (x <= 20)
 		{
-			map_x = map_x - (float)(DRAG_SENSITIVE / map_p);
-			map_y = map_y + (float)(DRAG_SENSITIVE * (y * 2.0 / scr_h - 1) / map_p);
+			map_x = map_x - (DRAG_SENSITIVE / map_p);
+			map_y = map_y + (DRAG_SENSITIVE * (y * 2.0 / scr_h - 1) / map_p);
 		}
 		else if (y <= 20)
 		{
-			map_x = map_x + (float)(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
-			map_y = map_y - (float)(DRAG_SENSITIVE / map_p);
+			map_x = map_x +(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
+			map_y = map_y - (DRAG_SENSITIVE / map_p);
 		}
 		else if (x >= scr_w - 20)
 		{
-			map_x = map_x + (float)(DRAG_SENSITIVE / map_p);
-			map_y = map_y + (float)(DRAG_SENSITIVE  * (y * 2.0 / scr_h - 1) / map_p);
+			map_x = map_x + (DRAG_SENSITIVE / map_p);
+			map_y = map_y + (DRAG_SENSITIVE  * (y * 2.0 / scr_h - 1) / map_p);
 		}
 		else if (y >= scr_h - 20)
 		{
-			map_x = map_x + (float)(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
-			map_y = map_y + (float)(DRAG_SENSITIVE / map_p);
+			map_x = map_x + (DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
+			map_y = map_y + (DRAG_SENSITIVE / map_p);
 		}
 
-		if (scr_w / 2.0 * (1 / map_p - 1) > map_x)
 		{
-			map_x = (float)(scr_w / 2.0 * (1 / map_p - 1));
+			if (scr_w / 2.0 * (1 / map_p - 1) > map_x)
+			{
+				map_x = (float)(scr_w / 2.0 * (1 / map_p - 1));
+			}
+			if (scr_h / 2.0 * (1 / map_p - 1) > map_y)
+			{
+				map_y = (float)(scr_h / 2.0 * (1 / map_p - 1));
+			}
+			if (map_w + 1.0 - scr_w / 2.0 *(1 + 1 / map_p) < map_x)
+			{
+				map_x = (float)(map_w + 1.0 - scr_w / 2.0 *(1 + 1 / map_p));
+			}
+			if (map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p) < map_y)
+			{
+				map_y = (float)(map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p));
+			}
 		}
-		if (scr_h / 2.0 * (1 / map_p - 1) > map_y)
-		{
-			map_y = (float)(scr_h / 2.0 * (1 / map_p - 1));
-		}
-		if (map_w + 1.0 - scr_w / 2.0 *(1 + 1 / map_p) < map_x)
-		{
-			map_x = (float)(map_w + 1.0 - scr_w / 2.0 *(1 + 1 / map_p));
-		}
-		if (map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p) < map_y)
-		{
-			map_y = (float)(map_h + 1.0 - scr_h / 2.0 *(1 + 1 / map_p));
-		}
-
 	}
 
 	//GUI EVENT
@@ -357,6 +345,7 @@ void draw(SDL_Rect* r, SDL_Point* p)
 			I->second.pnum = 0;
 			I->second.px = 0;
 			I->second.py = 0;
+			I->second.pw = 0;
 		}
 
 
@@ -364,60 +353,66 @@ void draw(SDL_Rect* r, SDL_Point* p)
 		SDL_RenderClear(REND);
 
 		int i = 0;
-		float f = 0;
-
-		float _map_x = map_x;
-		float _map_y = map_y;
-		float _map_p = map_p;
+		double lf = 0;
+		
+		double _map_x = map_x;
+		double _map_y = map_y;
+		double _map_p = map_p;
 
 		for (unsigned int dep = 0; dep < 2; ++dep)
 		{
 			for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 			{
 				set_rect(r, (I->x1 - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0, (I->y1 - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0, (I->x2 - I->x1 + 1.0) * _map_p, (I->y2 - I->y1 + 1.0) * _map_p);
-
-				if (I->enable && (r->x + r->w > 0 || r->y + r->h > 0 || r->x < scr_w || r->y < scr_h))
+				if (I->enable)
 				{
-					if (dep == 0)
-					{
-						SDL_RenderCopy(REND, I->gt, NULL, r);
-					}
-					if (dep == 0)
-					{
-						if (!I->waste_land && I->var["OWN"] != "NAV")
-						{
-							SDL_SetTextureColorMod(I->t, (Uint8)(nat.at(I->var["OWN"]).c / 65536), (Uint8)((nat.at(I->var["OWN"]).c / 256) % 256), (Uint8)(nat.at(I->var["OWN"]).c % 256));
-							SDL_RenderCopy(REND, I->t, NULL, r);
-							if (I->var["OWN"] != I->var["CON"])
-							{
-								SDL_SetTextureColorMod(I->lt, (Uint8)(nat.at(I->var["CON"]).c / 65536), (Uint8)((nat.at(I->var["CON"]).c / 256) % 256), (Uint8)(nat.at(I->var["CON"]).c % 256));
-								SDL_RenderCopy(REND, I->lt, NULL, r);
-							}
-						}
-
-					}
 					if (dep == 1)
 					{
 						p->x = (int)(r->x + I->px * _map_p);
 						p->y = (int)(r->y + I->py * _map_p);
 						auto J = nat.at(I->var["OWN"]);
-						nat.at(I->var["OWN"]).px = (float)((1.0 * J.px * J.pnum + p->x) / (J.pnum + 1));
-						nat.at(I->var["OWN"]).py = (float)((1.0 * J.py * J.pnum + p->y) / (J.pnum + 1));
+						nat.at(I->var["OWN"]).px = ((1.0 * J.px * J.pnum + p->x) / (J.pnum + 1));
+						nat.at(I->var["OWN"]).py = ((1.0 * J.py * J.pnum + p->y) / (J.pnum + 1));
+						nat.at(I->var["OWN"]).pw = ((1.0 * J.pw * J.pnum + I->pnum / (I->y2 - I->y1 + 1)) / (J.pnum + 1));
 						nat.at(I->var["OWN"]).pnum++;
-						f = (0.3f / get_chrs(I->var["name"]) * _map_p * sqrtf((float)I->pnum));
-						if (_map_p >= 4.6)
+
+						/**/
+					}
+					if ((r->x + r->w > 0 || r->x < scr_w) && (r->y + r->h > 0 || r->y < scr_h))
+					{
+						if (dep == 0)
 						{
-							TTF_SetFontOutline(tfx["batang"].t, 2);
-							draw_string("batang", I->var["name"], "white", p, (unsigned int)f, middle_align + center_align);
-							TTF_SetFontOutline(tfx["batang"].t, 0);
-							draw_string("batang", I->var["name"], "black", p, (unsigned int)f, middle_align + center_align);
+							SDL_RenderCopy(REND, I->gt, NULL, r);
+							//LOG_W(I->var["name"]);
+							if (!I->waste_land && I->var["OWN"] != "NAV")
+							{
+								SDL_SetTextureColorMod(I->t, (Uint8)(nat.at(I->var["OWN"]).c / 65536), (Uint8)((nat.at(I->var["OWN"]).c / 256) % 256), (Uint8)(nat.at(I->var["OWN"]).c % 256));
+								SDL_RenderCopy(REND, I->t, NULL, r);
+								if (I->var["OWN"] != I->var["CON"])
+								{
+									SDL_SetTextureColorMod(I->lt, (Uint8)(nat.at(I->var["CON"]).c / 65536), (Uint8)((nat.at(I->var["CON"]).c / 256) % 256), (Uint8)(nat.at(I->var["CON"]).c % 256));
+									SDL_RenderCopy(REND, I->lt, NULL, r);
+								}
+							}
+
+						}
+						if (dep == 1)
+						{
+							lf = (0.5f / get_chrs(I->var["name"]) * _map_p * I->pnum / (I->y2 - I->y1 + 1));
+							if (_map_p >= 10)
+							{
+								TTF_SetFontOutline(tfx["default"].t, 2);
+								draw_string("default", I->var["name"], "white", p, (unsigned int)lf, middle_align + center_align);
+								TTF_SetFontOutline(tfx["default"].t, 0);
+								draw_string("default", I->var["name"], "black", p, (unsigned int)lf, middle_align + center_align);
+							}
 						}
 					}
 				}
 			}
 		}
-
-		if (_map_p < 4.6)
+		
+		if (_map_p < 10)
 		{
 			for (auto I = nat.begin(); I != nat.end(); ++I)
 			{
@@ -431,15 +426,53 @@ void draw(SDL_Rect* r, SDL_Point* p)
 					//r->h = 10;
 					//SDL_SetRenderDrawColor(REND, 0, 0, 255, 255);
 					//SDL_RenderFillRect(REND, r);
-					f = (6.0f / get_chrs(I->second.var["title"]) * _map_p * sqrtf((float)I->second.pnum));
+					lf = 0.5 * I->second.pw * map_p / get_chrs(I->second.var["title"]) *  sqrt(sqrt((double)I->second.pnum));//  * _map_p ;
 					if (_map_p > 1.7)
 					{
-						TTF_SetFontOutline(tfx["batang"].t, 2);
-						draw_string("batang", I->second.var["title"], "white", p, (unsigned int)f, middle_align + center_align);
-						TTF_SetFontOutline(tfx["batang"].t, 0);
+						TTF_SetFontOutline(tfx["default"].t, 2);
+						draw_string("default", I->second.var["title"], "white", p, (unsigned int)lf, middle_align + center_align);
+						TTF_SetFontOutline(tfx["default"].t, 0);
 					}
 
-					draw_string("batang", I->second.var["title"], "black", p, (unsigned int)f, middle_align + center_align);
+					draw_string("default", I->second.var["title"], "black", p, (unsigned int)lf, middle_align + center_align);
+				}
+			}
+		}
+
+		for (auto I : man)
+		{
+			if (I.second.var["live"] == "1")
+			{
+				if (gui_key.find("@leader_" + Str(I.first)) == gui_key.end())
+				{
+					Widget wd0 = Widget(0,0,0,0,wd_image, "@leader_" + Str(I.first));
+					wd0.var["source"] = "flag\\" + I.second.var["CON"];
+					wd0.ev.Enable_mousedown = true;
+					wd0.ev.Event_mousedown = LittleUp_mousedown;
+					gui.push_back(wd0);
+				}
+				auto J = prv.at(Num(I.second.var["LOC"]));
+				set_rect(r, (J.x1 - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0, (J.y1 - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0, (J.x2 - J.x1 + 1.0) * _map_p, (J.y2 - J.y1 + 1.0) * _map_p);
+				p->x = (int)(r->x + J.px * _map_p);
+				p->y = (int)(r->y + J.py * _map_p);
+
+				r->x = (int)(p->x - 3 * map_p + 0.5);
+				r->y = (int)(p->y - 3 * map_p + 0.5);
+				r->w = (int)(6 * map_p + 0.5);
+				r->h = (int)(6 * map_p + 0.5);
+
+				size_t gui_sec =  gui_key.at("@leader_" + Str(I.first));
+				if ((r->x + r->w > 0 || r->x < scr_w) && (r->y + r->h > 0 || r->y < scr_h))
+				{
+					gui.at(gui_sec).enable = true;
+					gui.at(gui_sec).x =r->x;
+					gui.at(gui_sec).y = r->y;
+					gui.at(gui_sec).w = (Uint16)r->w;
+					gui.at(gui_sec).h = (Uint16)r->h;
+				}
+				else
+				{
+					gui.at(gui_sec).enable = false;
 				}
 			}
 		}
@@ -525,7 +558,7 @@ void ui()
 		for (bool go = true; go;)
 		{
 			go = false;
-			for (auto i = 0; i < gui.size(); i++)
+			for (size_t i = 0; i < gui.size(); i++)
 			{
 				auto I = (gui.begin() + i);
 				if (I->removing)
@@ -542,7 +575,7 @@ void ui()
 		//GUI DRAWING
 		{
 			auto I = gui.begin();
-			for (unsigned int i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
+			for (size_t i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
 			{
 				if (I->id == I->parent && I->enable)
 				{
@@ -644,6 +677,7 @@ bool loadMedia()
 	read_map();
 	read_folder(executeDir + "\\history\\province", "", read_prv);
 	read_folder(executeDir + "\\history\\nation", "", read_nat);
+	read_folder(executeDir + "\\history\\character", "", read_man);
 	return success;
 }
 void close()
@@ -676,6 +710,19 @@ void close()
 	Mix_Quit();
 	IMG_Quit();
 	SDL_Quit();
+
+	gfx.clear();
+	sfx.clear();
+	tfx.clear();
+	prv.clear();
+	nat.clear();
+	gui.clear();
+	Color.clear();
+	gui_key.clear();
+	key.clear();
+	script.clear();
+	map_reg.clear();
+	man.clear();
 }
 
 #ifdef DEBUG
