@@ -11,3 +11,12 @@ object{
 	what = 3, 
 	let = 8
 };
+
+leader_flag = highlight_leader_flag;
+year_timer = year_timer;
+
+year = 892;
+month = 12;
+day = 19;
+
+year_timer_place_holder = "Y년 M월 D일";

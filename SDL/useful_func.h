@@ -236,6 +236,33 @@ void draw_line(std::string ind, std::string s, unsigned int max_line, std::strin
 }
 
 template<typename T, typename T2>
+size_t ray_ui(size_t owner, T x, T2 y)
+{
+	x = (int)x;
+	y = (int)y;
+	size_t r = 0;
+	{
+		auto I = gui.at(owner);
+		if (I.rx < x && I.rx + I.w > x && I.ry < y && I.ry + I.h > y)
+		{
+			r = owner;
+		}
+	}
+	auto I = gui.begin();
+	for (size_t i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
+	{
+		if (I->enable && I->parent == owner && I->id != owner)
+		{
+			size_t b = ray_ui(i, x, y);
+			if (b != 0)
+			{
+				r = b;
+			}
+		}
+	}
+	return r;
+}
+template<typename T, typename T2>
 void set_rect(SDL_Rect *r, T x, T y, T2 w, T2 h)
 {
 	r->x = (int)x;
@@ -290,7 +317,7 @@ std::string Var(std::string s) {
 	{
 		return s.substr(1, s.size() - 2);
 	}
-	return "";
+	return s;
 }
 
 void incode_define(std::string s)
@@ -595,11 +622,19 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 	if (s1 == "x")
 	{
 		wd_p->x = Num(Var(s2));
+		if (wd_p->x < 0)
+		{
+			wd_p->x += scr_w;
+		}
 		return;
 	}
 	if (s1 == "y")
 	{
 		wd_p->y = Num(Var(s2));
+		if (wd_p->y < 0)
+		{
+			wd_p->y += scr_h;
+		}
 		return;
 	}
 	if (s1 == "w")
@@ -614,7 +649,43 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 	}
 	if (s1 == "id")
 	{
-		wd_p->change_key(s2);
+		wd_p->change_key(Var(s2));
+		return;
+	}
+	if (s1 == "enable")
+	{
+		if (s2 == "true")
+		{
+			wd_p->enable = true;
+		}
+		if (s2 == "false")
+		{
+			wd_p->enable = false;
+		}		
+		return;
+	}
+	if (s1 == "mousedown")
+	{
+		s2 = Var(s2);
+		if (event_key.at(s2).type != ev_mousedown)
+		{
+			LOG_W("UI id-" + wd_p->var.at("name"), "Incorrect Eventtype(mousedown)");
+			return;
+		}
+		LOG_O("UI id-" + wd_p->var.at("name"), "Correct Eventtype(mousedown)");
+		wd_p->ev.Event_mousedown = event_key.at(s2).mousedown;
+		return;
+	}
+	if (s1 == "step")
+	{
+		s2 = Var(s2);
+		if (event_key.at(s2).type != ev_step)
+		{
+			LOG_W("UI id-" + wd_p->var.at("name"), "Incorrect Eventtype(step)");
+			return;
+		}
+		LOG_O("UI id-" + wd_p->var.at("name"), "Correct Eventtype(step)");
+		wd_p->ev.Event_step = event_key.at(s2).step;
 		return;
 	}
 	wd_p->var[s1] = Var(s2);
@@ -904,6 +975,11 @@ void read_as_ui(std::string s)
 									j++;
 								}
 								s3 = s2.substr(begin, j - begin);
+								if (*s3.rbegin() == '/')
+								{
+									s3 = s3.substr(0, s3.size() - 1);
+								}
+
 								if (begin == 0)
 								{
 									do {
@@ -915,11 +991,22 @@ void read_as_ui(std::string s)
 										if (s3 == "label")
 										{
 											wd.type = wd_label;
+											wd.var["ind"] = "default";
+											wd.var["size"] = "40";
+											wd.var["opt"] = "0";
+											wd.var["color"] = "black";
+											wd.var["text"] = "default";
 											break;
 										}
 										if (s3 == "text")
 										{
 											wd.type = wd_text;
+											wd.var["ind"] = "default";
+											wd.var["size"] = "40";
+											wd.var["line"] = "0";
+											wd.var["opt"] = "0";
+											wd.var["color"] = "black";
+											wd.var["text"] = "default";
 											break;
 										}
 									} while (false);
@@ -1108,7 +1195,7 @@ void read_ui(const std::string path,const std::string tag)
 		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
 
 		std::ifstream wif(Utf16(path));
-		wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
+		wif.imbue(std::locale(std::locale::empty()));
 		std::stringstream wss;
 		wss << wif.rdbuf();
 		read_as_ui(wss.str());
@@ -1221,94 +1308,119 @@ void read_map()
 			}
 		}
 	}
-
-	unsigned int i = 0;
-	for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 	{
-		if (I->x1 <= I->x2 &&  I->y1 <= I->y2)
+		unsigned int i = 0;
+		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 		{
-			I->enable = true;
-			for (unsigned int a = I->x1; a <= I->x2 + 1; ++a)
+			if (I->x1 <= I->x2 &&  I->y1 <= I->y2)
 			{
-				for (unsigned int b = I->y1; b <= I->y2 + 1; ++b)
+				I->enable = true;
+				for (unsigned int a = I->x1; a <= I->x2 + 1; ++a)
 				{
-					if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
+					for (unsigned int b = I->y1; b <= I->y2 + 1; ++b)
 					{
-						map_reg[Str(a) + ":" + Str(b)] = i;
+						if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
+						{
+							map_reg[Str(a) + ":" + Str(b)] = i;
+						}
 					}
 				}
 			}
 		}
-	}
-	i = 0;
-	for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
-	{
-		if (I->x1 <= I->x2 &&  I->y1 <= I->y2 && I->enable)
+		i = 0;
+		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 		{
-			SDL_Surface* prov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
-			SDL_Surface* geogrp = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
-			SDL_Surface* lineprov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
-			unsigned int w_t, h_t;
-
-			w_t = prov->w;
-			h_t = prov->h;
-			unsigned char* pixels_t = (unsigned char*)prov->pixels;
-			unsigned char* pixels_geo_t = (unsigned char*)geogrp->pixels;
-			unsigned char* pixels_line_t = (unsigned char*)lineprov->pixels;
-
-
-			int c, d;
-#pragma loop(hint_parallel(0))
-			for (unsigned int a = 0; a <= w_t; ++a)
+			if (I->x1 <= I->x2 &&  I->y1 <= I->y2 && I->enable)
 			{
-				for (unsigned int b = 0; b <= h_t; ++b)
+				SDL_Surface* prov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
+				SDL_Surface* geogrp = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
+				SDL_Surface* lineprov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
+				unsigned int w_t, h_t;
+
+				w_t = prov->w;
+				h_t = prov->h;
+				unsigned char* pixels_t = (unsigned char*)prov->pixels;
+				unsigned char* pixels_geo_t = (unsigned char*)geogrp->pixels;
+				unsigned char* pixels_line_t = (unsigned char*)lineprov->pixels;
+
+
+				int W[4][2] = { {0,1},{-1,0},{0, -1},{1 ,0 } };
+				int c, d;
+#pragma loop(hint_parallel(0))
+				for (unsigned int a = 0; a <= w_t; ++a)
 				{
-					c = a + I->x1;
-					d = b + I->y1;
-					if (map_reg[Str(c) + ":" + Str(d)] == i)
+					for (unsigned int b = 0; b <= h_t; ++b)
 					{
-						I->px = (float)((1.0 * I->px * I->pnum + a) / (I->pnum + 1));
-						I->py = (float)((1.0 * I->py * I->pnum + b) / (I->pnum + 1));
-						I->pnum++;
-					}
-				}
-			}
-#pragma loop(hint_parallel(0))
-			for (unsigned int a = 0; a <= w_t; ++a)
-			{
-				for (unsigned int b = 0; b <= h_t; ++b)
-				{
-					c = a + I->x1;
-					d = b + I->y1;
-					if (map_reg[Str(c) + ":" + Str(d)] == i)
-					{						
-						//if (map_reg[Str(c) + ":" + Str(d) + "b"] == 0)
-						//if (sqrt(pow(I->px - a, 2) + pow(I->py - b, 2)) - (w_t + h_t) / 2 + map_reg[Str(c) + ":" + Str(d) + "r"] * 6 + 20 > 0 || map_reg[Str(c) + ":" + Str(d) + "r"] == 0)
+						c = a + I->x1;
+						d = b + I->y1;
+						if (map_reg[Str(c) + ":" + Str(d)] == i)
 						{
-							pixels_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
-							pixels_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
-							pixels_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
-							if ((a + b + I->x1 + I->y1) % 6 < 2)
+							I->px = (float)((1.0 * I->px * I->pnum + a) / (I->pnum + 1));
+							I->py = (float)((1.0 * I->py * I->pnum + b) / (I->pnum + 1));
+							I->pnum++;
+						}
+						for (unsigned int w = 0; w < 4; ++w)
+						{
+							c = a + W[w][0];
+							d = b + W[w][1];
+							if (c >= 0 && d >= 0 && c < (int)map_w && d < (int)map_h)
 							{
-								pixels_line_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
-								pixels_line_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
-								pixels_line_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+								map_reg["map_conect" + Str(map_reg[Str(a) + ":" + Str(b)]) + "/" + Str(map_reg[Str(c) + ":" + Str(d)])] = 1;
 							}
 						}
 
-						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 0] = geo_pixels[3 * (d * map_w + c) + 2];
-						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 1] = geo_pixels[3 * (d * map_w + c) + 1];
-						pixels_geo_t[((a)+(w_t) * (b)) * 4 + 2] = geo_pixels[3 * (d * map_w + c)];
 					}
 				}
-			}
+#pragma loop(hint_parallel(0))
+				for (unsigned int a = 0; a <= w_t; ++a)
+				{
+					for (unsigned int b = 0; b <= h_t; ++b)
+					{
+						c = a + I->x1;
+						d = b + I->y1;
+						if (map_reg[Str(c) + ":" + Str(d)] == i)
+						{
+							//if (map_reg[Str(c) + ":" + Str(d) + "b"] == 0)
+							//if (sqrt(pow(I->px - a, 2) + pow(I->py - b, 2)) - (w_t + h_t) / 2 + map_reg[Str(c) + ":" + Str(d) + "r"] * 6 + 20 > 0 || map_reg[Str(c) + ":" + Str(d) + "r"] == 0)
+							{
+								pixels_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
+								pixels_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
+								pixels_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+								if ((a + b + I->x1 + I->y1) % 6 < 2)
+								{
+									pixels_line_t[((a)+(w_t) * (b)) * 4 + 0] = 255;
+									pixels_line_t[((a)+(w_t) * (b)) * 4 + 1] = 255;
+									pixels_line_t[((a)+(w_t) * (b)) * 4 + 2] = 255;
+								}
+							}
 
-			SDL_SetColorKey(prov, SDL_TRUE, 0);
-			SDL_SetColorKey(geogrp, SDL_TRUE, 0);
-			SDL_SetColorKey(lineprov, SDL_TRUE, 0);
-			I->t = SDL_CreateTextureFromSurface(REND, prov);
-			I->gt = SDL_CreateTextureFromSurface(REND, geogrp);
-			I->lt = SDL_CreateTextureFromSurface(REND, lineprov);
+							pixels_geo_t[((a)+(w_t) * (b)) * 4 + 0] = geo_pixels[3 * (d * map_w + c) + 2];
+							pixels_geo_t[((a)+(w_t) * (b)) * 4 + 1] = geo_pixels[3 * (d * map_w + c) + 1];
+							pixels_geo_t[((a)+(w_t) * (b)) * 4 + 2] = geo_pixels[3 * (d * map_w + c)];
+						}
+					}
+				}
+
+				SDL_SetColorKey(prov, SDL_TRUE, 0);
+				SDL_SetColorKey(geogrp, SDL_TRUE, 0);
+				SDL_SetColorKey(lineprov, SDL_TRUE, 0);
+				I->t = SDL_CreateTextureFromSurface(REND, prov);
+				I->gt = SDL_CreateTextureFromSurface(REND, geogrp);
+				I->lt = SDL_CreateTextureFromSurface(REND, lineprov);
+			}
+		}
+	}
+	for (size_t i = 0; i < prv.size(); ++i)
+	{
+		
+		for (size_t j = 0; j < prv.size(); ++j)
+		{
+			if (map_reg["map_conect" + Str(i) + "/" + Str(j)] == 1 && i != j)
+			{
+				auto I0 = prv.at(i);
+				auto I1 = prv.at(j);
+				map_reg["map_conect" + Str(i) + "/" + Str(j)] = (int)(sqrt(pow(I0.px + I0.x1 - I1.x1 - I1.px, 2) + pow(I0.py + I0.y1 - I1.y1 - I1.py, 2)));
+			}
 		}
 	}
 }
@@ -1378,7 +1490,6 @@ void read_nat(const std::string path, const std::string tag) {
 	}
 }
 
-
 /*
 void gui_remove(int id)apple
 {
@@ -1404,3 +1515,4 @@ void gui_remove(int id)apple
 	}
 }
 */
+

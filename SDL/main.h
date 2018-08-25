@@ -42,7 +42,8 @@
 #define Str std::to_string
 #define Num std::stoi
 #define Dmc std::stof
-
+#define _ITERATOR_DEBUG_LEVEL 2
+#pragma warning(disable:4100)
 #pragma execution_character_set("utf-8")
 
 ///////////////////////////
@@ -64,8 +65,15 @@ extern const WCHAR ESCAPE = 0x1b;
 extern std::atomic<bool> quit = false;
 std::string executeDir;
 
-Uint64 NOW = SDL_GetPerformanceCounter();
-Uint64 LAST = 0;
+std::mutex GUI_MUTX;
+Uint32 STEP_NOW = 0;
+Uint32 STEP_LAST = 0;
+Uint32 TIME_STACK = 0;
+Uint64 DRAW_NOW = 0;
+Uint64 DRAW_LAST = 0;
+
+unsigned int ALL_MAN = 0;
+bool pause = false;
 
 
 ///////////////////////////
@@ -75,6 +83,7 @@ void start();
 void step(SDL_Event*);
 void draw();
 void ui();
+void run_ai();
 
 bool init();
 bool loadMedia();
@@ -137,10 +146,28 @@ struct Arg_Mouse {
 	Uint8 button;
 };
 
-struct EventHandler {
-	bool Enable_mousedown = false;
-	void(*Event_mousedown)(size_t, Arg_Mouse);
+typedef std::function<void(size_t)> Action_Step;
+typedef std::function<void(size_t, Arg_Mouse)> Action_mousedown;
+
+enum Event_type{
+	ev_none,
+	ev_mousedown,
+	ev_step
 };
+
+struct EventHandler {
+	Action_mousedown Event_mousedown = NULL;
+	Action_Step Event_step = NULL;
+};
+
+struct Event
+{
+	UINT8 type = ev_none;
+	Action_Step step;
+	Action_mousedown mousedown;
+};
+
+std::unordered_map <std::string, Event> event_key;
 
 enum {
 	wd_none,
@@ -180,6 +207,7 @@ public:
 };
 
 std::vector<Widget> gui;
+size_t focus;
 
 void Widget::init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s)
 {
@@ -197,12 +225,17 @@ void Widget::change_key(std::string s) {
 	gui_key.erase(var["name"]);
 	var["name"] = s;
 	gui_key[s] = id;
+	
 };
 void Widget::remove()
 {
 	gui.erase(gui.begin() + id);
 };
 
+
+struct ProvinceInfo {
+	unsigned int man;
+};
 struct Province {
 	unsigned int x1 = 256;
 	unsigned int y1 = 256;
@@ -214,12 +247,18 @@ struct Province {
 	float py = 0;
 	unsigned int pnum = 0;
 
+	size_t len = std::numeric_limits<size_t>::max();
+	size_t nearest = std::numeric_limits<size_t>::max();
+	bool outted = false;
+
 	bool enable = false;
 	bool waste_land = false;
 
 	SDL_Texture* t;
 	SDL_Texture* gt;
 	SDL_Texture* lt;
+
+	ProvinceInfo pi;
 
 	std::unordered_map<std::string, std::string> var;
 	Province(){
@@ -233,12 +272,27 @@ struct Province {
 };
 std::vector<Province> prv;
 
+
+struct AiProvince {
+	long attack = 0;
+	size_t len = std::numeric_limits<size_t>::max();
+	size_t nearest = std::numeric_limits<size_t>::max();
+	bool outted = false;
+	bool enable = false;
+};
+
+enum {
+	ntf_attack,
+	ntf_diffence
+};
+
 struct Nation {
 	unsigned int c = 0;
 	double px = 0;
 	double py = 0;
 	double pw = 0;
 	unsigned int pnum = 0;
+	unsigned int focus = ntf_attack;
 	std::unordered_map<std::string, std::string> var;
 	~Nation()
 	{
@@ -250,11 +304,16 @@ std::unordered_map<std::string, Nation> nat;
 
 struct Man {
 	std::unordered_map<std::string, std::string> var;
+	std::list<size_t> com;	
 	Man()
 	{
+		var["HP"] = "800";
 		var["LOC"] = "0";
-		var["CON"] = "NAV";
+		var["power"] = "0";
+		var["HOME"] = "0";
 		var["live"] = "1";
+		var["CON"] = "NAV";
+		var["attack"] = Str(rand() % 4 + 3);
 	};
 	~Man()
 	{

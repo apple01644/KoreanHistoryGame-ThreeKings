@@ -77,7 +77,7 @@
     <LibraryWPath>B:\SDL2-devel-2.0.8-VC\SDL2-2.0.8\lib\x64;$(LibraryWPath)</LibraryWPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>B:\SDL2-devel-2.0.8-VC\SDL2-2.0.8\include;B:\SDL2-devel-2.0.8-VC\SDL2_ttf-2.0.14\include;B:\SDL2-devel-2.0.8-VC\SDL2_mixer-2.0.2\include;B:\SDL2-devel-2.0.8-VC\SDL2_image-2.0.3\include;$(IncludePath)</IncludePath>
+    <IncludePath>B:\SDL2-devel-2.0.8-VC\SDL_gfx-2.0.26;B:\SDL2-devel-2.0.8-VC\SDL2-2.0.8\include;B:\SDL2-devel-2.0.8-VC\SDL2_ttf-2.0.14\include;B:\SDL2-devel-2.0.8-VC\SDL2_mixer-2.0.2\include;B:\SDL2-devel-2.0.8-VC\SDL2_image-2.0.3\include;$(IncludePath)</IncludePath>
     <LibraryPath>B:\SDL2-devel-2.0.8-VC\SDL2-2.0.8\lib\x64;B:\SDL2-devel-2.0.8-VC\SDL2_ttf-2.0.14\lib\x64;B:\SDL2-devel-2.0.8-VC\SDL2_mixer-2.0.2\lib\x64;B:\SDL2-devel-2.0.8-VC\SDL2_image-2.0.3\lib\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
