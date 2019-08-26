@@ -1376,7 +1376,7 @@ bool loadMedia()
 	read_folder(executeDir + "\\gfx","", read_gfx);
 	read_folder(executeDir + "\\tfx", "", read_tfx);
 	read_folder(executeDir + "\\ui", "", read_ui);
-	read_folder(executeDir + "\\sfx\\music", "", read_sfx);
+	//read_folder(executeDir + "\\sfx\\music", "", read_sfx);
 	read_folder(executeDir + "\\define", "", read_define);
 	read_map();
 	read_folder(executeDir + "\\history\\province", "", read_prv);
