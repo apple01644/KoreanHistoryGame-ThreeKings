@@ -1,4 +1,0 @@
-<image id="nation_flag" x="0" y="0" w="200" h="200" source=""/>
-<label id="fps_rend" color="green" size="15"/>
-<image id="highlight_leader_flag" enable="false" source="ui\highlight" mousedown="Highlight_leader_flag"/>
-<label id="year_timer" x="-500" color="black" size="30" text="937년 12월 19일" step="Yeartimer_step"/>

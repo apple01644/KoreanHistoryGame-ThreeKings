@@ -33,7 +33,7 @@ void parent_front(const size_t id)
 	//	gui_key[gui.at(mom).var["name"]] = mom;
 	//	std::iter_swap(gui.at(mom), gui.at(mom + 1));
 	//}
-} 
+}
 void parent_remove(const unsigned int id)
 {
 	gui.at(gui.at(id).parent).removing = true;
@@ -41,93 +41,33 @@ void parent_remove(const unsigned int id)
 
 void BackMap_mousedown(size_t owner, Arg_Mouse e)
 {
-	unsigned int sec = map_reg[Str((unsigned int)((e.x + (scr_w / 2.0 + map_x) * map_p - scr_w / 2.0) / map_p)) + ":" + Str((unsigned int)((e.y + (scr_h / 2.0 + map_y) * map_p - scr_h / 2.0) / map_p))];
-	if (script["select_leader"] == "")
+	unsigned int sec = map_reg[(unsigned int)((e.x + (scr_w / 2.0 + map_x) * map_p - scr_w / 2.0) / map_p) + map_w * (unsigned int)((e.y + (scr_h / 2.0 + map_y) * map_p - scr_h / 2.0) / map_p)];
+	if (script[L"select_leader"] == L"")
 	{
-		if (prv[sec].enable)
+		if (!prv[sec].waste_land)
 		{
 
-			/*if (e.button == SDL_BUTTON_LEFT)
-			{
-				if (!prv.at(sec).waste_land)
-				{
-					if (prv.at(sec).var["CON"] == script["CON"])
-					{
-						if (script["CON"] == "REB")
-						{
-							auto I = nat.cbegin();
-							script["TEMP"] = I->first;
-							int i = 0;
-							do
-							{
-								I = nat.cbegin();
-								for (i = rand() % nat.size(); i > 0; --i)
-								{
-									++I;
-								}
-								++i;
-								script["TEMP"] = I->first;
-							} while ((I->second.pnum != 0 || I->first == "REB" || I->first == "NAV") && i < 300);
-							if (i < 300)
-							{
-								prv.at(sec).var["OWN"] = script["TEMP"];
-								prv.at(sec).var["CON"] = script["TEMP"];
-							}
-						}
-						else
-						{
-							prv.at(sec).var["OWN"] = script["CON"];
-						}
-					}
-					else
-					{
-						prv.at(sec).var["CON"] = script["CON"];
-					}
-				}
-			}*/
 			if (e.button == SDL_BUTTON_LEFT)
 			{
 				if (!prv.at(sec).waste_land)
 				{
-					if (prv.at(sec).var["OWN"] == prv.at(sec).var["CON"])
-					{
-						script["CON"] = prv.at(sec).var["CON"];
-						gui.at(gui_key["nation_flag"]).var["source"] = "flag\\" + script["CON"];
-						/*Man obj;
-						obj.var["name"] = "가가 가가";
-						obj.var["LOC"] = Str(sec);
-						obj.var["CON"] = prv.at(sec).var["CON"];
-						man[ALL_MAN++] = obj;
-						LOG_W("man born");*/
-					}
-					else
-					{
-						prv[sec].var["OWN"] = prv.at(sec).var["CON"];
-/*
-						for (unsigned int i = 0; i < 6; ++i)
-						{
-							Man obj;
-							obj.var["name"] = "가가 가가";
-							obj.var["LOC"] = Str(sec);
-							obj.var["CON"] = prv.at(sec).var["CON"];
-							man[ALL_MAN++] = obj;
-						}*/
-						//LOG_W("man born");
-					}
+					script[L"CON"] = prv.at(sec).CON;
+					gui.at(gui_key[L"nation_flag"]).var[L"source"] = L"flag\\" + script[L"CON"];
+					LOG_W(L"ID: " + Str(sec), L"OWN:" + prv.at(sec).OWN + L" / CON:" + prv.at(sec).CON);
 				}
 			}
-	/*		if (e.button == SDL_BUTTON_MIDDLE)
-			{
-				script["CON"] = prv.at(sec).var["OWN"];
-				gui.at(gui_key["nation_flag"]).var["source"] = "flag\\" + script["CON"];
-			}*/
+			/*		if (e.button == SDL_BUTTON_MIDDLE)
+					{
+						script["CON"] = prv.at(sec).var["OWN"];
+						gui.at(gui_key["nation_flag"]).var["source"] = "flag\\" + script["CON"];
+					}*/
 			if (e.button == SDL_BUTTON_MIDDLE)
 			{
 				if (!prv.at(sec).waste_land)
 				{
-					prv.at(sec).var["OWN"] = "REB";
-					prv.at(sec).var["CON"] = "REB";
-					gui.at(gui_key["nation_flag"]).var["source"] = "flag\\REB";
+					prv.at(sec).OWN = L"REB";
+					prv.at(sec).CON = L"REB";
+					gui.at(gui_key[L"nation_flag"]).var[L"source"] = L"flag\\REB";
 				}
 			}
 		}
@@ -136,18 +76,18 @@ void BackMap_mousedown(size_t owner, Arg_Mouse e)
 	{
 		if (e.button == SDL_BUTTON_LEFT)
 		{
-			script["select_leader"] = "";
-			gui.at(gui_key.at(script["leader_flag"])).enable = false;
+			script[L"select_leader"] = L"";
+			gui.at(gui_key.at(script[L"leader_flag"])).enable = false;
 		}
 		if (e.button == SDL_BUTTON_RIGHT)
 		{
-			auto I = Num(script["select_leader"]);
-			if (man.at(I).var["LOC"] != Str(sec))
+			auto I = Num(script[L"select_leader"]);
+			if (man.at(I).var[L"LOC"] != Str(sec))
 			{
-				put_path(I, Num(man.at(I).var["LOC"]), sec);
+				put_path(I, Num(man.at(I).var[L"LOC"]), sec);
 				/*if (map_reg["map_conect"+man.at(I).var["LOC"] + "/" + Str(sec)] != 0)
 				{
-					
+
 					man.at(I).com.clear();
 					man.at(I).com.push_back(sec);
 				}*/
@@ -155,14 +95,14 @@ void BackMap_mousedown(size_t owner, Arg_Mouse e)
 			else
 			{
 				man.at(I).com.clear();
-			/*	if (prv.at(sec).var["CON"] != man.at(I).var["CON"])
-				{
-					prv.at(sec).var["CON"] = man.at(I).var["CON"];
-				}
-				else
-				{
-					prv.at(sec).var["OWN"] = man.at(I).var["CON"];
-				}*/
+				/*	if (prv.at(sec).var["CON"] != man.at(I).var["CON"])
+					{
+						prv.at(sec).var["CON"] = man.at(I).var["CON"];
+					}
+					else
+					{
+						prv.at(sec).var["OWN"] = man.at(I).var["CON"];
+					}*/
 			}
 		}
 	}
@@ -172,8 +112,8 @@ void LittleUp_mousedown(size_t owner, Arg_Mouse e)
 {
 	if (e.button == SDL_BUTTON_LEFT)
 	{
-		size_t sec = gui_key.at(script["leader_flag"]);
-		script["select_leader"] = gui.at(owner).var["id"];
+		size_t sec = gui_key.at(script[L"leader_flag"]);
+		script[L"select_leader"] = gui.at(owner).var[L"id"];
 		gui.at(sec).enable = true;
 		gui.at(sec).x = 0;
 		gui.at(sec).y = 0;
@@ -182,11 +122,11 @@ void LittleUp_mousedown(size_t owner, Arg_Mouse e)
 		gui.at(sec).parent = owner;
 		return;
 	}
-	if (e.button == SDL_BUTTON_RIGHT && script["select_leader"] == "")
+	if (e.button == SDL_BUTTON_RIGHT && script[L"select_leader"] == L"")
 	{
-		man.erase(Num(gui.at(owner).var["id"]));
-		
-		size_t sec = gui_key.at(script["leader_flag"]);
+		man.erase(Num(gui.at(owner).var[L"id"]));
+
+		size_t sec = gui_key.at(script[L"leader_flag"]);
 		if (gui.at(sec).parent == owner)
 		{
 			gui.at(sec).parent = sec;
@@ -200,7 +140,7 @@ void Highlight_leader_flag_mousedown(size_t owner, Arg_Mouse e)
 	{
 		gui[owner].enable = false;
 		gui[owner].parent = gui.at(owner).id;
-		script["select_leader"] = "";
+		script[L"select_leader"] = L"";
 		return;
 	}
 }
@@ -208,64 +148,64 @@ void Yeartimer_step(size_t owner)
 {
 	if (pause)
 	{
-		gui.at(owner).var["text"] = "Pause";
-		gui.at(owner).var["color"] = "red";
+		gui.at(owner).var[L"text"] = L"Pause";
+		gui.at(owner).var[L"color"] = L"red";
 		return;
 	}
-	gui.at(owner).var["color"] = "black";
-	
-	script["buf"] = "";
-	for (auto I : script["year_timer_place_holder"])
+	gui.at(owner).var[L"color"] = L"black";
+
+	script[L"buf"] = L"";
+	for (auto I : script[L"year_timer_place_holder"])
 	{
 		if (I == 'Y')
 		{
-			script.at("buf") += script.at("year");
+			script.at(L"buf") += script.at(L"year");
 			continue;
 		}
 		if (I == 'M')
 		{
-			script.at("buf") += script.at("month");
+			script.at(L"buf") += script.at(L"month");
 			continue;
 		}
 		if (I == 'D')
 		{
-			script.at("buf") += script.at("day");
+			script.at(L"buf") += script.at(L"day");
 			continue;
 		}
-		script.at("buf").push_back(I);
+		script.at(L"buf").push_back(I);
 	}
-	gui.at(owner).var["text"] = script.at("buf");
-} 
+	gui.at(owner).var[L"text"] = script.at(L"buf");
+}
 
 void BlowupLabel_step(size_t owner)
 {
-	if (Num(gui.at(owner).var["life"]) <= 0)
+	if (Num(gui.at(owner).var[L"life"]) <= 0)
 	{
 		gui.at(owner).removing = true;
 	}
-	if (Num(gui.at(owner).var["delay"]) <= 0)
+	if (Num(gui.at(owner).var[L"delay"]) <= 0)
 	{
 		gui.at(owner).y -= 1;
-		gui.at(owner).var["size"] = Str((int)(Num(gui.at(owner).var["size"]) + (40 - Num(gui.at(owner).var["size"])) / 6));
-		gui.at(owner).var["delay"] = "60";
+		gui.at(owner).var[L"size"] = Str((int)(Num(gui.at(owner).var[L"size"]) + (40 - Num(gui.at(owner).var[L"size"])) / 6));
+		gui.at(owner).var[L"delay"] = L"60";
 	}
 	else
 	{
-		gui.at(owner).var["delay"] = Str((int)(Num(gui.at(owner).var["delay"]) - (STEP_NOW - STEP_LAST)));
-		gui.at(owner).var["life"] = Str((int)(Num(gui.at(owner).var["life"]) - (STEP_NOW - STEP_LAST)));
+		gui.at(owner).var[L"delay"] = Str((int)(Num(gui.at(owner).var[L"delay"]) - (STEP_NOW - STEP_LAST)));
+		gui.at(owner).var[L"life"] = Str((int)(Num(gui.at(owner).var[L"life"]) - (STEP_NOW - STEP_LAST)));
 	}
 }
 
 void init_event()
 {
-	std::string sec = "";
+	std::wstring sec = L"";
 
-	event_key[sec = "Yeartimer_step"].type = ev_step;
+	event_key[sec = L"Yeartimer_step"].type = ev_step;
 	event_key[sec].step = Yeartimer_step;
 
-	event_key[sec = "LittleUp_mousedown"].type = ev_mousedown;
+	event_key[sec = L"LittleUp_mousedown"].type = ev_mousedown;
 	event_key[sec].mousedown = LittleUp_mousedown;
 
-	event_key[sec = "Highlight_leader_flag"].type = ev_mousedown;
+	event_key[sec = L"Highlight_leader_flag"].type = ev_mousedown;
 	event_key[sec].mousedown = Highlight_leader_flag_mousedown;
 }

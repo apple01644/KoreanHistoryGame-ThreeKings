@@ -1,3 +1,0 @@
-name = "유구";
-title = "유구";
-color = color & 137, 136, 153;

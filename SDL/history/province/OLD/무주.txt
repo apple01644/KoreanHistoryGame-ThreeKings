@@ -1,4 +1,0 @@
-select = 6;#무주
-name = "무주";
-CON = REB;
-OWN = 신라;

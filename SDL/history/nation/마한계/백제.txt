@@ -1,3 +1,0 @@
-name = "백제";
-title = "백제";
-color = color & 104, 232, 225;

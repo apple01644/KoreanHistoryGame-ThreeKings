@@ -1,4 +1,0 @@
-select = 9;#웅주
-name = "웅주";
-CON = REB;
-OWN = 신라;

@@ -1,3 +1,0 @@
-name = "환";
-title = "환";
-color = color & 17, 209, 252;

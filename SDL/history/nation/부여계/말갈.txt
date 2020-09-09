@@ -1,3 +1,0 @@
-name = "말갈";
-title = "말갈";
-color = color & 52, 56, 54;

@@ -1,3 +1,0 @@
-name = "태봉";
-title = "태봉";
-color = color & 224, 141, 224;

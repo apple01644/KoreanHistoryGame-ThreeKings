@@ -1,4 +1,0 @@
-select = 5;#강주
-name = "강주";
-CON = 신라;
-OWN = 신라;

@@ -1,55 +1,12 @@
 ﻿#include "useful_func.h"
 
-int main(int argc, char* args[])
-{
-	srand((unsigned int)time(NULL));
-	system("color 01");
-	
-	for (int i = 0; i < argc; i++)
-	{
-		LOG_H("ARG-" + Str(i), args[i]);
-	}
-
-	if (!init())
-	{
-		LOG_W("System Initialize Failed");
-	}
-	else
-	{
-		if (!loadMedia())
-		{
-			LOG_W("System Load Failed");
-		}
-		else
-		{
-			start();
-			LOG_O("GAME ON");
-			SDL_Event e;
-			SDL_StartTextInput();
-
-			std::thread trd_ui(ui);
-			std::thread trd_ai(run_ai);
-
-			while (!quit)
-			{
-				step(&e);
-			}
-			trd_ui.join();
-			trd_ai.join();
-			SDL_StopTextInput();
-			LOG_O("GAME OFF");
-		}
-	}
-	close();
-	LOG_Stop();
-	return 0;
-}
+#define SDL_MAIN_HANDLED
 
 unsigned int day_over()
 {
-	unsigned int year = Num(script.at("year"));
-	unsigned int mon = Num(script.at("month"));
-	unsigned int day = Num(script.at("day"));
+	unsigned int year = Num(script.at(L"year"));
+	unsigned int mon = Num(script.at(L"month"));
+	unsigned int day = Num(script.at(L"day"));
 	bool is_yun = false;
 	if (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0))
 	{
@@ -62,18 +19,18 @@ unsigned int day_over()
 		{
 			day = 1;
 			mon++;
-			script["year"] = Str(year);
-			script["month"] = Str(mon);
-			script["day"] = Str(day);
+			script[L"year"] = Str(year);
+			script[L"month"] = Str(mon);
+			script[L"day"] = Str(day);
 			return 2;
 		}
 		else if (day > 29 && is_yun)
 		{
 			day = 1;
 			mon++;
-			script["year"] = Str(year);
-			script["month"] = Str(mon);
-			script["day"] = Str(day);
+			script[L"year"] = Str(year);
+			script[L"month"] = Str(mon);
+			script[L"day"] = Str(day);
 			return 2;
 		}
 	}
@@ -83,9 +40,9 @@ unsigned int day_over()
 		{
 			day = 1;
 			mon++;
-			script["year"] = Str(year);
-			script["month"] = Str(mon);
-			script["day"] = Str(day);
+			script[L"year"] = Str(year);
+			script[L"month"] = Str(mon);
+			script[L"day"] = Str(day);
 			return 2;
 		}
 	}
@@ -93,23 +50,23 @@ unsigned int day_over()
 	{
 		day = 1;
 		mon++;
-		script["year"] = Str(year);
-		script["month"] = Str(mon);
-		script["day"] = Str(day);
+		script[L"year"] = Str(year);
+		script[L"month"] = Str(mon);
+		script[L"day"] = Str(day);
 		return 2;
 	}
 	if (mon > 12)
 	{
 		mon = 1;
 		year++;
-		script["year"] = Str(year);
-		script["month"] = Str(mon);
-		script["day"] = Str(day);
+		script[L"year"] = Str(year);
+		script[L"month"] = Str(mon);
+		script[L"day"] = Str(day);
 		return 3;
 	}
-	script["year"] = Str(year);
-	script["month"] = Str(mon);
-	script["day"] = Str(day);
+	script[L"year"] = Str(year);
+	script[L"month"] = Str(mon);
+	script[L"day"] = Str(day);
 	return 1;
 }
 
@@ -120,17 +77,17 @@ void start()
 	//glEnable(GL_MULTISAMPLE);
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "2");
 	{
-		Widget wd0(404,404,404,404, wd_image, "Error!");
+		Widget wd0(404, 404, 404, 404, wd_image, L"Error!");
 		wd0.enable = false;
 		wd0.id = gui.size();
 		wd0.parent = wd0.id;
 		gui.push_back(wd0);
 	}
 	{
-		Widget wd0(0, 0, scr_w, scr_h, wd_image, "Backmap");
+		Widget wd0(0, 0, scr_w, scr_h, wd_image, L"Backmap");
 		wd0.enable = true;
 		wd0.id = gui.size();
-		wd0.var["source"] = "None";
+		wd0.var[L"source"] = L"None";
 		wd0.parent = wd0.id;
 		wd0.ev.Event_mousedown = BackMap_mousedown;
 		gui.push_back(wd0);
@@ -138,14 +95,14 @@ void start()
 	{
 		Nation nt;
 		nt.c = color(255, 255, 255);
-		nt.var["title"] = "원주민";
-		nat["NAV"] = nt;
+		nt.var[L"title"] = L"원주민";
+		nat[L"NAV"] = nt;
 	}
 	{
 		Nation nt;
 		nt.c = color(60, 0, 0);
-		nt.var["title"] = "반군";
-		nat["REB"] = nt;
+		nt.var[L"title"] = L"반군";
+		nat[L"REB"] = nt;
 	}
 
 	{
@@ -154,7 +111,7 @@ void start()
 		clr.r = 0;
 		clr.g = 0;
 		clr.b = 0;
-		Color["black"] = clr;
+		Color[L"black"] = clr;
 	}
 	{
 		SDL_Color clr;
@@ -162,7 +119,7 @@ void start()
 		clr.r = 0;
 		clr.g = 255;
 		clr.b = 0;
-		Color["green"] = clr;
+		Color[L"green"] = clr;
 	}
 	{
 		SDL_Color clr;
@@ -170,7 +127,7 @@ void start()
 		clr.r = 255;
 		clr.g = 0;
 		clr.b = 0;
-		Color["red"] = clr;
+		Color[L"red"] = clr;
 	}
 	{
 		SDL_Color clr;
@@ -179,7 +136,7 @@ void start()
 		clr.g = 255;
 		clr.b = 0;
 
-		Color["yellow"] = clr;
+		Color[L"yellow"] = clr;
 	}
 	{
 		SDL_Color clr;
@@ -188,10 +145,10 @@ void start()
 		clr.g = 255;
 		clr.b = 255;
 
-		Color["white"] = clr;
+		Color[L"white"] = clr;
 	}
-	script["CON"] = "REB";
-	gui.at(gui_key["nation_flag"]).var["source"] = "flag\\REB";
+	script[L"CON"] = L"REB";
+	gui.at(gui_key[L"nation_flag"]).var[L"source"] = L"flag\\REB";
 
 
 	if (map_p * map_w < scr_w)
@@ -221,207 +178,163 @@ void start()
 
 	for (auto I : prv)
 	{
-		if (!I.enable)
+		if (I.waste_land)
 		{
-			LOG_W("This province is unavailable",I.var["name"]);
+			LOG_W(L"This province is waste_land", I.name);
 		}
 	}
 
+	script[L"year"] = L"110";
+	script[L"month"] = L"1";
+	script[L"day"] = L"1";
 	//get_path(40, 49);
 
-	//Mix_PlayMusic(sfx["sample"], -1);
+	//Mix_PlayMusic(sfx[L"sample"], -1);
 }
-void run_ai()
+void go_ai()
 {
 	//Ai
-	unsigned int n = 0;
-	unsigned int i = 0;
-	size_t syc = 0;
-	size_t min_size_t = std::numeric_limits<size_t>::min();
-	unsigned int target = 0;
-	int size;
-	std::vector<unsigned int> own_man;
-	std::string ruler, last_nat = "REB";
-	bool flag_diffence = false;
-	bool flag_mine = false;
-	bool flag_myrealm = false;
+	static unsigned int n = 0;
+	static unsigned int i = 0;
+	static size_t syc = 0;
+	static size_t min_size_t = std::numeric_limits<size_t>::min();
+	static unsigned int target = 0;
+	static int size;
+	static std::vector<unsigned int> own_man;
+	static auto protagonist = nat.begin();
+	static bool flag_diffence = false;
+	static bool flag_mine = false;
+	static bool flag_myrealm = false;
 
 	std::vector<AiProvince> ai_prv;
+	ai_prv.resize(prv.size());
 
-	GUI_MUTX.lock();
-	for (auto I = prv.begin(); I != prv.end(); ++I)
+	if ((++protagonist) == nat.end()) protagonist = nat.begin();
+	if (protagonist->first == L"NAV" || protagonist->first == L"REB" || protagonist->first == script[L"CON"]) return;
+
+	auto ruler = protagonist->first;
+	protagonist->second.total_unit = 0;
+	i = 0;
+	for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 	{
-		ai_prv.push_back(AiProvince());
-		if (I->enable && !I->waste_land)
+		ai_prv.at(i).attack = 0;
+		if (I->CON != ruler)
 		{
-			ai_prv.rbegin()->enable = true;
+			ai_prv.at(i).attack = 60;
 		}
 	}
-	GUI_MUTX.unlock();
 
-
-	while (!quit)
+	for (auto I = man.begin(); I != man.end(); ++I)
 	{
-		i = 0;
-		GUI_MUTX.lock();
-
-		auto N = nat.find(last_nat);
-		if (N == nat.end())
+		if (I->second.var[L"live"] == L"1")
 		{
-			last_nat = "REB";
-		}
-		ruler = N->first;
+			size = Num(I->second.var[L"HP"]) / 100;
 
-		//Main
-		if (ruler != script["CON"])
-		{
-			for (auto I = man.begin(); I != man.end(); ++I)
+			//is mine?
+			if (I->second.var[L"CON"] == ruler)
 			{
-				if (I->second.var["live"] == "1")
+				//if (i->second.com.size() == 0)
 				{
-					if (I->second.var["CON"] == ruler)
-					{
-						++i;
-						break;
-					}
+					own_man.push_back(I->first);
+				}
+				flag_mine = true;
+			}
+			else
+			{
+				flag_mine = false;
+			}
+
+			//is diffend?
+			if (I->second.var[L"CON"] == prv.at(Num(I->second.var[L"LOC"])).CON)
+			{
+				flag_diffence = true;
+			}
+			else
+			{
+				flag_diffence = false;
+			}
+
+			//is my realm?
+			if (ruler == prv.at(Num(I->second.var[L"LOC"])).CON)
+			{
+				flag_myrealm = true;
+			}
+			else
+			{
+				flag_myrealm = false;
+			}
+
+			if (flag_mine)
+			{
+				if (flag_diffence)
+				{
+					size /= 2;
+				}
+				else
+				{
+					size += 40;
 				}
 			}
+			else
+			{
+				size *= -1;
+				if (flag_diffence)
+				{
+					size *= 2;
+				}
+				else if (flag_myrealm)
+				{
+					size += 60;
+				}
+			}
+			ai_prv.at(Num(I->second.var[L"LOC"])).attack = size;
+		}
+	}
+
+
+	for (auto R = own_man.begin(); R != own_man.end(); ++R)
+	{
+		auto I = man.at(*R);
+		if (I.var[L"live"] == L"1")
+		{
+			syc = min_size_t;// *r % 300;
+			target = Num(I.var[L"LOC"]);
+			auto& spider_map = get_spider_map(Num(I.var[L"LOC"]));
 
 			i = 0;
-			for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
+			auto A = ai_prv.begin();
+			for (auto P = spider_map.begin(); P != spider_map.end(); ++P, ++i, ++A)
 			{
-				ai_prv.at(i).attack = 0;
-				if (I->var["CON"] != ruler)
+				if (P->enable && P->nearest != ai_prv.size())
 				{
-					ai_prv.at(i).attack = 60;
+					if (A->attack - P->len * 10 > syc)
+					{
+						syc = A->attack - P->len * 10;
+						target = i;
+					}
 				}
 			}
-
-			for (auto I = man.begin(); I != man.end(); ++I)
+			if (syc - ai_prv.at(Num(I.var[L"LOC"])).attack > (I.com.size() != 0 ? 100 : 0))
 			{
-				if (I->second.var["live"] == "1")
+				if ((unsigned int)Num(I.var[L"LOC"]) != target)
 				{
-					size = Num(I->second.var["HP"]) / 100;
-
-					//is mine?
-					if (I->second.var["CON"] == ruler)
-					{
-						//if (i->second.com.size() == 0)
-						{
-							own_man.push_back(I->first);
-						}
-						flag_mine = true;
-					}
-					else
-					{
-						flag_mine = false;
-					}
-
-					//is diffend?
-					if (I->second.var["CON"] == prv.at(Num(I->second.var["LOC"])).var["CON"])
-					{
-						flag_diffence = true;
-					}
-					else
-					{
-						flag_diffence = false;
-					}
-
-					//is my realm?
-					if (ruler == prv.at(Num(I->second.var["LOC"])).var["CON"])
-					{
-						flag_myrealm = true;
-					}
-					else
-					{
-						flag_myrealm = false;
-					}
-
-					if (flag_mine)
-					{
-						if (flag_diffence)
-						{
-							size /= 2;
-						}
-						else
-						{
-							size += 40;
-						}
-					}
-					else
-					{
-						size *= -1;
-						if (flag_diffence)
-						{
-							size *= 2;
-						}
-						else if (flag_myrealm)
-						{
-							size += 60;
-						}
-					}
-					ai_prv.at(Num(I->second.var["LOC"])).attack = size;
+					put_path(*R, Num(I.var[L"LOC"]), target);
 				}
+				ai_prv.at(target).attack -= Num(I.var[L"HP"]);
+				ai_prv.at(Num(I.var[L"LOC"])).attack += Num(I.var[L"HP"]);
 			}
-
-			
-			for (auto R = own_man.begin(); R != own_man.end(); ++R)
-			{
-				auto I = man.at(*R);
-				if (I.var["live"] == "1")
-				{
-					syc = min_size_t;// *r % 300;
-					target = Num(I.var["LOC"]);
-					GUI_MUTX.unlock();
-					get_len(&ai_prv, Num(I.var["LOC"]));
-					GUI_MUTX.lock();
-					
-					i = 0;
-					for (auto P = ai_prv.begin(); P != ai_prv.end(); ++P, ++i)
-					{
-						if (P->enable && P->nearest != ai_prv.size())
-						{
-							if (P->attack - P->len * 10 > syc)
-							{
-								syc = P->attack - P->len * 10;
-								target = i;
-							}
-						}
-					}
-					if (syc - ai_prv.at(Num(I.var["LOC"])).attack > (I.com.size() != 0 ? 100 : 0))
-					{
-						if ((unsigned int)Num(I.var["LOC"]) != target)
-						{
-							put_path(*R, Num(I.var["LOC"]), target);
-						}
-						ai_prv.at(target).attack -= Num(I.var["HP"]);
-						ai_prv.at(Num(I.var["LOC"])).attack += Num(I.var["HP"]);
-					}
-				}
-
-			}
-			
-			own_man.clear();
 		}
 
-		--N;
-		if (N == nat.end())
-		{
-			last_nat = "REB";
-		}
-		else
-		{
-			last_nat = N->first;
-		}
-		GUI_MUTX.unlock();
 	}
+
+	own_man.clear();
+
 }
 void step(SDL_Event *e)
 {
-	
+	nat;
 	STEP_LAST = STEP_NOW;
 	STEP_NOW = SDL_GetTicks();
-	GUI_MUTX.lock();
 
 	int day_off = 0;
 	if (!pause)
@@ -437,7 +350,7 @@ void step(SDL_Event *e)
 
 	for (auto I = man.begin(); I != man.begin(); ++I)
 	{
-		if (I->second.var["live"] != "1")
+		if (I->second.var[L"live"] != L"1")
 		{
 			man.erase(I);
 		}
@@ -464,54 +377,50 @@ void step(SDL_Event *e)
 			unsigned int i = 0;
 			for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 			{
-				if (I->enable && !I->waste_land)
+				if (!I->waste_land)
 				{
-					if (I->var["OWN"] == I->var["CON"])
+					if (I->OWN == I->CON)
 					{
 						//Rebel Uprise
-						if (I->var["OWN"] == "REB")
+						if (I->OWN == L"REB")
 						{
-							//LOG_W(I->var["name"]);
-							script["TEMP"] = "REB";
-							size_t num = std::numeric_limits<size_t>::max();
-							size_t prv_num = 0;
+							//LOG_W(I->var[L"name"]);
+							script[L"TEMP"] = L"REB";
 							for (auto J : nat)
 							{
-								if (J.first != "NAV")
+								if (J.first != L"NAV")
 								{
-									prv_num = 0;
+									size_t prv_num = 0;
 									for (auto K : prv)
 									{
-										if (K.var["OWN"] == J.first)
-										{
-											prv_num++;
-										}
+										if (K.OWN == J.first) prv_num++;
+
 									}
-									if (prv_num < num)
+									if (prv_num == 0)
 									{
-										script["TEMP"] = J.first;
-										num = prv_num;
+										script[L"TEMP"] = J.first;
 									}
 								}
 							}
-							if (script["TEMP"] != "REB")
+							if (script[L"TEMP"] != L"REB")
 							{
-								I->var["OWN"] = script["TEMP"];
-								I->var["CON"] = script["TEMP"];
+								I->OWN = script[L"TEMP"];
+								I->CON = script[L"TEMP"];
 
 								for (unsigned int r = 0; r < 3; ++r)
 								{
 									Man obj;
-									obj.var["name"] = "가가 가가";
-									obj.var["LOC"] = Str(i);
-									obj.var["HOME"] = Str(i);
-									obj.var["CON"] = script["TEMP"];
+									obj.var[L"name"] = L"가가 가가";
+									obj.var[L"LOC"] = Str(i);
+									obj.var[L"HOME"] = Str(i);
+									obj.var[L"CON"] = script[L"TEMP"];
+									nat.at(I->OWN).total_unit += 1;
 									man[ALL_MAN++] = obj;
 								}
 							}
 						}
 
-						if (I->var["OWN"] != "NAV")
+						if (I->OWN != L"NAV")
 						{
 							if (I->pi.man < 1000)
 							{
@@ -526,13 +435,14 @@ void step(SDL_Event *e)
 							I->pi.man += 3;
 						}
 					}
-					if (I->pi.man >= 1000)
+					if (I->pi.man >= 1000 && I->OWN != L"NAV" && nat.at(I->OWN).total_unit < 5)
 					{
 						Man obj;
-						obj.var["name"] = "가가 가가";
-						obj.var["LOC"] = Str(i);
-						obj.var["HOME"] = Str(i);
-						obj.var["CON"] = I->var["OWN"];
+						obj.var[L"name"] = L"가가 가가";
+						obj.var[L"LOC"] = Str(i);
+						obj.var[L"HOME"] = Str(i);
+						obj.var[L"CON"] = I->OWN;
+						nat.at(I->OWN).total_unit += 1;
 						I->pi.man = 0;
 						man[ALL_MAN++] = obj;
 					}
@@ -540,86 +450,87 @@ void step(SDL_Event *e)
 			}
 			for (auto I = man.begin(); I != man.end(); ++I)
 			{
-				if (I->second.var["live"] == "1")
+				if (I->second.var[L"live"] == L"1")
 				{
 					//With Man
 					{
 						size_t enemey = 0;
 						for (auto J = man.begin(); J != man.end(); ++J)
 						{
-							if (J->second.var["live"] == "1" && I->second.var["LOC"] == J->second.var["LOC"] && I->second.var["CON"] != J->second.var["CON"])
+							if (J->second.var[L"live"] == L"1" && I->second.var[L"LOC"] == J->second.var[L"LOC"] && I->second.var[L"CON"] != J->second.var[L"CON"])
 							{
 								++enemey;
 							}
 							if (enemey)
 							{
-								if (I->second.var["purpose"] == "heal")
+								if (I->second.var[L"purpose"] == L"heal")
 								{
-									I->second.var["purpose"] = "";
-									I->second.var["power"] = "0";
+									I->second.var[L"purpose"] = L"";
+									I->second.var[L"power"] = L"0";
 								}
-								if (I->second.var["purpose"] == "sieze")
+								if (I->second.var[L"purpose"] == L"sieze")
 								{
-									I->second.var["purpose"] = "";
-									I->second.var["power"] = "0";
+									I->second.var[L"purpose"] = L"";
+									I->second.var[L"power"] = L"0";
 								}
 							}
 						}
-						if (enemey && I->second.var["purpose"] == "")
+						if (enemey && I->second.var[L"purpose"] == L"")
 						{
 							for (auto J = man.begin(); J != man.end(); ++J)
 							{
-								if (J->second.var["live"] == "1" && I->second.var["LOC"] == J->second.var["LOC"] && I->second.var["CON"] != J->second.var["CON"])
+								if (J->second.var[L"live"] == L"1" && I->second.var[L"LOC"] == J->second.var[L"LOC"] && I->second.var[L"CON"] != J->second.var[L"CON"])
 								{
 									if (rand() % (--enemey + 1) == 0)
 									{
-										J->second.var["HP"] = Str((int)(Num(J->second.var["HP"]) - (1 + Num(I->second.var["attack"])) * (1 + (I->second.var["CON"] == prv.at(Num(I->second.var["LOC"])).var["CON"] ? 1 : 0)) * Num(I->second.var["HP"]) / 1000));
-										if (Num(J->second.var["HP"]) < 0)
+										J->second.var[L"HP"] = Str((int)(Num(J->second.var[L"HP"]) - (1 + Num(I->second.var[L"attack"])) * (1 + (I->second.var[L"CON"] == prv.at(Num(I->second.var[L"LOC"])).CON ? 1 : 0)) * Num(I->second.var[L"HP"]) / 1000));
+										if (Num(J->second.var[L"HP"]) < 0)
 										{
-											J->second.var["live"] = "0";
+											J->second.var[L"live"] = L"0";
+											nat.at(J->second.var[L"CON"]).total_unit -= 1;
 
-											size_t sec = gui_key.at(script["leader_flag"]);
-											if (gui.at(sec).parent == gui_key["@leader_" + Str(J->first)])
+											size_t sec = gui_key.at(script[L"leader_flag"]);
+											if (gui.at(sec).parent == gui_key[L"@leader_" + Str(J->first)])
 											{
 												gui.at(sec).parent = sec;
 											}
-											gui.at(gui_key["@leader_" + Str(J->first)]).removing = true;
+											gui.at(gui_key[L"@leader_" + Str(J->first)]).removing = true;
 										}
 										else
 										{
-											if (Num(J->second.var["HP"]) <= 500 && J->second.var["purpose"] != "move")
+											if (Num(J->second.var[L"HP"]) <= 500 && J->second.var[L"purpose"] != L"move")
 											{
-												auto K = prv.at(Num(J->second.var["LOC"]));
+												auto K = prv.at(Num(J->second.var[L"LOC"]));
 
-												Widget wd0((Sint32)((K.x1 + K.px - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0), (Sint32)((K.y1 + K.py - scr_h / 2.0 - map_y) * map_p + scr_h / 2.0), 0, 0, wd_label, "SiezeMessage" + Str(rand()));
+												Widget wd0((Sint32)((K.x1 + K.px - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0), (Sint32)((K.y1 + K.py - scr_h / 2.0 - map_y) * map_p + scr_h / 2.0), 0, 0, wd_label, L"SiezeMessage" + Str(rand()));
 												wd0.enable = true;
 												wd0.id = gui.size();
 												wd0.parent = wd0.id;
 
-												wd0.var["ind"] = "default";
-												wd0.var["size"] = "20";
-												wd0.var["opt"] = "11";
-												wd0.var["color"] = "white";
-												wd0.var["delay"] = "0";
-												wd0.var["life"] = "1600";
+												wd0.var[L"ind"] = L"default";
+												wd0.var[L"size"] = L"20";
+												wd0.var[L"opt"] = L"11";
+												wd0.var[L"color"] = L"white";
+												wd0.var[L"delay"] = L"0";
+												wd0.var[L"life"] = L"1600";
 												wd0.ev.Event_step = BlowupLabel_step;
 
-												wd0.var["text"] = "후퇴!";
+												wd0.var[L"text"] = L"후퇴!";
 
-												I->second.var["power"] = "0";
+												I->second.var[L"power"] = L"0";
 												gui.push_back(wd0);
 												run_to_rest(J->first);
-												J->second.var["purpose"] = "move";
+												J->second.var[L"purpose"] = L"move";
 											}
-											if (J->second.var["purpose"] == "sieze")
+											if (J->second.var[L"purpose"] == L"sieze")
 											{
-												J->second.var["power"] = "0";
-												J->second.var["purpose"] = "";
+												J->second.var[L"power"] = L"0";
+												J->second.var[L"purpose"] = L"";
 											}
-											if (J->second.var["purpose"] == "heal")
+											if (J->second.var[L"purpose"] == L"heal")
 											{
-												J->second.var["purpose"] = "";
-												J->second.var["power"] = "0";
+												J->second.var[L"purpose"] = L"";
+												J->second.var[L"power"] = L"0";
 											}
 										}
 										break;
@@ -630,8 +541,8 @@ void step(SDL_Event *e)
 					}
 					//Without
 					{
-						auto P = prv.at(Num(I->second.var["HOME"]));
-						if (P.enable && !P.waste_land)
+						auto P = prv.at(Num(I->second.var[L"HOME"]));
+						if (!P.waste_land)
 						{
 							if (P.pi.man > 10)
 							{
@@ -641,97 +552,97 @@ void step(SDL_Event *e)
 
 						if (I->second.com.size() > 0)
 						{
-							if (I->second.var["purpose"] != "move")
+							if (I->second.var[L"purpose"] != L"move")
 							{
-								I->second.var["purpose"] = "move";
-								I->second.var["power"] = "0";
+								I->second.var[L"purpose"] = L"move";
+								I->second.var[L"power"] = L"0";
 							}
-							auto I0 = prv.at(Num(I->second.var["LOC"]));
+							auto I0 = prv.at(Num(I->second.var[L"LOC"]));
 							auto I1 = prv.at(*I->second.com.begin());
 
 							if (I0.c == I1.c)
 							{
 								I->second.com.pop_front();
 							}
-							else if (map_reg["map_conect" + I->second.var["LOC"] + "/" + Str(*I->second.com.begin())] * 3 <= (unsigned int)Num(I->second.var["power"]))
+							else if (map_connect[{Num(I->second.var[L"LOC"]), *I->second.com.begin()}] * 3 <= (unsigned int)Num(I->second.var[L"power"]))
 							{
-								I->second.var["LOC"] = Str(*I->second.com.begin());
+								I->second.var[L"LOC"] = Str(*I->second.com.begin());
 								I->second.com.pop_front();
-								I->second.var["power"] = "0";
+								I->second.var[L"power"] = L"0";
 							}
 							else
 							{
-								I->second.var["power"] = Str(Num(I->second.var["power"]) + 2 + (10 - Num(I->second.var["HP"]) / 100) / 2);
+								I->second.var[L"power"] = Str(Num(I->second.var[L"power"]) + 2 + (10 - Num(I->second.var[L"HP"]) / 100) / 2);
 							}
 							continue;
 						}
 					}
 					//With Province
 					{
-						auto J = prv.at(Num(I->second.var["LOC"]));
+						auto J = prv.at(Num(I->second.var[L"LOC"]));
 
 						//Sieze Land
-						if (!J.waste_land && J.var["CON"] != I->second.var["CON"])
+						if (!J.waste_land && J.CON != I->second.var[L"CON"])
 						{
-							if (I->second.var["purpose"] != "sieze")
+							if (I->second.var[L"purpose"] != L"sieze")
 							{
-								I->second.var["purpose"] = "sieze";
-								I->second.var["power"] = "0";
+								I->second.var[L"purpose"] = L"sieze";
+								I->second.var[L"power"] = L"0";
 							}
-							if (Num(I->second.var["power"]) <= 90)
+							if (Num(I->second.var[L"power"]) <= 90)
 							{
-								I->second.var["power"] = Str(Num(I->second.var["power"]) + 10 + (Num(I->second.var["HP"]) / 100));
+								I->second.var[L"power"] = Str(Num(I->second.var[L"power"]) + 10 + (Num(I->second.var[L"HP"]) / 100));
 							}
 							else
 							{
 
-								Widget wd0((Sint32)((J.x1 + J.px - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0), (Sint32)((J.y1 + J.px - scr_h / 2.0 - map_y) * map_p + scr_h / 2.0), 0, 0, wd_label, "SiezeMessage" + Str(rand()));
+								Widget wd0((Sint32)((J.x1 + J.px - scr_w / 2.0 - map_x) * map_p + scr_w / 2.0), (Sint32)((J.y1 + J.px - scr_h / 2.0 - map_y) * map_p + scr_h / 2.0), 0, 0, wd_label, L"SiezeMessage" + Str(rand()));
 								wd0.enable = true;
 								wd0.id = gui.size();
 								wd0.parent = wd0.id;
 
-								wd0.var["ind"] = "default";
-								wd0.var["size"] = "20";
-								wd0.var["opt"] = "11";
-								wd0.var["color"] = "white";
-								wd0.var["delay"] = "0";
-								wd0.var["life"] = "1600";
+								wd0.var[L"ind"] = L"default";
+								wd0.var[L"size"] = L"20";
+								wd0.var[L"opt"] = L"11";
+								wd0.var[L"color"] = L"white";
+								wd0.var[L"delay"] = L"0";
+								wd0.var[L"life"] = L"1600";
 								wd0.ev.Event_step = BlowupLabel_step;
 
-								wd0.var["text"] = "돌격!";
+								wd0.var[L"text"] = L"돌격!";
 								if (rand() % 100 < 14)
 								{
-									prv[Num(I->second.var["LOC"])].var["CON"] = I->second.var["CON"];
-									prv[Num(I->second.var["LOC"])].var["OWN"] = I->second.var["CON"];
-									wd0.var["text"] = "적 투항";
+									prv[Num(I->second.var[L"LOC"])].CON = I->second.var[L"CON"];
+									prv[Num(I->second.var[L"LOC"])].OWN = I->second.var[L"CON"];
+									wd0.var[L"text"] = L"적 투항";
 								}
 
-								I->second.var["power"] = "0";
+								I->second.var[L"power"] = L"0";
 								gui.push_back(wd0);
 							}
 						}
-						else if (J.var["OWN"] == I->second.var["CON"])
+						else if (J.OWN == I->second.var[L"CON"])
 						{
-							if (I->second.var["purpose"] != "heal")
+							if (I->second.var[L"purpose"] != L"heal")
 							{
-								I->second.var["purpose"] = "heal";
-								I->second.var["power"] = "0";
+								I->second.var[L"purpose"] = L"heal";
+								I->second.var[L"power"] = L"0";
 							}
-							if (Num(I->second.var["power"]) <= 30)
+							if (Num(I->second.var[L"power"]) <= 30)
 							{
-								I->second.var["power"] = Str(Num(I->second.var["power"]) + 2);
+								I->second.var[L"power"] = Str(Num(I->second.var[L"power"]) + 2);
 							}
 							else
 							{
-								I->second.var["power"] = Str(Num(I->second.var["power"]) + 1);
-								if (Num(I->second.var["HP"]) + 30 <= 1000)
+								I->second.var[L"power"] = Str(Num(I->second.var[L"power"]) + 1);
+								if (Num(I->second.var[L"HP"]) + 30 <= 1000)
 								{
-									auto P = prv.at(Num(I->second.var["HOME"]));
-									if (P.enable && !P.waste_land)
+									auto P = prv.at(Num(I->second.var[L"HOME"]));
+									if (!P.waste_land)
 									{
 										if (P.pi.man > 30)
 										{
-											I->second.var["HP"] = Str(Num(I->second.var["HP"]) + 30);
+											I->second.var[L"HP"] = Str(Num(I->second.var[L"HP"]) + 30);
 											P.pi.man -= 30;
 										}
 									}
@@ -740,21 +651,21 @@ void step(SDL_Event *e)
 						}
 					}
 
-					if (Num(I->second.var["power"]) > 0)
+					if (Num(I->second.var[L"power"]) > 0)
 					{
-						I->second.var["power"] = Str(Num(I->second.var["power"]) - 1);
+						I->second.var[L"power"] = Str(Num(I->second.var[L"power"]) - 1);
 					}
-					if (Num(I->second.var["HP"]) < 0)
+					if (Num(I->second.var[L"HP"]) < 0)
 					{
-						LOG_W("HP", I->second.var["HP"]);
-						I->second.var["live"] = "0";
+						LOG_W(L"HP", I->second.var[L"HP"]);
+						I->second.var[L"live"] = L"0";
 
-						size_t sec = gui_key.at(script["leader_flag"]);
-						if (gui.at(sec).parent == gui_key["@leader_" + Str(I->first)])
+						size_t sec = gui_key.at(script[L"leader_flag"]);
+						if (gui.at(sec).parent == gui_key[L"@leader_" + Str(I->first)])
 						{
 							gui.at(sec).parent = sec;
 						}
-						gui.at(gui_key["@leader_" + Str(I->first)]).removing = true;
+						gui.at(gui_key[L"@leader_" + Str(I->first)]).removing = true;
 					}
 				}
 			}
@@ -771,7 +682,6 @@ void step(SDL_Event *e)
 		switch (e->type)
 		{
 		case SDL_TEXTINPUT: {
-			script["buf"] += e->text.text;
 			break;
 		}
 		case SDL_QUIT: {
@@ -782,8 +692,8 @@ void step(SDL_Event *e)
 			for (auto I : gui)
 			{
 				if (I.enable && I.id == I.parent)
-				{ 
-					size_t b = ray_ui(i,x,y);
+				{
+					size_t b = ray_ui(i, x, y);
 					if (b != 0)
 					{
 						pass = b;
@@ -816,18 +726,18 @@ void step(SDL_Event *e)
 
 				SDL_SaveBMP(sshot, "screenshot.jpg");
 				SDL_FreeSurface(sshot);
-				LOG_O("Take a Screenshot.");
+				LOG_O(L"Take a Screenshot.");
 				break;
 			}
 			case SDLK_BACKSPACE: {
-				while (script["buf"].size() > 0)
+				while (script[L"buf"].size() > 0)
 				{
-					if (*script["buf"].crbegin() >= -64)
+					if (*script[L"buf"].crbegin() >= -64)
 					{
-						script["buf"].pop_back();
+						script[L"buf"].pop_back();
 						break;
 					}
-					script["buf"].pop_back();
+					script[L"buf"].pop_back();
 				}
 				break;
 			}
@@ -860,8 +770,6 @@ void step(SDL_Event *e)
 
 	}
 
-	GUI_MUTX.unlock();
-		
 	{
 		double DRAG_SENSITIVE = 0.5 * TimeDelta;// / sqrt(map_p);
 		if (x <= 20)
@@ -871,7 +779,7 @@ void step(SDL_Event *e)
 		}
 		else if (y <= 20)
 		{
-			map_x = map_x +(DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
+			map_x = map_x + (DRAG_SENSITIVE * (x * 2.0 / scr_w - 1) / map_p);
 			map_y = map_y - (DRAG_SENSITIVE / map_p);
 		}
 		else if (x >= scr_w - 20)
@@ -919,9 +827,8 @@ void draw(SDL_Rect* r, SDL_Point* p)
 	SDL_SetRenderDrawColor(REND, 0x09, 0x23, 0x66, 0xFF);
 	SDL_RenderClear(REND);
 
-	int i = 0;
 	double lf = 0;
-		
+
 	if (map_p > 16)
 	{
 		map_p = 16;
@@ -933,147 +840,122 @@ void draw(SDL_Rect* r, SDL_Point* p)
 
 	for (unsigned int dep = 0; dep < 3; ++dep)
 	{
-		i = 0;
-		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
+		for (auto& I : prv)
 		{
-			set_rect(r, (I->x1 - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0, (I->y1 - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0, (I->x2 - I->x1 + 1.0) * _map_p, (I->y2 - I->y1 + 1.0) * _map_p);
-			if (I->enable)
+			auto ID = Str(I.id);
+			set_rect(r, (I.x1 - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0, (I.y1 - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0, (I.x2 - I.x1 + 1.0) * _map_p, (I.y2 - I.y1 + 1.0) * _map_p);
+
+			if (dep == 2)
 			{
-				if (dep == 2)
+				p->x = (int)(r->x + (I.px) * _map_p + 0.5);
+				p->y = (int)(r->y + (I.py) * _map_p + 0.5);
+
+				r->x = (int)(p->x - 3 * map_p + 0.5);
+				r->y = (int)(p->y - 3 * map_p + 0.5);
+				r->w = (int)(3 * map_p + 0.5);
+				r->h = (int)(3 * map_p + 0.5);
+				r->x += r->w / 2;
+
+				int bias;
+				for (auto J = man.begin(); J != man.end(); ++J)
 				{
-					p->x = (int)(r->x + (I->px) * _map_p + 0.5);
-					p->y = (int)(r->y + (I->py) * _map_p + 0.5);
-
-					r->x = (int)(p->x - 3 * map_p + 0.5);
-					r->y = (int)(p->y - 3 * map_p + 0.5);
-					r->w = (int)(3 * map_p + 0.5);
-					r->h = (int)(3 * map_p + 0.5);
-					r->x += r->w / 2;
-					unsigned int num = 0;
-
-					for (auto J = man.begin(); J != man.end(); ++J)
+					if (J->second.var[L"live"] == L"1" && J->second.var[L"LOC"] == ID)
 					{
-						if (J->second.var["live"] == "1" && J->second.var["LOC"] == Str(i))
+						if (gui_key.find(L"@leader_" + Str(J->first)) == gui_key.end())
 						{
-							++num;
-							if (num == 5)
-							{
-								break;
-							}
+							Widget wd0 = Widget(0, 0, 0, 0, wd_image, L"@leader_" + Str(J->first));
+							wd0.var[L"source"] = L"flag\\" + J->second.var[L"CON"];
+							wd0.var[L"id"] = Str(J->first);
+							wd0.ev.Event_mousedown = LittleUp_mousedown;
+							gui.push_back(wd0);
 						}
-					}
 
-					r->x -= (num - 1) * ((int)(4 * map_p + 0.5)) / 2;
-					int bias;
-					for (auto J = man.begin(); J != man.end(); ++J)
-					{
-						if (J->second.var["live"] == "1" && J->second.var["LOC"] == Str(i))
+						size_t gui_sec = gui_key.at(L"@leader_" + Str(J->first));
+
+						bias = (int)((1000.0 - Num(J->second.var[L"HP"])) / 1000 * r->w / 4);
+
+						gui.at(gui_sec).enable = true;
+
+						r->x += bias;
+						r->y += bias;
+						r->w -= bias * 2;
+						r->h -= bias * 2;
+
+						gui.at(gui_sec).x = r->x;
+						gui.at(gui_sec).y = r->y;
+						gui.at(gui_sec).w = (Uint16)r->w;
+						gui.at(gui_sec).h = (Uint16)r->h;
+						if (gui.at(gui_key.at(script[L"leader_flag"])).parent == gui_sec)
 						{
-							if (gui_key.find("@leader_" + Str(J->first)) == gui_key.end())
-							{
-								Widget wd0 = Widget(0, 0, 0, 0, wd_image, "@leader_" + Str(J->first));
-								wd0.var["source"] = "flag\\" + J->second.var["CON"];
-								wd0.var["id"] = Str(J->first);
-								wd0.ev.Event_mousedown = LittleUp_mousedown;
-								gui.push_back(wd0);
-							}
-
-							size_t gui_sec = gui_key.at("@leader_" + Str(J->first));
-							
-							bias = (int)((1000.0 - Num(J->second.var["HP"])) / 1000 * r->w / 4);
-
-							gui.at(gui_sec).enable = true;
-
-							r->x += bias;
-							r->y += bias;
-							r->w -= bias * 2;
-							r->h -= bias * 2;
-
-							gui.at(gui_sec).x = r->x;
-							gui.at(gui_sec).y = r->y;
+							gui_sec = gui_key.at(script[L"leader_flag"]);
 							gui.at(gui_sec).w = (Uint16)r->w;
 							gui.at(gui_sec).h = (Uint16)r->h;
-							if (gui.at(gui_key.at(script["leader_flag"])).parent == gui_sec)
-							{
-								gui_sec = gui_key.at(script["leader_flag"]);
-								gui.at(gui_sec).w = (Uint16)r->w;
-								gui.at(gui_sec).h = (Uint16)r->h;
-							}
-
-							r->x -= bias;
-							r->y -= bias;
-							r->w += bias * 2;
-							r->h += bias * 2;
-
-
-							if (num == 0)
-							{
-								r->x += (int)(0.8 * map_p + 0.5);
-							}
-							else
-							{
-								r->x += (int)(4 * map_p + 0.5);
-								--num;
-							}
-						}
-					}
-				}
-				if (dep == 1)
-				{
-					p->x = (int)(r->x + I->px * _map_p);
-					p->y = (int)(r->y + I->py * _map_p);
-					auto J = nat.at(I->var["OWN"]);
-					nat.at(I->var["OWN"]).px = ((1.0 * J.px * J.pnum + p->x) / (J.pnum + 1));
-					nat.at(I->var["OWN"]).py = ((1.0 * J.py * J.pnum + p->y) / (J.pnum + 1));
-					nat.at(I->var["OWN"]).pw = ((1.0 * J.pw * J.pnum + I->pnum / (I->y2 - I->y1 + 1)) / (J.pnum + 1));
-					nat.at(I->var["OWN"]).pnum++;
-
-					/**/
-				}
-				if ((r->x + r->w > 0 || r->x < scr_w) && (r->y + r->h > 0 || r->y < scr_h))
-				{
-					if (dep == 0)
-					{
-						SDL_RenderCopy(REND, I->gt, NULL, r);
-						//LOG_W(I->var["name"]);
-						if (!I->waste_land && I->var["OWN"] != "NAV")
-						{
-							SDL_SetTextureColorMod(I->t, (Uint8)(nat.at(I->var["OWN"]).c / 65536), (Uint8)((nat.at(I->var["OWN"]).c / 256) % 256), (Uint8)(nat.at(I->var["OWN"]).c % 256));
-							SDL_RenderCopy(REND, I->t, NULL, r);
-							if (I->var["OWN"] != I->var["CON"])
-							{
-								SDL_SetTextureColorMod(I->lt, (Uint8)(nat.at(I->var["CON"]).c / 65536), (Uint8)((nat.at(I->var["CON"]).c / 256) % 256), (Uint8)(nat.at(I->var["CON"]).c % 256));
-								SDL_RenderCopy(REND, I->lt, NULL, r);
-							}
 						}
 
-					}
-					if (dep == 1)
-					{
-						//if (_map_p >= 6)
-						{
-							if (!I->waste_land)
-							{
-							//	lf = 4 * map_p;//(0.5f / get_chrs(Str(i)) * _map_p * I->pnum / (I->y2 - I->y1 + 1));
-							//	TTF_SetFontOutline(tfx["default"].t, 2);
-							//	draw_string("default", Str(I->attack), "white", p, (unsigned int)lf, middle_align + center_align);
-							//	TTF_SetFontOutline(tfx["default"].t, 0);
-							//	draw_string("default", Str(I->attack), "black", p, (unsigned int)lf, middle_align + center_align);
-							}
-						}
+						r->x -= bias;
+						r->y -= bias;
+						r->w += bias * 2;
+						r->h += bias * 2;
+						r->x += 3 * map_p;
 					}
 				}
 			}
+			if (dep == 1)
+			{
+				p->x = (int)(r->x + I.px * _map_p);
+				p->y = (int)(r->y + I.py * _map_p);
+				auto J = nat.at(I.OWN);
+				nat.at(I.OWN).px = ((1.0 * J.px * J.pnum + p->x) / (J.pnum + 1));
+				nat.at(I.OWN).py = ((1.0 * J.py * J.pnum + p->y) / (J.pnum + 1));
+				nat.at(I.OWN).pw = ((1.0 * J.pw * J.pnum + I.pnum / (I.y2 - I.y1 + 1)) / (J.pnum + 1));
+				nat.at(I.OWN).pnum++;
+
+				/**/
+			}
+			if ((r->x + r->w > 0 || r->x < scr_w) && (r->y + r->h > 0 || r->y < scr_h))
+			{
+				if (dep == 0)
+				{
+					SDL_RenderCopy(REND, I.gt, NULL, r);
+					//LOG_W(I.var[L"name"]);
+					if (!I.waste_land && I.OWN != L"NAV")
+					{
+						SDL_SetTextureColorMod(I.t, (Uint8)(nat.at(I.OWN).c / 65536), (Uint8)((nat.at(I.OWN).c / 256) % 256), (Uint8)(nat.at(I.OWN).c % 256));
+						SDL_RenderCopy(REND, I.t, NULL, r);
+						if (I.OWN != I.CON)
+						{
+							SDL_SetTextureColorMod(I.lt, (Uint8)(nat.at(I.CON).c / 65536), (Uint8)((nat.at(I.CON).c / 256) % 256), (Uint8)(nat.at(I.CON).c % 256));
+							SDL_RenderCopy(REND, I.lt, NULL, r);
+						}
+					}
+
+				}
+				if (dep == 1)
+				{
+					//if (_map_p >= 6)
+					{
+						if (!I.waste_land)
+						{
+							//lf = 4 * map_p;//(0.5f / get_chrs(Str(i)) * _map_p * I->pnum / (I->y2 - I->y1 + 1));
+							//TTF_SetFontOutline(tfx[L"default"].t, 2);
+							//draw_string(L"default", I.name, L"white", p, (unsigned int)lf, middle_align + center_align);
+							//TTF_SetFontOutline(tfx[L"default"].t, 0);
+							//draw_string(L"default", I.name, L"black", p, (unsigned int)lf, middle_align + center_align);
+						}
+					}
+				}
+
+			}
 		}
 	}
-		
-	if (script["select_leader"] != "")
+
+	if (script[L"select_leader"] != L"")
 	{
-		auto I = Num(script["select_leader"]);
+		auto I = Num(script[L"select_leader"]);
 		if (man.at(I).com.size() > 0)
 		{
 			SDL_SetRenderDrawColor(REND, 0x30, 0x30, 0x30, 0xFF);
-			if (Num(man.at(I).var["HP"]) <= 500)
+			if (Num(man.at(I).var[L"HP"]) <= 500)
 			{
 				SDL_SetRenderDrawColor(REND, 0x00, 0xE0, 0xE0, 0xFF);
 			}
@@ -1101,8 +983,8 @@ void draw(SDL_Rect* r, SDL_Point* p)
 					}
 				}
 			}
-			//LOG_W("232");
-			auto I0 = prv.at(Num(man.at(I).var["LOC"]));
+			//LOG_W(L"232");
+			auto I0 = prv.at(Num(man.at(I).var[L"LOC"]));
 			auto I1 = prv.at(*man.at(I).com.begin());
 			int x = 0, y = 0, max = (int)(0.5 * map_p + 0.5);
 			for (x = -max; x <= max; ++x)
@@ -1122,36 +1004,39 @@ void draw(SDL_Rect* r, SDL_Point* p)
 			}
 			SDL_SetRenderDrawColor(REND, 0x90, 0x90, 0x90, 0xFF);
 			x = 0, y = 0, max = (int)(0.3 * map_p + 0.5);
-			double progress = 1.0 * Num(man.at(I).var["power"]) / map_reg["map_conect" + man.at(I).var["LOC"] + "/" + Str(*man.at(I).com.begin())] / 3.0;// sqrt(pow(I0.px + I0.x1 - I1.x1 - I1.px, 2) + pow(I0.py + I0.y1 - I1.y1 - I1.py, 2));
-			if (progress > 1)
-			{
-				progress = 1;
-			}
-			for (x = -max; x <= max; ++x)
-			{
-				for (y = -max; y <= max; ++y)
+			if (man.at(I).com.size() > 0) {
+
+				double progress = 1.0 * Num(man.at(I).var[L"power"]) / map_connect[{Num(man.at(I).var[L"LOC"]), *man.at(I).com.begin()}] / 3.0;// sqrt(pow(I0.px + I0.x1 - I1.x1 - I1.px, 2) + pow(I0.py + I0.y1 - I1.y1 - I1.py, 2));
+				if (progress > 1)
 				{
-					if (pow(x, 2) + pow(y, 2) < pow(max, 2))
+					progress = 1;
+				}
+				for (x = -max; x <= max; ++x)
+				{
+					for (y = -max; y <= max; ++y)
 					{
-						SDL_RenderDrawLine(REND,
-							(int)((I0.x1 + I0.px - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0 + x),
-							(int)((I0.y1 + I0.py - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0 + y),
-							(int)((I0.x1 + I0.px + (I1.x1 + I1.px - I0.x1 - I0.px) * progress - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0 + x),
-							(int)((I0.y1 + I0.py + (I1.y1 + I1.py - I0.y1 - I0.py) * progress - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0 + y)
-						);
+						if (pow(x, 2) + pow(y, 2) < pow(max, 2))
+						{
+							SDL_RenderDrawLine(REND,
+								(int)((I0.x1 + I0.px - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0 + x),
+								(int)((I0.y1 + I0.py - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0 + y),
+								(int)((I0.x1 + I0.px + (I1.x1 + I1.px - I0.x1 - I0.px) * progress - scr_w / 2.0 - _map_x) * _map_p + scr_w / 2.0 + x),
+								(int)((I0.y1 + I0.py + (I1.y1 + I1.py - I0.y1 - I0.py) * progress - scr_h / 2.0 - _map_y) * _map_p + scr_h / 2.0 + y)
+							);
+						}
 					}
 				}
 			}
 		}
 	}
 
-	
+
 	if (true)//_map_p < 10 )
 	{
 		for (auto I = nat.begin(); I != nat.end(); ++I)
 		{
 
-			if (I->second.pnum > 0 && I->first != "REB" && I->first != "NAV")
+			if (I->second.pnum > 0 && I->first != L"REB" && I->first != L"NAV")
 			{
 				set_point(p, I->second.px, I->second.py);
 				//r->x = p->x - 5;
@@ -1160,15 +1045,15 @@ void draw(SDL_Rect* r, SDL_Point* p)
 				//r->h = 10;
 				//SDL_SetRenderDrawColor(REND, 0, 0, 255, 255);
 				//SDL_RenderFillRect(REND, r);
-				lf = 0.5 * I->second.pw * map_p / sqrt(get_chrs(I->second.var["title"])) *  sqrt(sqrt((double)I->second.pnum));//  * _map_p ;
+				lf = 0.5 * I->second.pw * map_p / sqrt(get_chrs(I->second.var[L"title"])) *  sqrt(sqrt((double)I->second.pnum));//  * _map_p ;
 				if (_map_p > 1.7)
 				{
-					TTF_SetFontOutline(tfx["default"].t, 2);
-					draw_string("default", I->second.var["title"], "white", p, (unsigned int)lf, middle_align + center_align);
-					TTF_SetFontOutline(tfx["default"].t, 0);
+					TTF_SetFontOutline(tfx[L"default"].t, 2);
+					draw_string(L"default", I->second.var[L"title"], L"white", p, (unsigned int)lf, middle_align + center_align);
+					TTF_SetFontOutline(tfx[L"default"].t, 0);
 				}
 
-				draw_string("default", I->second.var["title"], "black", p, (unsigned int)lf, middle_align + center_align);
+				draw_string(L"default", I->second.var[L"title"], L"black", p, (unsigned int)lf, middle_align + center_align);
 			}
 		}
 	}
@@ -1183,13 +1068,13 @@ void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned
 		if (type == wd_image)
 		{
 			//I->x++;
-			if (I->var["source"] != "" && gfx[I->var["source"]].t != NULL)
+			if (I->var[L"source"] != L"" && gfx[I->var[L"source"]].t != NULL)
 			{
-				SDL_RenderCopy(REND, gfx[I->var["source"]].t, NULL, &r);
+				SDL_RenderCopy(REND, gfx[I->var[L"source"]].t, NULL, &r);
 			}
-			else if (I->var["source"] != "None")
+			else if (I->var[L"source"] != L"None")
 			{
-				SDL_RenderCopy(REND, gfx["ui\\fuchsia-black"].t, NULL, &r);
+				SDL_RenderCopy(REND, gfx[L"ui\\fuchsia-black"].t, NULL, &r);
 			}
 			break;
 		}
@@ -1197,7 +1082,7 @@ void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned
 		{
 			p.x = I->rx;
 			p.y = I->ry;
-			draw_string(I->var["ind"], I->var["text"], I->var["color"], &p, Num(I->var["size"]), Num(I->var["opt"]));
+			draw_string(I->var[L"ind"], I->var[L"text"], I->var[L"color"], &p, Num(I->var[L"size"]), Num(I->var[L"opt"]));
 			break;
 		}
 		if (type == wd_text)
@@ -1205,19 +1090,19 @@ void draw_item(std::vector<Widget>::iterator I, const SDL_Rect r, const unsigned
 			p.x = I->rx;
 			p.y = I->ry;
 
-			switch (Num(I->var["opt"]) / 3)
+			switch (Num(I->var[L"opt"]) / 3)
 			{
 			case bottom_align / 3:
-				p.y -= Num(I->var["size"]) * (get_lines(I->var["text"], Num(I->var["line"])) - 1);
+				p.y -= Num(I->var[L"size"]) * (get_lines(I->var[L"text"], Num(I->var[L"line"])) - 1);
 				break;
 			case middle_align / 3:
-				p.y -= Num(I->var["size"]) * (get_lines(I->var["text"], Num(I->var["line"])) - 1) / 2;
+				p.y -= Num(I->var[L"size"]) * (get_lines(I->var[L"text"], Num(I->var[L"line"])) - 1) / 2;
 				break;
 			}
-			draw_line(I->var["ind"], I->var["text"], Num(I->var["line"]), I->var["color"], &p, Num(I->var["size"]), Num(I->var["opt"]));
+			draw_line(I->var[L"ind"], I->var[L"text"], Num(I->var[L"line"]), I->var[L"color"], &p, Num(I->var[L"size"]), Num(I->var[L"opt"]));
 			break;
 		}
-		SDL_RenderCopy(REND, gfx["ui\\black-white"].t, NULL, &r);
+		SDL_RenderCopy(REND, gfx[L"ui\\black-white"].t, NULL, &r);
 		break;
 	}
 }
@@ -1234,81 +1119,75 @@ void child_ui(size_t i, std::vector<Widget>::iterator I, SDL_Rect r)
 				J->rx = r.x + J->x;
 				J->ry = r.y + J->y;
 				set_rect(&r, J->rx, J->ry, J->w, J->h);
-				draw_item(J,r,J->type);
+				draw_item(J, r, J->type);
 				child_ui(j, J, r);
 			}
 		}
 	}
 }
-void ui()
+void draw_ui()
 {
-	SDL_Rect r;
-	SDL_Point p;
+	static SDL_Rect r;
+	static SDL_Point p;
 	r.x = 0;
 	p.y = 0;
-	while (!quit)
+
+	DRAW_LAST = DRAW_NOW;
+	DRAW_NOW = SDL_GetPerformanceCounter();
+
+	double TimeDelta = 60.0 * 100000.0 / (DRAW_NOW - DRAW_LAST);
+
+	draw(&r, &p);
+	gui.at(gui_key[L"fps_rend"]).var[L"text"] = Str((unsigned int)(TimeDelta + 0.5)) + L" / " + script[L"CON"];
+	//GUI REMOVE
+	for (bool go = true; go;)
 	{
-
-		DRAW_LAST = DRAW_NOW;
-		DRAW_NOW = SDL_GetPerformanceCounter();
-
-		double TimeDelta = 60.0 * 100000.0 / (DRAW_NOW - DRAW_LAST);
-
-		GUI_MUTX.lock();
-		draw(&r, &p);		
-		gui.at(gui_key["fps_rend"]).var["text"] = Str((unsigned int)(TimeDelta + 0.5));
-		//GUI REMOVE
-		for (bool go = true; go;)
+		go = false;
+		for (size_t i = 0; i < gui.size(); i++)
 		{
-			go = false;
-			for (size_t i = 0; i < gui.size(); i++)
+			auto I = (gui.begin() + i);
+			if (I->removing)
 			{
-				auto I = (gui.begin() + i);
-				if (I->removing)
-				{
-					gui_remove(i);
-					go = true;
-				}
+				gui_remove(i);
+				go = true;
 			}
 		}
-
-
-
-		//GUI DRAWING
-		{
-			auto I = gui.begin();
-			for (size_t i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
-			{
-				if (I->id == I->parent && I->enable)
-				{
-					I->rx = I->x;
-					I->ry = I->y;
-					set_rect(&r, I->rx, I->ry, I->w, I->h);
-					draw_item(I, r, I->type);
-					child_ui(i, I, r);
-				}
-
-			}
-		}
-		GUI_MUTX.unlock();
-
-		//for (bool go = true; go;)
-		//{
-		//	go = false;
-		//	for (unsigned i = 0; i < gui.size(); ++i)
-		//	{
-		//		auto I = (gui.begin() + i);
-		//		if (I->removing)
-		//		{
-		//			gui_remove(i);
-		//			go = true;
-		//		}
-
-		//	}
-		//}
-		SDL_RenderPresent(REND);
 	}
 
+
+
+	//GUI DRAWING
+	{
+		auto I = gui.begin();
+		for (size_t i = 0; i < gui.size() && I != gui.end(); ++i, ++I)
+		{
+			if (I->id == I->parent && I->enable)
+			{
+				I->rx = I->x;
+				I->ry = I->y;
+				set_rect(&r, I->rx, I->ry, I->w, I->h);
+				draw_item(I, r, I->type);
+				child_ui(i, I, r);
+			}
+
+		}
+	}
+
+	//for (bool go = true; go;)
+	//{
+	//	go = false;
+	//	for (unsigned i = 0; i < gui.size(); ++i)
+	//	{
+	//		auto I = (gui.begin() + i);
+	//		if (I->removing)
+	//		{
+	//			gui_remove(i);
+	//			go = true;
+	//		}
+
+	//	}
+	//}
+	SDL_RenderPresent(REND);
 }
 
 bool init()
@@ -1316,22 +1195,22 @@ bool init()
 	setlocale(LC_ALL, "");
 	std::ios_base::sync_with_stdio(true);
 	//SetConsoleOutputCP(65001);
-	
 
 
-	char curDir[1024];
-	_getcwd(curDir, 1024);
+
+	wchar_t curDir[1024];
+	_wgetcwd(curDir, 1024);
 	executeDir = curDir;
-	LOG_V("EXECUTE DIRECTORY", executeDir);
+	LOG_V(L"EXECUTE DIRECTORY", executeDir);
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
-		LOG_W("SDL_INIT Failed", SDL_GetError());
+		LOG_W(L"SDL_INIT Failed", conv.from_bytes(SDL_GetError()));
 		return false;
 	}
 	WNDW = SDL_CreateWindow("한국사겜", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, scr_w, scr_h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
 	if (WNDW == NULL)
 	{
-		LOG_W("WIN_INIT Failed", SDL_GetError());
+		LOG_W(L"WIN_INIT Failed", conv.from_bytes(SDL_GetError()));
 		return false;
 	}
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
@@ -1339,31 +1218,31 @@ bool init()
 	GLCN = SDL_GL_CreateContext(WNDW);
 	if (GLCN == NULL)
 	{
-		LOG_W("GLC_INIT Failed", SDL_GetError());
+		LOG_W(L"GLC_INIT Failed", conv.from_bytes(SDL_GetError()));
 		return false;
 	}
 
 	if (SDL_GL_SetSwapInterval(1) < 0)
 	{
-		LOG_W("CANT SET VSYNC");
+		LOG_W(L"CANT SET VSYNC");
 	}
 
 
 	if (Mix_OpenAudio(22050, AUDIO_S16SYS, 2, 640) < 0)
 	{
-		LOG_W("MIX_INIT Failed", Mix_GetError());
+		LOG_W(L"MIX_INIT Failed", conv.from_bytes(Mix_GetError()));
 		return false;
 	}
 	SURF = SDL_GetWindowSurface(WNDW);
 	REND = SDL_CreateRenderer(WNDW, -1, SDL_RENDERER_ACCELERATED);
 	if (REND == NULL)
 	{
-		LOG_W("RND_INIT Failed", SDL_GetError());
+		LOG_W(L"RND_INIT Failed", conv.from_bytes(SDL_GetError()));
 		return false;
 	}
 	if (TTF_Init() == -1)
 	{
-		LOG_W("TTF_INIT Failed", TTF_GetError());
+		LOG_W(L"TTF_INIT Failed", conv.from_bytes(TTF_GetError()));
 		return false;
 	}
 	init_event();
@@ -1373,15 +1252,15 @@ bool loadMedia()
 {
 	bool success = true;
 
-	read_folder(executeDir + "\\gfx","", read_gfx);
-	read_folder(executeDir + "\\tfx", "", read_tfx);
-	read_folder(executeDir + "\\ui", "", read_ui);
+	read_folder(executeDir + L"\\gfx", L"", read_gfx);
+	read_folder(executeDir + L"\\tfx", L"", read_tfx);
+	read_folder(executeDir + L"\\ui", L"", read_ui);
 	//read_folder(executeDir + "\\sfx\\music", "", read_sfx);
-	read_folder(executeDir + "\\define", "", read_define);
+	read_folder(executeDir + L"\\define", L"", read_define);
 	read_map();
-	read_folder(executeDir + "\\history\\province", "", read_prv);
-	read_folder(executeDir + "\\history\\nation", "", read_nat);
-	read_folder(executeDir + "\\history\\character", "", read_man);
+	read_folder(executeDir + L"\\history\\nation", L"", read_nat);
+	read_folder(executeDir + L"\\history\\province", L"", read_prv);
+	read_folder(executeDir + L"\\history\\character", L"", read_man);
 	return success;
 }
 void close()
@@ -1432,90 +1311,90 @@ void close()
 
 #ifdef DEBUG
 
-void LOG_A(std::string s)
+void LOG_A(std::wstring s)
 {
-	std::wcout << ESCAPE << L"[1;33m[Attention]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
+	std::wcout << ESCAPE << L"[1;33m[Attention]" << ESCAPE << L"[1;37m " << s << '\n';
 }
-void LOG_W(std::string s)
+void LOG_W(std::wstring s)
 {
-	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
+	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << s << '\n';
 }
-void LOG_H(std::string s)
+void LOG_H(std::wstring s)
 {
-	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
+	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << s << '\n';
 }
-void LOG_O(std::string s)
+void LOG_O(std::wstring s)
 {
-	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
+	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << s << '\n';
 }
-void LOG_V(std::string s)
+void LOG_V(std::wstring s)
 {
-	std::wcout << ESCAPE << L"[1;37m[OK]" << ESCAPE << L"[1;37m " << Utf16(s) << std::endl;
+	std::wcout << ESCAPE << L"[1;37m[OK]" << ESCAPE << L"[1;37m " << s << '\n';
 }
-void LOG_A(std::string s, std::string s2)
+void LOG_A(std::wstring s, std::wstring s2)
 {
-	std::wcout << ESCAPE << L"[1;33m[Info]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
+	std::wcout << ESCAPE << L"[1;33m[Info]" << ESCAPE << L"[1;37m " << s << " : " << s2 << '\n';
 }
-void LOG_W(std::string s, std::string s2)
+void LOG_W(std::wstring s, std::wstring s2)
 {
-	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
+	std::wcout << ESCAPE << L"[1;31m[Warning]" << ESCAPE << L"[1;37m " << s << " : " << s2 << '\n';
 }
-void LOG_H(std::string s, std::string s2)
+void LOG_H(std::wstring s, std::wstring s2)
 {
-	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
+	std::wcout << ESCAPE << L"[1;34m[Info]" << ESCAPE << L"[1;37m " << s << " : " << s2 << '\n';
 }
-void LOG_O(std::string s, std::string s2)
+void LOG_O(std::wstring s, std::wstring s2)
 {
-	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl;
+	std::wcout << ESCAPE << L"[1;32m[OK]" << ESCAPE << L"[1;37m " << s << " : " << s2 << '\n';
 }
-void LOG_V(std::string s, std::string s2)
+void LOG_V(std::wstring s, std::wstring s2)
 {
-	std::wcout << ESCAPE << L"[1;37m[VAR]" << ESCAPE << L"[1;37m " << Utf16(s) << " : " << Utf16(s2) << std::endl; 
+	std::wcout << ESCAPE << L"[1;37m[VAR]" << ESCAPE << L"[1;37m " << s << " : " << s2 << '\n';
 }
 void LOG_Stop()
 {
 	std::wcout << L"PRESS ANY KEY...";
-	std::wcin.ignore();
+	//std::wcin.ignore();
 	return;
 }
 #else
-void LOG_A(std::string s)
+void LOG_A(std::wstring s)
 {
 	logging << "[Attention] " << s << "\n";
 }
-void LOG_W(std::string s)
+void LOG_W(std::wstring s)
 {
-	logging << "[Warning] "  << s << "\n";
+	logging << "[Warning] " << s << "\n";
 }
-void LOG_H(std::string s)
+void LOG_H(std::wstring s)
 {
 	logging << "[Info] " << s << "\n";
 }
-void LOG_O(std::string s)
-{
-	logging << "[OK] "  << s << "\n";
-}
-void LOG_V(std::string s)
+void LOG_O(std::wstring s)
 {
 	logging << "[OK] " << s << "\n";
 }
-void LOG_A(std::string s, std::string s2)
+void LOG_V(std::wstring s)
+{
+	logging << "[OK] " << s << "\n";
+}
+void LOG_A(std::wstring s, std::wstring s2)
 {
 	logging << "[Info] " << s << " : " << s2 << "\n";
 }
-void LOG_W(std::string s, std::string s2)
+void LOG_W(std::wstring s, std::wstring s2)
 {
 	logging << "[Warning] " << s << " : " << s2 << "\n";
 }
-void LOG_H(std::string s, std::string s2)
+void LOG_H(std::wstring s, std::wstring s2)
 {
 	logging << "[Info] " << s << " : " << s2 << "\n";
 }
-void LOG_O(std::string s, std::string s2)
+void LOG_O(std::wstring s, std::wstring s2)
 {
 	logging << "[OK] " << s << " : " << s2 << "\n";
 }
-void LOG_V(std::string s, std::string s2)
+void LOG_V(std::wstring s, std::wstring s2)
 {
 	logging << "[VAR] " << s << " : " << s2 << "\n";
 }
@@ -1525,3 +1404,45 @@ void LOG_Stop()
 	return;
 }
 #endif
+
+int main(int argc, char* args[])
+{
+	SDL_SetMainReady();
+	srand((unsigned int)time(NULL));
+	system("color 01");
+
+	if (!init())
+	{
+		LOG_W(L"System Initialize Failed");
+	}
+	else
+	{
+		if (!loadMedia())
+		{
+			LOG_W(L"System Load Failed");
+		}
+		else
+		{
+			start();
+			LOG_O(L"GAME ON");
+			SDL_Event e;
+			SDL_StartTextInput();
+
+			//std::thread trd_ai(run_ai);
+
+			int tick = 0;
+			while (!quit)
+			{
+				++tick;
+				if (tick % 3 == 0) go_ai();
+				step(&e);
+				draw_ui();
+			}
+			SDL_StopTextInput();
+			LOG_O(L"GAME OFF");
+		}
+	}
+	close();
+	LOG_Stop();
+	return 0;
+}

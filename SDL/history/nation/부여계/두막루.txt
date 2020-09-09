@@ -1,3 +1,0 @@
-name = "두막루";
-title = "두막루";
-color = color & 91, 82, 11;

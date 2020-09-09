@@ -1,4 +1,0 @@
-select = 4;#양주
-name = "양주";
-CON = 신라;
-OWN = 신라;

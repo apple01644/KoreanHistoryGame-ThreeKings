@@ -1,3 +1,0 @@
-name = "신라";
-title = "신라";
-color = color & 248, 226, 035;

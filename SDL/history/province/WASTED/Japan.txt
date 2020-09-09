@@ -1,2 +1,0 @@
-select = 2;#Japan
-waste_land = true;

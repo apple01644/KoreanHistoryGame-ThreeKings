@@ -1,3 +1,0 @@
-name = "예";
-title = "예";
-color = color & 92, 62, 102;

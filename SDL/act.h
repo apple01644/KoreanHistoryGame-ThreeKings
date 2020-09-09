@@ -3,126 +3,142 @@
 
 void put_path(const unsigned int id, const size_t start, const size_t end)
 {
-	if (start == end)
+	static std::map<std::pair<size_t, size_t>, std::list<size_t>> pathes;
+	static std::vector<SpiderMap> spider_map = {};
+	if (start == end) return;
+
+	if (pathes.find({ start, end }) == pathes.end())
 	{
-		return;
+		spider_map.resize(prv.size());
+		size_t max = std::numeric_limits<size_t>::max();
+		for (auto& e : spider_map)
+		{
+			e.len = max;
+			e.nearest = max;
+			e.outted = false;
+		}
+
+		spider_map.at(end).len = 0;
+		spider_map.at(end).outted = true;
+		size_t i, j;
+		size_t limit = prv.size();
+		while (!spider_map.at(start).outted && limit > 0)
+		{
+			i = 0;
+			for (auto I = spider_map.begin(); I != spider_map.end(); ++I, ++i)
+			{
+				if (I->outted)
+				{
+					j = 0;
+					for (auto J = spider_map.begin(); J != spider_map.end(); ++J, ++j)
+					{
+						if (!J->outted && J->enable && map_connect[{i, j}] != 0)
+						{
+							if (J->len > map_connect[{i, j}] + I->len)
+							{
+								J->len = map_connect[{i, j}] + I->len;
+								J->nearest = i;
+							}
+						}
+					}
+				}
+			}
+			i = 0;
+			j = 0;
+			size_t syr = max;
+			for (auto I = spider_map.begin(); I != spider_map.end(); ++I, ++i)
+			{
+				if (!I->outted && I->enable && I->len < syr)
+				{
+					j = i;
+					syr = I->len;
+				}
+			}
+			spider_map.at(j).outted = true;
+			limit--;
+		}
+
+		std::list<size_t> path = {};
+		if (limit > 0)
+		{
+			i = start;
+			while (i != end)
+			{
+				path.push_back(i);
+				i = spider_map.at(i).nearest;
+			}
+			path.push_back(end);
+		}
+		pathes[{start, end}] = path;
 	}
 
 	man.at(id).com.clear();
-
-	size_t max = std::numeric_limits<size_t>::max();
-	for (auto I = prv.begin(); I != prv.end(); ++I)
-	{
-		I->len = max;
-		I->nearest = max;
-		I->outted = false;
-	}
-
-	prv.at(end).len = 0;
-	prv.at(end).outted = true;
-	size_t i, j;
-	size_t limit = prv.size();
-	while (!prv.at(start).outted && limit > 0)
-	{
-		i = 0;
-		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
-		{
-			if (I->outted)
-			{
-				j = 0;
-				for (auto J = prv.begin(); J != prv.end(); ++J, ++j)
-				{
-					if (!J->outted && J->enable && !J->waste_land && map_reg["map_conect" + Str(i) + "/" + Str(j)] != 0)
-					{
-						if (J->len > map_reg["map_conect" + Str(i) + "/" + Str(j)] + I->len)
-						{
-							J->len = map_reg["map_conect" + Str(i) + "/" + Str(j)] + I->len;
-							J->nearest = i;
-						}
-					}
-				}
-			}
-		}
-		i = 0;
-		j = 0;
-		size_t syr = max;
-		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
-		{
-			if (!I->outted && I->enable && I->len < syr)
-			{
-				j = i;
-				syr = I->len;
-			}
-		}
-		prv.at(j).outted = true;
-		limit--;
-	}
-
-	if (limit > 0)
-	{
-		i = start;
-		while (i != end)
-		{
-			man.at(id).com.push_back(i);
-			i = prv.at(i).nearest;
-		}
-		man.at(id).com.push_back(end);
-	}
+	for (auto flag : pathes.at({ start, end })) man.at(id).com.push_back(flag);
 }
 
-void get_len(std::vector<AiProvince> *ai_prv,const size_t start)
+const std::vector<SpiderMap> get_spider_map(const size_t start)
 {
-	size_t max = std::numeric_limits<size_t>::max();
-	for (auto I = ai_prv->begin(); I != ai_prv->end(); ++I)
-	{
-		I->len = max;
-		I->nearest = ai_prv->size();
-		I->outted = false;
-	}
+	static std::map<size_t, std::vector<SpiderMap>> map_list = {};
+	if (map_list.find(start) == map_list.end()) {
 
-	ai_prv->at(start).len = 0;
-	ai_prv->at(start).outted = true;
-	size_t i, j;
-	size_t limit = ai_prv->size();
-	while (limit > 0)
-	{
-		i = 0;
-		for (auto I = ai_prv->begin(); I != ai_prv->end(); ++I, ++i)
+		std::vector<SpiderMap> spider_map = {};
+		size_t max = std::numeric_limits<size_t>::max();
+		for (auto I = prv.begin(); I != prv.end(); ++I)
 		{
-			if (I->outted)
+			SpiderMap e = {};
+			e.len = max;
+			e.nearest = spider_map.size();
+			e.outted = false;
+			e.enable = !I->waste_land;
+			spider_map.push_back(e);
+		}
+
+		spider_map.at(start).len = 0;
+		spider_map.at(start).outted = true;
+		size_t i, j;
+		size_t limit = spider_map.size();
+		while (limit > 0)
+		{
+			i = 0;
+			for (auto I = spider_map.begin(); I != spider_map.end(); ++I, ++i)
 			{
-				j = 0;
-				for (auto J = ai_prv->begin(); J != ai_prv->end(); ++J, ++j)
+				if (I->outted)
 				{
-					if (!J->outted && J->enable && map_reg["map_conect" + Str(i) + "/" + Str(j)] != 0)
+					j = 0;
+					for (auto J = spider_map.begin(); J != spider_map.end(); ++J, ++j)
 					{
-						if (J->len > map_reg["map_conect" + Str(i) + "/" + Str(j)] + I->len)
+						if (!J->outted && J->enable && map_connect[{i, j}] != 0)
 						{
-							J->len = map_reg["map_conect" + Str(i) + "/" + Str(j)] + I->len;
-							J->nearest = i;
+							if (J->len > map_connect[{i, j}] + I->len)
+							{
+								J->len = map_connect[{i, j}] + I->len;
+								J->nearest = i;
+							}
 						}
 					}
 				}
 			}
-		}
-		i = 0;
-		j = 0;
-		size_t syr = max;
-		for (auto I = ai_prv->begin(); I != ai_prv->end(); ++I, ++i)
-		{
-			if (!I->outted && I->enable && I->len < syr)
+			i = 0;
+			j = 0;
+			size_t syr = max;
+			for (auto I = spider_map.begin(); I != spider_map.end(); ++I, ++i)
 			{
-				j = i;
-				syr = I->len;
+				if (!I->outted && I->enable && I->len < syr)
+				{
+					j = i;
+					syr = I->len;
+				}
 			}
+			if (j == 0)
+			{
+				break;
+			}
+			spider_map.at(j).outted = true;
+			limit--;
 		}
-		if (j == 0)
-		{
-			break;
-		}
-		ai_prv->at(j).outted = true;
-		limit--;
+		map_list[start] = spider_map;
 	}
+	return map_list.at(start);
 }
 
 void run_to_rest(const unsigned int id)
@@ -137,11 +153,11 @@ void run_to_rest(const unsigned int id)
 		{
 			sec = rand() % prv.size();
 
-			
 
-			if (Str(sec) != I.var["LOC"] && !prv.at(sec).waste_land && prv.at(sec).enable && I.var["CON"] == prv.at(sec).var["CON"] && prv.at(sec).var["CON"] == prv.at(sec).var["OWN"])
+
+			if (Str(sec) != I.var[L"LOC"] && !prv.at(sec).waste_land && !prv.at(sec).waste_land && I.var[L"CON"] == prv.at(sec).var[L"CON"] && prv.at(sec).var[L"CON"] == prv.at(sec).var[L"OWN"])
 			{
-				put_path(id, Num(I.var["LOC"]), sec);
+				put_path(id, Num(I.var[L"LOC"]), sec);
 				return;
 			}
 		}

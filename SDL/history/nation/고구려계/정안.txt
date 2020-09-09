@@ -1,3 +1,0 @@
-name = "정안";
-title = "정안";
-color = color & 110, 178, 0;

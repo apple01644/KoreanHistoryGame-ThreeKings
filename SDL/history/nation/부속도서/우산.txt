@@ -1,3 +1,0 @@
-name = "우산";
-title = "우산";
-color = color & 3, 28, 7;

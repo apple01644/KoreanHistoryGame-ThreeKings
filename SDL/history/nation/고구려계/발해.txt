@@ -1,3 +1,0 @@
-name = "발해";
-title = "발해";
-color = color & 169, 133, 237;

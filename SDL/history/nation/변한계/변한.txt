@@ -1,3 +1,0 @@
-name = "변한";
-title = "변한";
-color = color & 75, 150, 95;

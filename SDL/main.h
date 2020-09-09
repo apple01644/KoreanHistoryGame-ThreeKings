@@ -1,5 +1,6 @@
 #pragma once
 
+#include <codecvt>
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <SDL_image.h>
@@ -39,12 +40,15 @@
 #include <direct.h>
 
 #define DEBUG
-#define Str std::to_string
+#define Str std::to_wstring
 #define Num std::stoi
 #define Dmc std::stof
-#define _ITERATOR_DEBUG_LEVEL 2
 #pragma warning(disable:4100)
 #pragma execution_character_set("utf-8")
+
+typedef wchar_t wchar;
+
+
 
 ///////////////////////////
 //       VARIABLE        //
@@ -63,9 +67,11 @@ float scr_r = scr_h / 1080.0;
 
 extern const WCHAR ESCAPE = 0x1b;
 extern std::atomic<bool> quit = false;
-std::string executeDir;
+std::wstring executeDir;
 
-std::mutex GUI_MUTX;
+
+static std::wstring_convert<std::codecvt_utf8<wchar_t>> conv{};
+
 Uint32 STEP_NOW = 0;
 Uint32 STEP_LAST = 0;
 Uint32 TIME_STACK = 0;
@@ -92,16 +98,16 @@ void close();
 ///////////////////////////
 //         DEBUG         //
 ///////////////////////////
-void LOG_A(std::string);
-void LOG_W(std::string);
-void LOG_H(std::string);
-void LOG_O(std::string);
-void LOG_V(std::string);
-void LOG_A(std::string, std::string);
-void LOG_W(std::string, std::string);
-void LOG_H(std::string, std::string);
-void LOG_O(std::string, std::string);
-void LOG_V(std::string, std::string);
+void LOG_A(std::wstring);
+void LOG_W(std::wstring);
+void LOG_H(std::wstring);
+void LOG_O(std::wstring);
+void LOG_V(std::wstring);
+void LOG_A(std::wstring, std::wstring);
+void LOG_W(std::wstring, std::wstring);
+void LOG_H(std::wstring, std::wstring);
+void LOG_O(std::wstring, std::wstring);
+void LOG_V(std::wstring, std::wstring);
 void LOG_Stop();
 
 enum {
@@ -131,14 +137,15 @@ struct Tfx
 	TTF_Font* t;
 };
 
-std::unordered_map<std::string, SDL_Color> Color;
-std::unordered_map<std::string, Gfx> gfx;
-std::unordered_map<std::string, Tfx> tfx;
-std::unordered_map<std::string, Mix_Music*> sfx;
-std::unordered_map<std::string, size_t> gui_key;
-std::unordered_map<std::string, std::string> script;
-std::unordered_map<std::string, std::string> key;
-std::unordered_map<std::string, unsigned int> map_reg;
+std::unordered_map<std::wstring, SDL_Color> Color;
+std::unordered_map<std::wstring, Gfx> gfx;
+std::unordered_map<std::wstring, Tfx> tfx;
+std::unordered_map<std::wstring, Mix_Music*> sfx;
+std::unordered_map<std::wstring, size_t> gui_key;
+std::unordered_map<std::wstring, std::wstring> script;
+std::unordered_map<std::wstring, std::wstring> key;
+std::map<size_t, unsigned int> map_reg;
+std::map<std::pair<size_t, size_t>, unsigned int> map_connect;
 
 struct Arg_Mouse {
 	Sint32 x;
@@ -149,7 +156,7 @@ struct Arg_Mouse {
 typedef std::function<void(size_t)> Action_Step;
 typedef std::function<void(size_t, Arg_Mouse)> Action_mousedown;
 
-enum Event_type{
+enum Event_type {
 	ev_none,
 	ev_mousedown,
 	ev_step
@@ -167,7 +174,7 @@ struct Event
 	Action_mousedown mousedown;
 };
 
-std::unordered_map <std::string, Event> event_key;
+std::unordered_map <std::wstring, Event> event_key;
 
 enum {
 	wd_none,
@@ -190,13 +197,13 @@ public:
 	unsigned char type = 0;
 	bool enable = false;
 
-	std::unordered_map<std::string, std::string> var;
+	std::unordered_map<std::wstring, std::wstring> var;
 	EventHandler ev;
 
 	void remove();
-	void change_key(std::string s);
-	void init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s);
-	Widget(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s) {
+	void change_key(std::wstring s);
+	void init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::wstring s);
+	Widget(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::wstring s) {
 		init(X, Y, W, H, Type, s);
 		enable = true;
 	}
@@ -209,7 +216,7 @@ public:
 std::vector<Widget> gui;
 size_t focus;
 
-void Widget::init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::string s)
+void Widget::init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, std::wstring s)
 {
 	x = X;
 	y = Y;
@@ -219,13 +226,13 @@ void Widget::init(Sint32 X, Sint32 Y, Uint16 W, Uint16 H, unsigned char Type, st
 	id = gui.size();
 	parent = id;
 	gui_key[s] = id;
-	var["name"] = s;
+	var[L"name"] = s;
 }
-void Widget::change_key(std::string s) {
-	gui_key.erase(var["name"]);
-	var["name"] = s;
+void Widget::change_key(std::wstring s) {
+	gui_key.erase(var[L"name"]);
+	var[L"name"] = s;
 	gui_key[s] = id;
-	
+
 };
 void Widget::remove()
 {
@@ -237,6 +244,7 @@ struct ProvinceInfo {
 	unsigned int man;
 };
 struct Province {
+	size_t id = 0;
 	unsigned int x1 = 256;
 	unsigned int y1 = 256;
 	unsigned int x2 = 0;
@@ -246,25 +254,19 @@ struct Province {
 	float px = 0;
 	float py = 0;
 	unsigned int pnum = 0;
-
-	size_t len = std::numeric_limits<size_t>::max();
-	size_t nearest = std::numeric_limits<size_t>::max();
-	bool outted = false;
-
-	bool enable = false;
+	
 	bool waste_land = false;
 
-	SDL_Texture* t;
-	SDL_Texture* gt;
-	SDL_Texture* lt;
+	SDL_Texture* t = nullptr;;
+	SDL_Texture* gt = nullptr;;
+	SDL_Texture* lt = nullptr;;
 
 	ProvinceInfo pi;
+	std::wstring name = L"undefiend";
+	std::wstring CON = L"NAV";
+	std::wstring OWN = L"NAV";
 
-	std::unordered_map<std::string, std::string> var;
-	Province(){
-		var["CON"] = "NAV";
-		var["OWN"] = "NAV";
-	};
+	std::unordered_map<std::wstring, std::wstring> var;
 	~Province()
 	{
 		var.clear();
@@ -272,12 +274,15 @@ struct Province {
 };
 std::vector<Province> prv;
 
-
-struct AiProvince {
-	long attack = 0;
+struct SpiderMap {
 	size_t len = std::numeric_limits<size_t>::max();
 	size_t nearest = std::numeric_limits<size_t>::max();
 	bool outted = false;
+	bool enable = true;
+};
+
+struct AiProvince {
+	long attack = 0;
 	bool enable = false;
 };
 
@@ -293,27 +298,29 @@ struct Nation {
 	double pw = 0;
 	unsigned int pnum = 0;
 	unsigned int focus = ntf_attack;
-	std::unordered_map<std::string, std::string> var;
+	unsigned int total_unit = 0;
+	std::unordered_map<std::wstring, std::wstring> var;
 	~Nation()
 	{
 		var.clear();
 	};
 };
 
-std::unordered_map<std::string, Nation> nat;
+std::unordered_map<std::wstring, Nation> nat;
 
 struct Man {
-	std::unordered_map<std::string, std::string> var;
-	std::list<size_t> com;	
+	std::unordered_map<std::wstring, std::wstring> var;
+	std::list<size_t> com;
+
 	Man()
 	{
-		var["HP"] = "800";
-		var["LOC"] = "0";
-		var["power"] = "0";
-		var["HOME"] = "0";
-		var["live"] = "1";
-		var["CON"] = "NAV";
-		var["attack"] = Str(rand() % 4 + 3);
+		var[L"HP"] = L"800";
+		var[L"LOC"] = L"0";
+		var[L"power"] = L"0";
+		var[L"HOME"] = L"0";
+		var[L"live"] = L"1";
+		var[L"CON"] = L"NAV";
+		var[L"attack"] = Str(rand() % 4 + 3);
 	};
 	~Man()
 	{
@@ -327,7 +334,7 @@ std::unordered_map<unsigned int, Man> man;
 //       FUCNTIONAL      //
 ///////////////////////////
 
-typedef std::function<void(std::string, std::string)> fn_str2;
+typedef std::function<void(std::wstring, std::wstring)> fn_str2;
 
 std::ofstream logging("log.log");
 

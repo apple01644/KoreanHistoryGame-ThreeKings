@@ -1,3 +1,0 @@
-name = "옥저";
-title = "옥저";
-color = color & 171, 212, 244;

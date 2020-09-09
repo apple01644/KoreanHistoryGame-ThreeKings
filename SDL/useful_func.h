@@ -1,77 +1,11 @@
 #pragma once
 #include"action.h"
 
-#define Utf16 utf8_to_utf16
-std::wstring utf8_to_utf16(const std::string& utf8)
-{
-	std::vector<unsigned long> unicode;
-	size_t i = 0;
-
-	while (i < utf8.size())
-	{
-		unsigned long uni = 0;
-		size_t todo = 0;
-		unsigned char ch = utf8[i++];
-		if (ch <= 0x7F)
-		{
-			uni = ch;
-			todo = 0;
-		}
-		else if (ch <= 0xBF)
-		{
-		}
-		else if (ch <= 0xDF)
-		{
-			uni = ch & 0x1F;
-			todo = 1;
-		}
-		else if (ch <= 0xEF)
-		{
-			uni = ch & 0x0F;
-			todo = 2;
-		}
-		else if (ch <= 0xF7)
-		{
-			uni = ch & 0x07;
-			todo = 3;
-		}
-		else
-		{
-		}
-		for (size_t j = 0; j < todo; ++j)
-		{
-			if (i == utf8.size()) {}
-			ch = utf8[i++];
-			if (ch < 0x80 || ch > 0xBF) {}
-			uni <<= 6;
-			uni += ch & 0x3F;
-		}
-		if (uni >= 0xD800 && uni <= 0xDFFF) {}
-		if (uni > 0x10FFFF) {}
-		unicode.push_back(uni);
-	}
-	std::wstring utf16;
-	for (i = 0; i < unicode.size(); ++i)
-	{
-		unsigned long uni = unicode[i];
-		if (uni <= 0xFFFF)
-		{
-			utf16 += (wchar_t)uni;
-		}
-		else
-		{
-			uni -= 0x10000;
-			utf16 += (wchar_t)((uni >> 10) + 0xD800);
-			utf16 += (wchar_t)((uni & 0x3FF) + 0xDC00);
-		}
-	}
-	return utf16;
-}
-int get_lines(std::string s, int max_line)
+int get_lines(std::wstring s, int max_line)
 {
 	int lines = 0;
 	const size_t chr_len = s.length();
-	const char* chr = s.c_str();
+	const wchar* chr = s.c_str();
 	int chrs = 0, bias = 0;
 	for (int i = 0; i < chr_len;)
 	{
@@ -111,10 +45,10 @@ int get_lines(std::string s, int max_line)
 	}
 	return lines;
 }
-int get_chrs(std::string s)
+int get_chrs(std::wstring s)
 {
 	const size_t chr_len = s.length();
-	const char* chr = s.c_str();
+	const wchar* chr = s.c_str();
 	int chrs = 0, bias = 1;
 	for (int i = 0; i < chr_len;)
 	{
@@ -140,13 +74,15 @@ int get_chrs(std::string s)
 	return chrs;
 }
 
-void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p, unsigned int size, unsigned int opt)
+void draw_string(std::wstring ind, std::wstring ws, std::wstring color, SDL_Point* p, unsigned int size, unsigned int opt)
 {
+	std::string s = conv.to_bytes(ws);
 	if (s.length() == 0 || size == 0)
 	{
 		return;
 	}
-	
+
+
 	SDL_Surface* surf = TTF_RenderUTF8_Solid(tfx[ind].t, s.c_str(), Color[color]);
 	SDL_Texture* t = SDL_CreateTextureFromSurface(REND, surf);
 
@@ -157,7 +93,7 @@ void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p
 	r.w = surf->w * size / 72;
 	r.h = surf->h * size / 72;
 
-	
+
 	{
 		switch (opt % 3)
 		{
@@ -184,11 +120,11 @@ void draw_string(std::string ind, std::string s, std::string color, SDL_Point* p
 	SDL_DestroyTexture(t);
 
 }
-void draw_line(std::string ind, std::string s, unsigned int max_line, std::string color, SDL_Point* p, unsigned int size, unsigned int opt)
+void draw_line(std::wstring ind, std::wstring s, unsigned int max_line, std::wstring color, SDL_Point* p, unsigned int size, unsigned int opt)
 {
 	unsigned int lines = 0;
 	const size_t chr_len = s.length();
-	const char* chr = s.c_str();
+	const wchar* chr = s.c_str();
 	unsigned int i, chrs = 0, bias = 0, st = 0;
 	for (i = 0; i < chr_len;)
 	{
@@ -308,11 +244,11 @@ void gui_remove(const size_t id)
 			}
 		}
 		gui.at(a).id -= 1;
-		gui_key[gui.at(a).var["name"]] -= 1;
+		gui_key[gui.at(a).var[L"name"]] -= 1;
 	}
 }
 
-std::string Var(std::string s) {
+std::wstring Var(std::wstring s) {
 	if (*s.begin() == '"' && *s.rbegin() == '"')
 	{
 		return s.substr(1, s.size() - 2);
@@ -320,7 +256,7 @@ std::string Var(std::string s) {
 	return s;
 }
 
-void incode_define(std::string s)
+void incode_define(std::wstring s)
 {
 	bool str = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
@@ -339,11 +275,11 @@ void incode_define(std::string s)
 	}
 	s.erase(std::remove(s.begin(), s.end(), '\a'), s.end());
 
-	std::string s1 = "";
-	std::string s2 = "";
-	std::string S = "";
-	std::vector <std::string> scope;
-	std::string name = "";
+	std::wstring s1 = L"";
+	std::wstring s2 = L"";
+	std::wstring S = L"";
+	std::vector <std::wstring> scope;
+	std::wstring name = L"";
 	unsigned int begin = 0;
 
 	for (int i = 0; i < s.size(); ++i)
@@ -361,8 +297,8 @@ void incode_define(std::string s)
 			{
 				if (S[a] == '=')
 				{
-					LOG_V("script["+ name + "." + S.substr(0, a) +"]", S.substr(a + 1));
-					script[name + "." + S.substr(0, a)] = S.substr(a + 1);
+					LOG_V(L"script[L" + name + L"." + S.substr(0, a) + L"]", S.substr(a + 1));
+					script[name + L"." + S.substr(0, a)] = S.substr(a + 1);
 					break;
 				}
 			}
@@ -370,10 +306,10 @@ void incode_define(std::string s)
 			scope.pop_back();
 			continue;
 		}
-		name = "";
+		name = L"";
 		for (int a = 0; a < scope.size(); ++a)
 		{
-			name += "." + scope.at(a);
+			name += L"." + scope.at(a);
 		}
 
 		if (s[i] == '[')
@@ -386,18 +322,18 @@ void incode_define(std::string s)
 			{
 				if (s[i] == ',')
 				{
-					LOG_V("script["+ name + s1 + "[" + Str(index) + "]" +"]", s2);
-					script[name + s1 + "[" + Str(index) + "]"] = s2;
+					LOG_V(L"script[L" + name + s1 + L"[L" + Str(index) + L"]" + L"]", s2);
+					script[name + s1 + L"[L" + Str(index) + L"]"] = s2;
 					index++;
-					s2 = "";
+					s2 = L"";
 				}
 				else if (s[i + 1] == ']')
 				{
 					s2 += s[i];
-					LOG_V("script[" + name + s1 + "[" + Str(index) + "]" + "]", s2);
-					script[name + s1 + "[" + Str(index) + "]"] = s2;
+					LOG_V(L"script[L" + name + s1 + L"[L" + Str(index) + L"]" + L"]", s2);
+					script[name + s1 + L"[L" + Str(index) + L"]"] = s2;
 					index++;
-					s2 = "";
+					s2 = L"";
 				}
 				else
 				{
@@ -410,33 +346,33 @@ void incode_define(std::string s)
 		if (s[i] == ',')
 		{
 			S = s.substr(begin, i - begin);
-			
+
 			for (int a = 0; a < S.size(); ++a)
 			{
 				if (S[a] == '=')
 				{
-					LOG_V("script[" + name + "." + S.substr(0, a) +"]", S.substr(a + 1));
-					script[name + "." + S.substr(0, a)] = S.substr(a + 1);
+					LOG_V(L"script[L" + name + L"." + S.substr(0, a) + L"]", S.substr(a + 1));
+					script[name + L"." + S.substr(0, a)] = S.substr(a + 1);
 					break;
 				}
 			}
-			
+
 			begin = i + 1;
 			continue;
 		}
 		if (s[i] == '=' && name.empty())
 		{
-			LOG_V("script[" + s.substr(0, i) + "]", s.substr(i + 1));
+			LOG_V(L"script[L" + s.substr(0, i) + L"]", s.substr(i + 1));
 			script[s.substr(0, i)] = s.substr(i + 1);
 			continue;
 		}
 	}
 }
 
-void incode_prov(std::string s)
+void incode_prov(std::wstring s)
 {
-	std::string s1 = "";
-	std::string s2 = "";
+	std::wstring s1 = L"";
+	std::wstring s2 = L"";
 	bool str = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
@@ -460,46 +396,47 @@ void incode_prov(std::string s)
 			s2 = s.substr(0, i);
 			s1 = s.substr(i + 1);
 			int k = 0;
-			key["argc"] = "0";
-			key["func"] == "";
+			key[L"argc"] = L"0";
+			key[L"func"] = L"";
 			for (unsigned int j = 0; j < s1.size(); j++)
 			{
 				if (s1.at(j) == '&')
 				{
-					key["func"] = s1.substr(k, j - k);
+					key[L"func"] = s1.substr(k, j - k);
 					k = j + 1;
 				}
 				if (s1.at(j) == ',' || j == s1.size() - 1)
 				{
 					if (j == s1.size() - 1)
 					{
-						key["argv[" + key["argc"] + "]"] = s1.substr(k);
+						key[L"argv[" + key[L"argc"] + L"]"] = s1.substr(k);
 					}
 					else
 					{
-						key["argv[" + key["argc"] + "]"] = s1.substr(k, j - k);
+						key[L"argv[" + key[L"argc"] + L"]"] = s1.substr(k, j - k);
 						k = j + 1;
 					}
-					key["argc"] = Str(Num(key["argc"]) + 1);
+					key[L"argc"] = Str(Num(key[L"argc"]) + 1);
 				}
 			}
 			while (Num(s2) + 1 > prv.size())
 			{
 				Province prov;
+				prov.id = prv.size();
 				prv.push_back(prov);
 			}
-			LOG_O("Province Color Defined", s2);
-			if (key["func"] == "color")
+			LOG_O(L"Province Color Defined", s2);
+			if (key[L"func"] == L"color")
 			{
-				prv.at(Num(s2)).c = color(Num(key["argv[0]"]), Num(key["argv[1]"]), Num(key["argv[2]"]));
+				prv.at(Num(s2)).c = color(Num(key[L"argv[0]"]), Num(key[L"argv[1]"]), Num(key[L"argv[2]"]));
 			}
 		}
 	}
 }
-void incode_prv(unsigned int *sec, std::string s)
+void incode_prv(unsigned int& sec, std::wstring s)
 {
-	std::string s1 = "";
-	std::string s2 = "";
+	std::wstring s1 = L"";
+	std::wstring s2 = L"";
 	bool str = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
@@ -522,31 +459,46 @@ void incode_prv(unsigned int *sec, std::string s)
 		{
 			s2 = s.substr(0, i);
 			s1 = s.substr(i + 1);
-			if (s2 == "select")
+			if (s2 == L"select")
 			{
-				*sec = Num(s1);
+				sec = Num(s1);				
 				continue;
 			}
-			if (s2 == "waste_land")
+			if (s2 == L"waste_land")
 			{
-				if (s1 == "false")
+				if (sec == -1) continue;
+				if (s1 == L"false")
 				{
-					prv.at(*sec).waste_land = false;
+					prv.at(sec).waste_land = false;
 				}
-				else if (s1 == "true")
+				else if (s1 == L"true")
 				{
-					prv.at(*sec).waste_land = true;
+					prv.at(sec).waste_land = true;
 				}
 				continue;
 			}
-			prv.at(*sec).var[s2] = s1;
+			if (s2 == L"name") {
+				prv.at(sec).name = s1;
+				continue;
+			}
+			if (s2 == L"OWN") {
+				if (nat.find(s1) == nat.end()) throw;
+				prv.at(sec).OWN = s1;
+				continue;
+			}
+			if (s2 == L"CON") {
+				if (nat.find(s1) == nat.end()) throw;
+				prv.at(sec).CON = s1;
+				continue;
+			}
+			prv.at(sec).var[s2] = s1;
 		}
 	}
 }
-void incode_nat(std::string *sec, std::string s)
+void incode_nat(std::wstring *sec, std::wstring s)
 {
-	std::string s1 = "";
-	std::string s2 = "";
+	std::wstring s1 = L"";
+	std::wstring s2 = L"";
 	bool str = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
@@ -569,57 +521,57 @@ void incode_nat(std::string *sec, std::string s)
 		{
 			s2 = s.substr(0, i);
 			s1 = s.substr(i + 1);
-			
-			
-			key["argc"] = "0";
-			key["func"] = "";
+
+
+			key[L"argc"] = L"0";
+			key[L"func"] = L"";
 			unsigned int k = 0;
 			for (unsigned int j = 0; j < s1.size(); j++)
 			{
 				if (s1.at(j) == '&')
 				{
-					key["func"] = s1.substr(k, j - k);
+					key[L"func"] = s1.substr(k, j - k);
 					k = j + 1;
 				}
 				if (s1.at(j) == ',' || j == s1.size() - 1)
 				{
 					if (j == s1.size() - 1)
 					{
-						key["argv[" + key["argc"] + "]"] = s1.substr(k);
+						key[L"argv[" + key[L"argc"] + L"]"] = s1.substr(k);
 					}
 					else
 					{
-						key["argv[" + key["argc"] + "]"] = s1.substr(k, j - k);
+						key[L"argv[" + key[L"argc"] + L"]"] = s1.substr(k, j - k);
 						k = j + 1;
 					}
-					key["argc"] = Str(Num(key["argc"]) + 1);
+					key[L"argc"] = Str(Num(key[L"argc"]) + 1);
 				}
 			}
-			if (key["func"] == "color")
+			if (key[L"func"] == L"color")
 			{
-				s1 = Str(color(Num(key["argv[0]"]), Num(key["argv[1]"]), Num(key["argv[2]"])));
+				s1 = Str(color(Num(key[L"argv[0]"]), Num(key[L"argv[1]"]), Num(key[L"argv[2]"])));
 			}
 
-			if (s2 == "name")
+			if (s2 == L"name")
 			{
 				Nation natn;
 				nat[s1] = natn;
 				*sec = s1;
 				break;
 			}
-			if (s2 == "color")
+			if (s2 == L"color")
 			{
 				nat[*sec].c = Num(s1);
 				break;
 			}
 			nat[*sec].var[s2] = s1;
-			
+
 		}
 	}
 }
-void incode_ui(Widget* wd_p, std::string s1, std::string s2)
+void incode_ui(Widget* wd_p, std::wstring s1, std::wstring s2)
 {
-	if (s1 == "x")
+	if (s1 == L"x")
 	{
 		wd_p->x = Num(Var(s2));
 		if (wd_p->x < 0)
@@ -628,7 +580,7 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 		}
 		return;
 	}
-	if (s1 == "y")
+	if (s1 == L"y")
 	{
 		wd_p->y = Num(Var(s2));
 		if (wd_p->y < 0)
@@ -637,63 +589,63 @@ void incode_ui(Widget* wd_p, std::string s1, std::string s2)
 		}
 		return;
 	}
-	if (s1 == "w")
+	if (s1 == L"w")
 	{
 		wd_p->w = (Uint16)Num(Var(s2));
 		return;
 	}
-	if (s1 == "h")
+	if (s1 == L"h")
 	{
 		wd_p->h = (Uint16)Num(Var(s2));
 		return;
 	}
-	if (s1 == "id")
+	if (s1 == L"id")
 	{
 		wd_p->change_key(Var(s2));
 		return;
 	}
-	if (s1 == "enable")
+	if (s1 == L"enable")
 	{
-		if (s2 == "true")
+		if (s2 == L"true")
 		{
 			wd_p->enable = true;
 		}
-		if (s2 == "false")
+		if (s2 == L"false")
 		{
 			wd_p->enable = false;
-		}		
+		}
 		return;
 	}
-	if (s1 == "mousedown")
+	if (s1 == L"mousedown")
 	{
 		s2 = Var(s2);
 		if (event_key.at(s2).type != ev_mousedown)
 		{
-			LOG_W("UI id-" + wd_p->var.at("name"), "Incorrect Eventtype(mousedown)");
+			LOG_W(L"UI id-" + wd_p->var.at(L"name"), L"Incorrect Eventtype(mousedown)");
 			return;
 		}
-		LOG_O("UI id-" + wd_p->var.at("name"), "Correct Eventtype(mousedown)");
+		LOG_O(L"UI id-" + wd_p->var.at(L"name"), L"Correct Eventtype(mousedown)");
 		wd_p->ev.Event_mousedown = event_key.at(s2).mousedown;
 		return;
 	}
-	if (s1 == "step")
+	if (s1 == L"step")
 	{
 		s2 = Var(s2);
 		if (event_key.at(s2).type != ev_step)
 		{
-			LOG_W("UI id-" + wd_p->var.at("name"), "Incorrect Eventtype(step)");
+			LOG_W(L"UI id-" + wd_p->var.at(L"name"), L"Incorrect Eventtype(step)");
 			return;
 		}
-		LOG_O("UI id-" + wd_p->var.at("name"), "Correct Eventtype(step)");
+		LOG_O(L"UI id-" + wd_p->var.at(L"name"), L"Correct Eventtype(step)");
 		wd_p->ev.Event_step = event_key.at(s2).step;
 		return;
 	}
 	wd_p->var[s1] = Var(s2);
 }
-void incode_man(unsigned int *sec, std::string s)
+void incode_man(unsigned int *sec, std::wstring s)
 {
-	std::string s1 = "";
-	std::string s2 = "";
+	std::wstring s1 = L"";
+	std::wstring s2 = L"";
 	bool str = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
@@ -716,7 +668,7 @@ void incode_man(unsigned int *sec, std::string s)
 		{
 			s2 = s.substr(0, i);
 			s1 = s.substr(i + 1);
-			if (s2 == "select")
+			if (s2 == L"select")
 			{
 				*sec = Num(s1);
 				man[*sec] = Man();
@@ -727,9 +679,9 @@ void incode_man(unsigned int *sec, std::string s)
 	}
 }
 
-void read_as_define(std::string s)
+void read_as_define(std::wstring s)
 {
-	std::string s2;
+	std::wstring s2;
 	auto J = s.begin();
 	bool comment = false;
 	for (auto I = s.begin(); I != s.end(); ++I)
@@ -754,9 +706,9 @@ void read_as_define(std::string s)
 		}
 	}
 }
-void read_as_prov(std::string s)
+void read_as_prov(std::wstring s)
 {
-	std::string s2;
+	std::wstring s2;
 	auto J = s.begin();
 	bool comment = false;
 	bool long_comment = false;
@@ -774,7 +726,7 @@ void read_as_prov(std::string s)
 			}
 			continue;
 		}
-		if (comment )
+		if (comment)
 		{
 			if (*I == '\n')
 			{
@@ -802,17 +754,17 @@ void read_as_prov(std::string s)
 			comment = true;
 			continue;
 		}
-		
+
 	}
-}	
-void read_as_prv(std::string s)
+}
+void read_as_prv(std::wstring s)
 {
-	std::string s2;
+	std::wstring s2;
 	auto J = s.begin();
 	bool comment = false;
 	bool long_comment = false;
+	unsigned int sec = -1;
 	auto P = prv.end();
-	unsigned int sec = (unsigned int)prv.size();
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
 		if (long_comment)
@@ -845,7 +797,7 @@ void read_as_prv(std::string s)
 		}
 		if (*I == ';')
 		{
-			incode_prv(&sec, s2.assign(J, I));
+			incode_prv(sec, s2.assign(J, I));
 			J = I + 1;
 			continue;
 		}
@@ -856,14 +808,15 @@ void read_as_prv(std::string s)
 		}
 
 	}
+	std::wcout << prv.at(sec).OWN << " : " << prv.at(sec).CON;
 }
-void read_as_nat(std::string s)
+void read_as_nat(std::wstring s)
 {
-	std::string s2;
+	std::wstring s2;
 	auto J = s.begin();
 	bool comment = false;
 	auto P = prv.end();
-	std::string sec = "NAV";
+	std::wstring sec = L"NAV";
 	for (auto I = s.begin(); I != s.end(); ++I)
 	{
 		if (comment)
@@ -889,11 +842,11 @@ void read_as_nat(std::string s)
 
 	}
 }
-void read_as_ui(std::string s)
+void read_as_ui(std::wstring s)
 {
-	std::string s2;
-	std::string s3;
-	std::vector<std::string> scope;
+	std::wstring s2;
+	std::wstring s3;
+	std::vector<std::wstring> scope;
 	unsigned int begin = 0;
 	bool comment = false;
 
@@ -941,14 +894,14 @@ void read_as_ui(std::string s)
 						}
 						else
 						{
-							LOG_W("UI PARENT ERROR!");
+							LOG_W(L"UI PARENT ERROR!");
 							quit = true;
 						}
 					}
 					else
 					{
-						Widget wd(0,0,20,20,wd_none,Str(gui.size()));
-						
+						Widget wd(0, 0, 20, 20, wd_none, Str(gui.size()));
+
 						begin = 0;
 						for (unsigned int j = 0; j < s2.size(); ++j)
 						{
@@ -983,30 +936,30 @@ void read_as_ui(std::string s)
 								if (begin == 0)
 								{
 									do {
-										if (s3 == "image")
+										if (s3 == L"image")
 										{
 											wd.type = wd_image;
 											break;
 										}
-										if (s3 == "label")
+										if (s3 == L"label")
 										{
 											wd.type = wd_label;
-											wd.var["ind"] = "default";
-											wd.var["size"] = "40";
-											wd.var["opt"] = "0";
-											wd.var["color"] = "black";
-											wd.var["text"] = "default";
+											wd.var[L"ind"] = L"default";
+											wd.var[L"size"] = L"40";
+											wd.var[L"opt"] = L"0";
+											wd.var[L"color"] = L"black";
+											wd.var[L"text"] = L"default";
 											break;
 										}
-										if (s3 == "text")
+										if (s3 == L"text")
 										{
 											wd.type = wd_text;
-											wd.var["ind"] = "default";
-											wd.var["size"] = "40";
-											wd.var["line"] = "0";
-											wd.var["opt"] = "0";
-											wd.var["color"] = "black";
-											wd.var["text"] = "default";
+											wd.var[L"ind"] = L"default";
+											wd.var[L"size"] = L"40";
+											wd.var[L"line"] = L"0";
+											wd.var[L"opt"] = L"0";
+											wd.var[L"color"] = L"black";
+											wd.var[L"text"] = L"default";
 											break;
 										}
 									} while (false);
@@ -1026,7 +979,7 @@ void read_as_ui(std::string s)
 								continue;
 							}
 						}
-							
+
 						if (scope.rbegin() != scope.rend())
 						{
 							wd.parent = gui.at(gui_key[*scope.rbegin()]).id;
@@ -1034,9 +987,9 @@ void read_as_ui(std::string s)
 
 						if (*s2.rbegin() != '/')
 						{
-							scope.push_back(wd.var["name"]);
+							scope.push_back(wd.var[L"name"]);
 						}
-						LOG_O("UI CREATED SUCCESSFULLY", wd.var["name"]);
+						LOG_O(L"UI CREATED SUCCESSFULLY", wd.var[L"name"]);
 						gui.push_back(wd);
 
 					}
@@ -1045,7 +998,7 @@ void read_as_ui(std::string s)
 				}
 				if (i == s.size())
 				{
-					LOG_W("UI SYNTAX ERROR","Can't find Closed Bracket");
+					LOG_W(L"UI SYNTAX ERROR", L"Can't find Closed Bracket");
 					quit = true;
 					break;
 				}
@@ -1054,13 +1007,13 @@ void read_as_ui(std::string s)
 	}
 	if (comment)
 	{
-		LOG_W("UI Syntax Error","Cant Find EOF");
+		LOG_W(L"UI Syntax Error", L"Cant Find EOF");
 		quit = true;
 	}
 }
-void read_as_man(std::string s)
+void read_as_man(std::wstring s)
 {
-	std::string s2;
+	std::wstring s2;
 	auto J = s.begin();
 	bool comment = false;
 	bool long_comment = false;
@@ -1111,134 +1064,132 @@ void read_as_man(std::string s)
 	}
 }
 
-void read_gfx(const std::string path, const std::string tag)
+void read_gfx(const std::wstring path, const std::wstring tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = tag + path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+		std::wstring name = tag + path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
 
-		gfx[name].s = IMG_Load(path.c_str());
-		SDL_SetColorKey(gfx[name].s, SDL_TRUE, color(255,0,255));
+		gfx[name].s = IMG_Load(conv.to_bytes(path).c_str());
+		SDL_SetColorKey(gfx[name].s, SDL_TRUE, color(255, 0, 255));
 		if (gfx[name].s == NULL)
 		{
-			LOG_W("FAIL TO SURFACE", IMG_GetError());
+			LOG_W(L"FAIL TO SURFACE", conv.from_bytes(IMG_GetError()));
 		}
 		else
 		{
 			gfx[name].t = SDL_CreateTextureFromSurface(REND, gfx[name].s);
 			if (gfx[name].t == NULL)
 			{
-				LOG_W("SURFACE TO TEXTURE", path);
+				LOG_W(L"SURFACE TO TEXTURE", path);
 			}
 			else
 			{
-				LOG_O("SUCCESS READ IMAGE FILE(" + name + ")", path);
+				LOG_O(L"SUCCESS READ IMAGE FILE(L" + name + L")", path);
 			}
 		}
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
-void read_sfx(const std::string path, const std::string tag)
+void read_sfx(const std::wstring path, const std::wstring tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
-		sfx[name] = Mix_LoadMUS(path.c_str());
+		std::wstring name = path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
+		sfx[name] = Mix_LoadMUS(conv.to_bytes(path).c_str());
 		if (sfx[name] == NULL)
 		{
-			LOG_W("FAIL TO SOUND", path);
+			LOG_W(L"FAIL TO SOUND", path);
 			quit = true;
 		}
 		else
 		{
-			LOG_O("SUCCESS READ SOUND FILE", path);
+			LOG_O(L"SUCCESS READ SOUND FILE", path);
 		}
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
-void read_tfx(const std::string path, const std::string tag)
+void read_tfx(const std::wstring path, const std::wstring tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = tag + path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+		std::wstring name = tag + path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
 
-		tfx[name].t = TTF_OpenFont(path.c_str(), 144);
+		tfx[name].t = TTF_OpenFont(conv.to_bytes(path).c_str(), 144);
 
 		if (tfx[name].t == NULL)
 		{
-			LOG_W("FAIL TO FONT", path);
+			LOG_W(L"FAIL TO FONT", path);
 		}
 		else
 		{
-			LOG_O("SUCCESS READ FONT FILE(" + name + ")", path);
+			LOG_O(L"SUCCESS READ FONT FILE(L" + name + L")", path);
 		}
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
 
-void read_ui(const std::string path,const std::string tag)
+void read_ui(const std::wstring path, const std::wstring tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+		std::wstring name = path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
 
-		std::ifstream wif(Utf16(path));
-		wif.imbue(std::locale(std::locale::empty()));
-		std::stringstream wss;
-		wss << wif.rdbuf();
-		read_as_ui(wss.str());
-		LOG_O("SUCCESS READ UI FILE", path);
+		std::ifstream ifs(path);
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		read_as_ui(conv.from_bytes(ss.str()));
+		LOG_O(L"SUCCESS READ UI FILE", path);
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
-void read_define(const std::string path, const std::string tag)
+void read_define(const std::wstring path, const std::wstring tag)
 {
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
-		
-		std::ifstream wif(Utf16(path));
-		wif.imbue(std::locale(std::locale::empty()));
-		std::stringstream wss;
-		wss << wif.rdbuf();
-		read_as_define(wss.str());
-		
-		LOG_O("SUCCESS READ DEFINE FILE", path);
+		std::wstring name = path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
+
+		std::ifstream ifs(path);
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		read_as_define(conv.from_bytes(ss.str()));
+
+		LOG_O(L"SUCCESS READ DEFINE FILE", path);
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
 
- void read_folder(const std::string path, const std::string tag, const fn_str2 fn)
+void read_folder(const std::wstring path, const std::wstring tag, const fn_str2 fn)
 {
 	for (auto p : std::experimental::filesystem::directory_iterator(path))
 	{
 		if (std::experimental::filesystem::is_directory(p))
 		{
-			read_folder(p.path().generic_string(), tag + p.path().generic_u8string().substr(path.size() + 1) + "\\", fn);
+			read_folder(p.path().generic_wstring(), tag + p.path().generic_wstring().substr(path.size() + 1) + L"\\", fn);
 			continue;
 		}
 
-		fn(p.path().generic_u8string(), tag);
+		fn(p.path().generic_wstring(), tag);
 	}
 
 }
@@ -1246,28 +1197,27 @@ void read_define(const std::string path, const std::string tag)
 void read_map()
 {
 	{
-		std::string path = executeDir + "\\map\\prov.txt";
-		if (path.find_last_of(".") != std::string::npos && path.find_last_of("\\") != std::string::npos)
+		std::wstring path = executeDir + L"\\map\\prov.txt";
+		if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"\\") != std::wstring::npos)
 		{
-			std::string name = path.substr(path.find_last_of("\\") + 1, path.find_last_of(".") - path.find_last_of("\\") - 1);
+			std::wstring name = path.substr(path.find_last_of(L"\\") + 1, path.find_last_of(L".") - path.find_last_of(L"\\") - 1);
 
-			std::ifstream wif(path);
-			wif.imbue(std::locale(std::locale::empty(), new std::codecvt_utf8<char>));
-			std::stringstream wss;
-			wss << wif.rdbuf();
-			read_as_prov(wss.str());
-			LOG_O("SUCCESS READ MAP FILE", path);
+			std::ifstream ifs(path);
+			std::stringstream ss;
+			ss << ifs.rdbuf();
+			read_as_prov(conv.from_bytes(ss.str()));
+			LOG_O(L"SUCCESS READ MAP FILE", path);
 		}
 		else
 		{
-			LOG_W("FILE NAME ERROR", path);
+			LOG_W(L"FILE NAME ERROR", path);
 			quit = true;
 		}
 	}
 
-	SDL_Surface* map = IMG_Load((executeDir + "\\" + "map\\prv.bmp").c_str());
-	SDL_Surface* geo = IMG_Load((executeDir + "\\" + "map\\geo.bmp").c_str());
-	
+	SDL_Surface* map = IMG_Load(conv.to_bytes(executeDir + L"\\" + L"map\\prv.bmp").c_str());
+	SDL_Surface* geo = IMG_Load(conv.to_bytes(executeDir + L"\\" + L"map\\geo.bmp").c_str());
+
 	map_w = map->w;
 	map_h = map->h;
 	unsigned char* pixels = (unsigned char*)map->pixels;
@@ -1283,7 +1233,7 @@ void read_map()
 	{
 		for (unsigned int b = 0; b < map_h; ++b)
 		{
-			map_reg[Str(a) + ":" + Str(b)] = 0;
+			map_reg[a + map_w * b] = 0;
 			for (auto I = prv.begin(); I != prv.end(); ++I)
 			{
 				if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
@@ -1304,6 +1254,7 @@ void read_map()
 					{
 						I->y2 = b;
 					}
+					break;
 				}
 			}
 		}
@@ -1314,14 +1265,13 @@ void read_map()
 		{
 			if (I->x1 <= I->x2 &&  I->y1 <= I->y2)
 			{
-				I->enable = true;
 				for (unsigned int a = I->x1; a <= I->x2 + 1; ++a)
 				{
 					for (unsigned int b = I->y1; b <= I->y2 + 1; ++b)
 					{
 						if (color(pixels[3 * (b * map_w + a) + 2], pixels[3 * (b * map_w + a) + 1], pixels[3 * (b * map_w + a)]) == I->c)
 						{
-							map_reg[Str(a) + ":" + Str(b)] = i;
+							map_reg[a + map_w * b] = i;
 						}
 					}
 				}
@@ -1330,7 +1280,7 @@ void read_map()
 		i = 0;
 		for (auto I = prv.begin(); I != prv.end(); ++I, ++i)
 		{
-			if (I->x1 <= I->x2 &&  I->y1 <= I->y2 && I->enable)
+			if (I->x1 <= I->x2 &&  I->y1 <= I->y2 && !I->waste_land)
 			{
 				SDL_Surface* prov = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
 				SDL_Surface* geogrp = SDL_CreateRGBSurfaceWithFormat(0, I->x2 - I->x1 + 1, I->y2 - I->y1 + 1, 24, SDL_PIXELFORMAT_BGR888);
@@ -1353,7 +1303,7 @@ void read_map()
 					{
 						c = a + I->x1;
 						d = b + I->y1;
-						if (map_reg[Str(c) + ":" + Str(d)] == i)
+						if (map_reg[c + map_w * d] == i)
 						{
 							I->px = (float)((1.0 * I->px * I->pnum + a) / (I->pnum + 1));
 							I->py = (float)((1.0 * I->py * I->pnum + b) / (I->pnum + 1));
@@ -1365,7 +1315,7 @@ void read_map()
 							d = b + W[w][1];
 							if (c >= 0 && d >= 0 && c < (int)map_w && d < (int)map_h)
 							{
-								map_reg["map_conect" + Str(map_reg[Str(a) + ":" + Str(b)]) + "/" + Str(map_reg[Str(c) + ":" + Str(d)])] = 1;
+								map_connect[{map_reg[a + map_w * b], map_reg[c + map_w * d]}] = 1;
 							}
 						}
 
@@ -1378,7 +1328,7 @@ void read_map()
 					{
 						c = a + I->x1;
 						d = b + I->y1;
-						if (map_reg[Str(c) + ":" + Str(d)] == i)
+						if (map_reg[c + map_w * d] == i)
 						{
 							//if (map_reg[Str(c) + ":" + Str(d) + "b"] == 0)
 							//if (sqrt(pow(I->px - a, 2) + pow(I->py - b, 2)) - (w_t + h_t) / 2 + map_reg[Str(c) + ":" + Str(d) + "r"] * 6 + 20 > 0 || map_reg[Str(c) + ":" + Str(d) + "r"] == 0)
@@ -1405,87 +1355,85 @@ void read_map()
 				SDL_SetColorKey(geogrp, SDL_TRUE, 0);
 				SDL_SetColorKey(lineprov, SDL_TRUE, 0);
 				I->t = SDL_CreateTextureFromSurface(REND, prov);
+				if (I->t == nullptr) throw;
 				I->gt = SDL_CreateTextureFromSurface(REND, geogrp);
+				if (I->gt == nullptr) throw;
 				I->lt = SDL_CreateTextureFromSurface(REND, lineprov);
+				if (I->lt == nullptr) throw;
 			}
 		}
 	}
 	for (size_t i = 0; i < prv.size(); ++i)
 	{
-		
+
 		for (size_t j = 0; j < prv.size(); ++j)
 		{
-			if (map_reg["map_conect" + Str(i) + "/" + Str(j)] == 1 && i != j)
+			if (map_connect[{i, j}] == 1 && i != j)
 			{
 				auto I0 = prv.at(i);
 				auto I1 = prv.at(j);
-				map_reg["map_conect" + Str(i) + "/" + Str(j)] = (int)(sqrt(pow(I0.px + I0.x1 - I1.x1 - I1.px, 2) + pow(I0.py + I0.y1 - I1.y1 - I1.py, 2)));
+				map_connect[{i, j}] = (int)(sqrt(pow(I0.px + I0.x1 - I1.x1 - I1.px, 2) + pow(I0.py + I0.y1 - I1.y1 - I1.py, 2)));
 			}
 		}
 	}
 }
 
-void read_prv(const std::string path, const std::string tag) {
+void read_prv(const std::wstring path, const std::wstring tag) {
 
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
-		
-		std::ifstream wif(Utf16(path));
-		wif.imbue(std::locale(std::locale::empty()));
-		std::stringstream wss;
-		wss << wif.rdbuf();
-		
-		read_as_prv(wss.str());
+		std::wstring name = path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
+
+		std::ifstream ifs(path);
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		read_as_prv(conv.from_bytes(ss.str()));
 
 
-		LOG_O("SUCCESS READ PROVINCE FILE", path);
+		LOG_O(L"SUCCESS READ PROVINCE FILE", path);
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
-void read_man(const std::string path, const std::string tag) {
+void read_man(const std::wstring path, const std::wstring tag) {
 
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+		std::wstring name = path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
 
-		std::ifstream wif(Utf16(path));
-		wif.imbue(std::locale(std::locale::empty()));
-		std::stringstream wss;
-		wss << wif.rdbuf();
-
-		read_as_man(wss.str());
+		std::ifstream ifs(path);
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		read_as_man(conv.from_bytes(ss.str()));
 
 
-		LOG_O("SUCCESS READ CHARACTER FILE", path);
+		LOG_O(L"SUCCESS READ CHARACTER FILE", path);
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
 
-void read_nat(const std::string path, const std::string tag) {
+void read_nat(const std::wstring path, const std::wstring tag) {
 
-	if (path.find_last_of(".") != std::string::npos && path.find_last_of("/") != std::string::npos)
+	if (path.find_last_of(L".") != std::wstring::npos && path.find_last_of(L"/") != std::wstring::npos)
 	{
-		std::string name = path.substr(path.find_last_of("/") + 1, path.find_last_of(".") - path.find_last_of("/") - 1);
+		std::wstring name = path.substr(path.find_last_of(L"/") + 1, path.find_last_of(L".") - path.find_last_of(L"/") - 1);
 
-		std::ifstream wif(Utf16(path));
-		wif.imbue(std::locale(std::locale::empty()));
-		std::stringstream wss;
-		wss << wif.rdbuf();
-		read_as_nat(wss.str());
-		LOG_O("SUCCESS READ NATION FILE", path);
+		std::ifstream ifs(path);
+		std::stringstream ss;
+		ss << ifs.rdbuf();
+		read_as_nat(conv.from_bytes(ss.str()));
+		LOG_O(L"SUCCESS READ NATION FILE", path);
 	}
 	else
 	{
-		LOG_W("FILE NAME ERROR", path);
+		LOG_W(L"FILE NAME ERROR", path);
 		quit = true;
 	}
 }
@@ -1511,7 +1459,7 @@ void gui_remove(int id)apple
 			}
 		}
 		(gui.begin() + a)->id -= 1;
-		//ikeys[(gui.begin() + a)->var["name"]] -= 1;
+		//ikeys[(gui.begin() + a)->var[L"name"]] -= 1;
 	}
 }
 */
